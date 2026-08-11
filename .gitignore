@@ -9,6 +9,9 @@ build/
 .cloudflare/
 .wrangler/
 
+# Graphify Output Cache
+graphify-out/
+
 # Chaves Secretas e Variáveis de Ambiente
 .env
 .env.local
