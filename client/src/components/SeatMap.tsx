@@ -138,7 +138,7 @@ export const SeatMap: React.FC<SeatMapProps> = ({
 
         <div className="flex items-center gap-2 text-indigo-400 bg-indigo-950/40 px-3 py-1.5 rounded-full border border-indigo-800/40">
           <ShieldCheck className="w-4 h-4 text-indigo-400" />
-          <span className="font-medium">Proteção Concorrência RPC (`FOR UPDATE`)</span>
+          <span className="font-medium">Proteção de Concorrência Atômica (FOR UPDATE)</span>
         </div>
       </div>
     </div>

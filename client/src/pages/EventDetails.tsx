@@ -44,7 +44,7 @@ export const EventDetails: React.FC<EventDetailsProps> = ({
     if (!selectedSeat) return;
     setIsReserving(true);
     
-    // Call optimistic lock RPC reservation endpoint
+    // Call pessimistic lock RPC reservation endpoint
     const res = await api.reserveSeat(selectedSeat.id, 'usuario@exemplo.com');
 
     setIsReserving(false);
