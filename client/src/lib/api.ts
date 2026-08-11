@@ -315,5 +315,48 @@ export const api = {
 
     MOCK_EVENTS.unshift(fallbackEvent);
     return { success: true, event: fallbackEvent };
+  },
+
+  // 8. Fetch External Catalog (TMDb / Ticketmaster search list for organizers)
+  async fetchExternalCatalog(source: string = 'tmdb', query: string = ''): Promise<any[]> {
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/external-catalog?source=${source}&query=${encodeURIComponent(query)}`);
+      if (res.ok) {
+        const json = await res.json();
+        if (json.success && json.results) return json.results;
+      }
+    } catch {
+      console.warn('API external-catalog offline, using fallback list.');
+    }
+
+    return [
+      {
+        externalId: 'tmdb-1',
+        source: 'tmdb',
+        type: 'movie',
+        title: 'Avatar: O Caminho da Água',
+        description: 'Após formar uma família, Jake Sully e Neytiri fazem de tudo para ficarem juntos na lua Pandora.',
+        banner_url: 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=1200&q=80',
+        category: 'Cinema / Ficção'
+      },
+      {
+        externalId: 'tmdb-2',
+        source: 'tmdb',
+        type: 'movie',
+        title: 'Duna: Parte 2',
+        description: 'Paul Atreides se une a Chani e aos Fremen enquanto busca vingança contra os conspiradores que destruíram sua família.',
+        banner_url: 'https://images.unsplash.com/photo-1534447677768-be436bb09401?auto=format&fit=crop&w=1200&q=80',
+        category: 'Cinema / Épico'
+      },
+      {
+        externalId: 'tm-1',
+        source: 'ticketmaster',
+        type: 'show',
+        title: 'Coldplay: Music of the Spheres Tour',
+        description: 'A mundialmente aclamada turnê sustentável do Coldplay com hits inesquecíveis e show de luzes.',
+        banner_url: 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?auto=format&fit=crop&w=1200&q=80',
+        category: 'Show Internacional'
+      }
+    ];
   }
 };
