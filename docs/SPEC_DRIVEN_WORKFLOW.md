@@ -1,3 +1,4 @@
+
 # 📐 Metodologia Spec-Driven Development (SDD) & Arquitetura
 
 **Projeto:** Plataforma de Eventos e Ingressos — Desafio Elite Dev 2026 (Verzel)  
