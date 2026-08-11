@@ -30,7 +30,7 @@ export const TicketCard: React.FC<TicketCardProps> = ({ ticket, qrData }) => {
   const isUsed = ticket.status === 'used';
 
   return (
-    <div className="w-full max-w-md mx-auto glass-panel rounded-3xl overflow-hidden border border-slate-800 shadow-2xl relative transition hover:border-indigo-500/40">
+    <div className="w-full max-w-md mx-auto ticket-stub rounded-3xl overflow-hidden shadow-2xl relative transition hover:border-zinc-500/40">
       {/* Ticket Banner Image */}
       <div className="h-36 w-full relative overflow-hidden">
         <img
@@ -38,9 +38,9 @@ export const TicketCard: React.FC<TicketCardProps> = ({ ticket, qrData }) => {
           alt={event.title}
           className="w-full h-full object-cover filter brightness-75"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/40 to-transparent"></div>
+        <div className="absolute inset-0 bg-gradient-to-t from-[#121215] via-[#121215]/40 to-transparent"></div>
         <div className="absolute top-4 left-4">
-          <span className="bg-indigo-600/90 text-white text-[10px] uppercase font-bold tracking-wider px-2.5 py-1 rounded-full border border-indigo-400/40 shadow-lg">
+          <span className="bg-emerald-600 text-zinc-950 font-extrabold text-[10px] uppercase tracking-wider px-2.5 py-1 rounded-full shadow-lg">
             INGRESSO OFICIAL
           </span>
         </div>
@@ -48,11 +48,11 @@ export const TicketCard: React.FC<TicketCardProps> = ({ ticket, qrData }) => {
         {/* Status Badge */}
         <div className="absolute top-4 right-4">
           {isUsed ? (
-            <span className="bg-amber-500/90 text-slate-950 font-extrabold text-[10px] uppercase px-2.5 py-1 rounded-full flex items-center gap-1">
+            <span className="bg-amber-500 text-zinc-950 font-extrabold text-[10px] uppercase px-2.5 py-1 rounded-full flex items-center gap-1 shadow-lg">
               <CheckCircle2 className="w-3 h-3" /> UTILIZADO
             </span>
           ) : (
-            <span className="bg-emerald-500/90 text-slate-950 font-extrabold text-[10px] uppercase px-2.5 py-1 rounded-full flex items-center gap-1">
+            <span className="bg-emerald-500 text-zinc-950 font-extrabold text-[10px] uppercase px-2.5 py-1 rounded-full flex items-center gap-1 shadow-lg">
               <ShieldCheck className="w-3 h-3" /> VÁLIDO
             </span>
           )}
@@ -63,22 +63,20 @@ export const TicketCard: React.FC<TicketCardProps> = ({ ticket, qrData }) => {
       <div className="p-6">
         <h3 className="text-xl font-bold font-display text-white mb-2">{event.title}</h3>
         
-        <div className="space-y-2 text-xs text-slate-300 mb-6">
+        <div className="space-y-2 text-xs text-zinc-300 mb-6">
           <div className="flex items-center gap-2">
-            <Calendar className="w-4 h-4 text-indigo-400 shrink-0" />
+            <Calendar className="w-4 h-4 text-emerald-400 shrink-0" />
             <span>{new Date(event.date || Date.now()).toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
           </div>
           <div className="flex items-center gap-2">
-            <MapPin className="w-4 h-4 text-indigo-400 shrink-0" />
+            <MapPin className="w-4 h-4 text-emerald-400 shrink-0" />
             <span className="truncate">{event.venue}</span>
           </div>
         </div>
 
         {/* Dotted Perforated Ticket Line */}
         <div className="relative my-6">
-          <div className="border-b-2 border-dashed border-slate-800 w-full"></div>
-          <div className="absolute -left-9 -top-3 w-6 h-6 rounded-full bg-slate-950 border-r border-slate-800"></div>
-          <div className="absolute -right-9 -top-3 w-6 h-6 rounded-full bg-slate-950 border-l border-slate-800"></div>
+          <div className="border-b-2 border-dashed border-zinc-700 w-full"></div>
         </div>
 
         {/* Seat & Owner Details Grid */}

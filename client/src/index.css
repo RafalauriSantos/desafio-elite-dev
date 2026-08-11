@@ -4,45 +4,43 @@
 
 @layer base {
   body {
-    background-color: #030712;
-    color: #f8fafc;
-    overflow-x: hidden;
+    background-color: #09090b;
+    color: #f4f4f5;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
   }
 }
 
-/* Glassmorphism Design Tokens */
-.glass-panel {
-  background: rgba(15, 23, 42, 0.7);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+.panel-card {
+  background-color: #121215;
+  border: 1px solid #27272a;
 }
 
-.glass-card {
-  background: rgba(30, 41, 59, 0.5);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+/* Ticket Stub Semi-Circular Cutouts */
+.ticket-stub {
+  position: relative;
+  background-color: #121215;
+  border: 1px solid #27272a;
 }
 
-.glass-card:hover {
-  border-color: rgba(99, 102, 241, 0.3);
-  transform: translateY(-2px);
+.ticket-stub::before,
+.ticket-stub::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  width: 24px;
+  height: 24px;
+  background-color: #09090b;
+  border-radius: 50%;
+  transform: translateY(-50%);
+  z-index: 10;
 }
 
-/* Custom Scrollbar */
-::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+.ticket-stub::before {
+  left: -12px;
+  border-right: 1px solid #27272a;
 }
-::-webkit-scrollbar-track {
-  background: #090d16;
-}
-::-webkit-scrollbar-thumb {
-  background: #1e293b;
-  border-radius: 4px;
-}
-::-webkit-scrollbar-thumb:hover {
-  background: #334155;
+
+.ticket-stub::after {
+  right: -12px;
+  border-left: 1px solid #27272a;
 }

@@ -19,13 +19,12 @@ export const SeatMap: React.FC<SeatMapProps> = ({
   const rows = Array.from(new Set(seats.map((s) => s.row_name))).sort();
 
   return (
-    <div className="w-full glass-panel p-6 sm:p-8 rounded-2xl border border-slate-800 shadow-2xl relative overflow-hidden">
-      {/* Stage Backdrop Effect */}
-      <div className="relative mb-12 text-center">
-        <div className="w-3/4 mx-auto h-3 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 rounded-b-xl blur-xs opacity-80 animate-pulse-slow"></div>
-        <div className="w-full h-12 bg-gradient-to-b from-indigo-500/10 to-transparent border-t-2 border-indigo-400/40 rounded-t-full flex items-center justify-center mt-2">
-          <span className="text-xs uppercase tracking-[0.3em] font-semibold text-indigo-300">
-            PALCO / PALESTRA PRINCIPAL
+    <div className="w-full bg-[#121215] p-6 sm:p-8 rounded-2xl border border-[#27272a] shadow-xl relative overflow-hidden">
+      {/* Stage Screen Backdrop (Curved Top Screen per Skill 2) */}
+      <div className="relative mb-10 text-center">
+        <div className="w-full h-10 bg-zinc-900/60 border-b-2 border-emerald-500/50 rounded-b-full flex items-center justify-center">
+          <span className="text-[11px] uppercase tracking-[0.3em] font-mono font-semibold text-emerald-400">
+            TELA / PALCO PRINCIPAL
           </span>
         </div>
       </div>
@@ -40,7 +39,7 @@ export const SeatMap: React.FC<SeatMapProps> = ({
           return (
             <div key={rowName} className="flex items-center gap-3">
               {/* Row Label */}
-              <span className="w-6 text-center font-bold text-sm text-slate-400 font-display">
+              <span className="w-6 text-center font-bold text-sm text-zinc-400 font-mono">
                 {rowName}
               </span>
 
@@ -52,28 +51,28 @@ export const SeatMap: React.FC<SeatMapProps> = ({
                   const isLocked = seat.status === 'locked';
                   const isSold = seat.status === 'sold';
 
-                  let seatStyle = 'bg-slate-800 text-slate-400 hover:bg-slate-700 hover:text-white border-slate-700';
+                  let seatStyle = 'bg-zinc-900 text-zinc-400 hover:bg-zinc-800 border-zinc-700';
 
                   if (isAvailable) {
                     if (seat.category === 'VIP') {
-                      seatStyle = 'bg-emerald-950/80 text-emerald-300 border-emerald-500/40 hover:bg-emerald-600 hover:text-white hover:shadow-lg hover:shadow-emerald-500/30';
+                      seatStyle = 'bg-emerald-950/60 text-emerald-300 border-emerald-500/40 hover:bg-emerald-500 hover:text-zinc-950';
                     } else if (seat.category === 'Premium') {
-                      seatStyle = 'bg-indigo-950/80 text-indigo-300 border-indigo-500/40 hover:bg-indigo-600 hover:text-white hover:shadow-lg hover:shadow-indigo-500/30';
+                      seatStyle = 'bg-zinc-900 text-zinc-200 border-zinc-700 hover:bg-emerald-600 hover:text-white';
                     } else {
-                      seatStyle = 'bg-slate-900 text-slate-200 border-slate-700 hover:bg-slate-700 hover:text-white';
+                      seatStyle = 'bg-zinc-900 text-zinc-300 border-zinc-800 hover:bg-zinc-800 hover:text-white';
                     }
                   }
 
                   if (isLocked) {
-                    seatStyle = 'bg-amber-950/50 text-amber-500/70 border-amber-600/30 cursor-not-allowed';
+                    seatStyle = 'bg-amber-950/40 text-amber-400 border-amber-500/30 cursor-not-allowed';
                   }
 
                   if (isSold) {
-                    seatStyle = 'bg-slate-900/60 text-slate-600 border-slate-800/40 cursor-not-allowed opacity-50';
+                    seatStyle = 'bg-zinc-950 text-zinc-700 border-zinc-850 cursor-not-allowed opacity-40';
                   }
 
                   if (isSelected) {
-                    seatStyle = 'bg-gradient-to-tr from-indigo-600 to-purple-600 text-white border-indigo-400 shadow-lg shadow-indigo-500/50 scale-105 ring-2 ring-indigo-300';
+                    seatStyle = 'bg-emerald-500 text-zinc-950 font-extrabold border-emerald-400 shadow-md shadow-emerald-500/30 scale-105 ring-2 ring-emerald-300';
                   }
 
                   return (
@@ -82,28 +81,23 @@ export const SeatMap: React.FC<SeatMapProps> = ({
                       disabled={!isAvailable || isReserving}
                       onClick={() => onSelectSeat(seat)}
                       title={`Fileira ${seat.row_name} - Assento ${seat.seat_number} (${seat.category}): R$ ${seat.price.toFixed(2)}`}
-                      className={`w-9 h-9 sm:w-11 sm:h-11 rounded-lg border font-semibold text-xs sm:text-sm flex flex-col items-center justify-center transition-all duration-200 relative group ${seatStyle}`}
+                      className={`w-9 h-9 sm:w-11 sm:h-11 rounded-lg border font-mono font-semibold text-xs sm:text-sm flex flex-col items-center justify-center transition-all duration-150 relative group ${seatStyle}`}
                     >
                       <span>{seat.seat_number}</span>
 
                       {/* Status Overlay Icon */}
                       {isLocked && <Lock className="w-3 h-3 text-amber-400 absolute bottom-1" />}
-                      {isSelected && <CheckCircle2 className="w-3.5 h-3.5 text-white absolute bottom-1" />}
+                      {isSelected && <CheckCircle2 className="w-3.5 h-3.5 text-zinc-950 absolute bottom-1" />}
 
                       {/* Tooltip on hover */}
-                      <div className="absolute bottom-full mb-2 hidden group-hover:flex flex-col items-center bg-slate-900 text-slate-100 text-[10px] py-1 px-2.5 rounded shadow-xl border border-slate-700 whitespace-nowrap z-20 pointer-events-none">
-                        <span className="font-bold text-indigo-300">Fileira {seat.row_name} • Assento {seat.seat_number}</span>
-                        <span className="text-slate-300">{seat.category} - R$ {seat.price.toFixed(2)}</span>
+                      <div className="absolute bottom-full mb-2 hidden group-hover:flex flex-col items-center bg-zinc-900 text-zinc-100 text-[10px] py-1 px-2.5 rounded shadow-xl border border-zinc-700 whitespace-nowrap z-20 pointer-events-none">
+                        <span className="font-bold text-emerald-400 font-mono">Fileira {seat.row_name} • Assento {seat.seat_number}</span>
+                        <span className="text-zinc-300">{seat.category} - R$ {seat.price.toFixed(2)}</span>
                       </div>
                     </button>
                   );
                 })}
               </div>
-
-              {/* Row Label Right */}
-              <span className="w-6 text-center font-bold text-sm text-slate-400 font-display">
-                {rowName}
-              </span>
             </div>
           );
         })}

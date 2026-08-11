@@ -1,0 +1,28 @@
+# 🎨 Skill: Engenheiro de Front-End & Design System (Anti-AI-Slop)
+
+Ao criar ou refatorar componentes React em `client/src/`, siga estritamente este guia visual profissional para eliminar qualquer traço de interface gerada automaticamente:
+
+## 1. Cores & Design System (Dark Minimalist / E-Commerce de Luxo)
+- **Fundo da Aplicação:** `bg-[#09090b]` (Zinc 950 sólido, NUNCA use gradientes azuis/slate-900).
+- **Cards e Painéis:** `bg-[#121215]` com borda sólida neutra `border-[#27272a]`. Proibido o uso de `backdrop-blur` excessivo ou bordas roxas/azuis neon.
+- **Cores de Estado Acessíveis:**
+  - Sucesso/Livre/Válido: `emerald-500`
+  - Alerta/Usado: `amber-500`
+  - Erro/Inválido: `rose-500`
+  - Incompatível/Evento Errado: `sky-500`
+
+## 2. Padrões de Componentes Obrigatórios
+- **Mapa de Assentos (`SeatMap.tsx`):**
+  - Deve conter visualização curva da tela no topo (`border-b-2 border-emerald-500/50`).
+  - Fileiras identificadas lateralmente (A, B, C...).
+  - Fonte monoespaçada (`font-mono`) nos números dos assentos.
+- **Ingresso Canhoto (`TicketCard.tsx`):**
+  - Formato de bilhete físico com recortes laterais semicirculares (`clip-path` ou `mask`).
+  - Divisão por linha pontilhada (`border-r border-dashed border-zinc-700`) separando dados do evento e canhoto com QR Code.
+- **Portaria (`QRScanner.tsx`):**
+  - Estilo de terminal de acesso tátil com moldura de alinhamento de câmera e modais em tela cheia com cores sólidas de diagnostico.
+
+## 3. Qualidade do Código React
+- Utilizar TypeScript estrito sem o uso de `any`.
+- Implementar *Skeleton Loaders* para todos os estados de carregamento.
+- Adicionar feedback tátil e transições suaves (`active:scale-95 transition-all`).
