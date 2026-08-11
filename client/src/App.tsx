@@ -4,7 +4,7 @@ import { EventDetails } from './pages/EventDetails';
 import { MyTickets } from './pages/MyTickets';
 import { Gatekeeper } from './pages/Gatekeeper';
 import { TicketItem } from './lib/api';
-import { Ticket, ShieldCheck, QrCode, Sparkles } from 'lucide-react';
+import { Ticket, ShieldCheck, QrCode, Sparkles, Activity, Lock } from 'lucide-react';
 
 type Tab = 'catalog' | 'event-details' | 'my-tickets' | 'gatekeeper';
 
@@ -24,26 +24,26 @@ export function App() {
   };
 
   return (
-    <div className="min-h-screen bg-[#09090b] text-zinc-100 flex flex-col font-sans">
+    <div className="min-h-screen bg-[#09090b] text-zinc-100 flex flex-col font-sans selection:bg-emerald-500 selection:text-zinc-950">
       {/* Top Header Navigation */}
-      <header className="sticky top-0 z-40 bg-[#09090b]/90 backdrop-blur-sm border-b border-[#27272a]">
+      <header className="sticky top-0 z-40 bg-[#09090b]/85 backdrop-blur-xl border-b border-[#27272a] shadow-lg shadow-black/40">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           {/* Brand Logo */}
           <button
             onClick={() => setActiveTab('catalog')}
-            className="flex items-center gap-3 group text-left"
+            className="flex items-center gap-3 group text-left transition-transform active:scale-95"
           >
-            <div className="w-10 h-10 rounded-xl bg-zinc-900 border border-[#27272a] p-0.5 shadow-sm group-hover:border-zinc-500 transition-colors">
-              <div className="w-full h-full bg-[#121215] rounded-[10px] flex items-center justify-center">
-                <Ticket className="w-5 h-5 text-emerald-500 group-hover:text-emerald-400 transition-colors" />
+            <div className="w-10 h-10 rounded-xl bg-zinc-900 border border-[#27272a] p-0.5 shadow-sm group-hover:border-emerald-500/50 transition-all duration-300">
+              <div className="w-full h-full bg-[#121215] rounded-[10px] flex items-center justify-center group-hover:bg-emerald-950/30 transition-colors">
+                <Ticket className="w-5 h-5 text-emerald-400 group-hover:scale-110 transition-transform" />
               </div>
             </div>
             <div>
               <div className="flex items-center gap-1.5">
                 <span className="font-extrabold text-lg tracking-tight font-display text-white">
-                  ELITE<span className="text-emerald-500">TICKETS</span>
+                  ELITE<span className="text-emerald-400">TICKETS</span>
                 </span>
-                <span className="bg-zinc-900 text-emerald-400 border border-zinc-800 text-[10px] px-1.5 py-0.5 rounded font-mono uppercase font-semibold">
+                <span className="bg-emerald-950/80 text-emerald-400 border border-emerald-800/60 text-[10px] px-2 py-0.5 rounded-full font-mono uppercase font-bold tracking-wider">
                   2026
                 </span>
               </div>
@@ -54,13 +54,13 @@ export function App() {
           </button>
 
           {/* Navigation Tabs */}
-          <nav className="flex items-center gap-1 bg-[#121215] p-1.5 rounded-xl border border-[#27272a]">
+          <nav className="flex items-center gap-1.5 bg-[#121215]/90 p-1.5 rounded-2xl border border-[#27272a]">
             <button
               onClick={() => setActiveTab('catalog')}
-              className={`flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-semibold transition-all ${
+              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold transition-all active:scale-95 ${
                 activeTab === 'catalog'
-                  ? 'bg-zinc-800 text-white border border-zinc-700 shadow-sm'
-                  : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900'
+                  ? 'bg-zinc-800 text-white border border-zinc-700 shadow-md shadow-black/20'
+                  : 'text-zinc-400 hover:text-zinc-100 hover:bg-zinc-900/60'
               }`}
             >
               <Sparkles className="w-4 h-4 text-emerald-400" />
@@ -69,16 +69,16 @@ export function App() {
 
             <button
               onClick={() => setActiveTab('my-tickets')}
-              className={`flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-semibold transition-all relative ${
+              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold transition-all active:scale-95 relative ${
                 activeTab === 'my-tickets'
-                  ? 'bg-zinc-800 text-white border border-zinc-700 shadow-sm'
-                  : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900'
+                  ? 'bg-zinc-800 text-white border border-zinc-700 shadow-md shadow-black/20'
+                  : 'text-zinc-400 hover:text-zinc-100 hover:bg-zinc-900/60'
               }`}
             >
               <Ticket className="w-4 h-4" />
               <span>Meus Ingressos</span>
               {tickets.length > 0 && (
-                <span className="bg-emerald-500 text-zinc-950 font-bold text-[10px] w-4 h-4 rounded-full flex items-center justify-center">
+                <span className="bg-emerald-400 text-zinc-950 font-extrabold text-[10px] w-4 h-4 rounded-full flex items-center justify-center shadow-sm shadow-emerald-500/50 animate-pulse">
                   {tickets.length}
                 </span>
               )}
@@ -86,10 +86,10 @@ export function App() {
 
             <button
               onClick={() => setActiveTab('gatekeeper')}
-              className={`flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-semibold transition-all ${
+              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold transition-all active:scale-95 ${
                 activeTab === 'gatekeeper'
-                  ? 'bg-emerald-600 text-white shadow-sm'
-                  : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900'
+                  ? 'bg-emerald-500 text-zinc-950 font-bold shadow-lg shadow-emerald-500/20'
+                  : 'text-zinc-400 hover:text-zinc-100 hover:bg-zinc-900/60'
               }`}
             >
               <QrCode className="w-4 h-4" />
@@ -130,7 +130,17 @@ export function App() {
             <ShieldCheck className="w-4 h-4 text-emerald-400" />
             <span>Elite Tickets • Plataforma Oficial de Ingressos & Validação de Entrada</span>
           </div>
-          <p>© 2026 Elite Tickets. Todos os direitos reservados.</p>
+          <div className="flex items-center gap-3 text-[11px]">
+            <span className="flex items-center gap-1.5 text-zinc-400">
+              <Activity className="w-3.5 h-3.5 text-emerald-400 animate-pulse" />
+              <span>Cloudflare Workers API Active</span>
+            </span>
+            <span>•</span>
+            <span className="flex items-center gap-1 text-zinc-400">
+              <Lock className="w-3 h-3 text-indigo-400" />
+              <span>Supabase Postgres RLS Protected</span>
+            </span>
+          </div>
         </div>
       </footer>
     </div>

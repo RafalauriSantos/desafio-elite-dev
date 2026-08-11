@@ -1,7 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import { TicketItem } from '../lib/api';
-import { ShieldCheck, Calendar, MapPin, Ticket, CheckCircle2, AlertTriangle } from 'lucide-react';
+import { ShieldCheck, Calendar, MapPin, Ticket, CheckCircle2, AlertTriangle, Copy, Check } from 'lucide-react';
 
 interface TicketCardProps {
   ticket: TicketItem;
@@ -9,6 +9,8 @@ interface TicketCardProps {
 }
 
 export const TicketCard: React.FC<TicketCardProps> = ({ ticket, qrData }) => {
+  const [copied, setCopied] = useState(false);
+
   const event = ticket.events || {
     title: 'Evento Selecionado',
     venue: 'Local do Evento',
@@ -29,10 +31,17 @@ export const TicketCard: React.FC<TicketCardProps> = ({ ticket, qrData }) => {
 
   const isUsed = ticket.status === 'used';
 
+  const handleCopyLink = () => {
+    const link = `${window.location.origin}/#ticket-${ticket.id}`;
+    navigator.clipboard.writeText(link);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2500);
+  };
+
   return (
-    <div className="w-full max-w-md mx-auto ticket-stub rounded-3xl overflow-hidden shadow-2xl relative transition hover:border-zinc-500/40">
+    <div className="w-full max-w-md mx-auto ticket-stub rounded-3xl overflow-hidden shadow-2xl relative transition-all duration-300 hover:border-emerald-500/40">
       {/* Ticket Banner Image */}
-      <div className="h-36 w-full relative overflow-hidden">
+      <div className="h-36 w-full relative overflow-hidden bg-zinc-950">
         <img
           src={event.banner_url}
           alt={event.title}
@@ -40,7 +49,7 @@ export const TicketCard: React.FC<TicketCardProps> = ({ ticket, qrData }) => {
         />
         <div className="absolute inset-0 bg-gradient-to-t from-[#121215] via-[#121215]/40 to-transparent"></div>
         <div className="absolute top-4 left-4">
-          <span className="bg-emerald-600 text-zinc-950 font-extrabold text-[10px] uppercase tracking-wider px-2.5 py-1 rounded-full shadow-lg">
+          <span className="bg-emerald-500 text-zinc-950 font-extrabold text-[10px] uppercase tracking-wider px-2.5 py-1 rounded-full shadow-lg">
             INGRESSO OFICIAL
           </span>
         </div>
@@ -52,7 +61,7 @@ export const TicketCard: React.FC<TicketCardProps> = ({ ticket, qrData }) => {
               <CheckCircle2 className="w-3 h-3" /> UTILIZADO
             </span>
           ) : (
-            <span className="bg-emerald-500 text-zinc-950 font-extrabold text-[10px] uppercase px-2.5 py-1 rounded-full flex items-center gap-1 shadow-lg">
+            <span className="bg-emerald-400 text-zinc-950 font-extrabold text-[10px] uppercase px-2.5 py-1 rounded-full flex items-center gap-1 shadow-lg">
               <ShieldCheck className="w-3 h-3" /> VÁLIDO
             </span>
           )}
@@ -80,21 +89,21 @@ export const TicketCard: React.FC<TicketCardProps> = ({ ticket, qrData }) => {
         </div>
 
         {/* Seat & Owner Details Grid */}
-        <div className="grid grid-cols-2 gap-4 bg-slate-900/60 p-4 rounded-2xl border border-slate-800/80 mb-6 text-xs">
+        <div className="grid grid-cols-2 gap-4 bg-zinc-950 p-4 rounded-2xl border border-zinc-800 mb-6 text-xs shadow-inner">
           <div>
-            <span className="text-slate-500 uppercase tracking-wider text-[10px]">Titular</span>
-            <p className="font-semibold text-slate-200 truncate">{ticket.user_name || ticket.user_email}</p>
+            <span className="text-zinc-500 uppercase tracking-wider text-[10px] font-bold">Titular</span>
+            <p className="font-semibold text-zinc-200 truncate">{ticket.user_name || ticket.user_email}</p>
           </div>
           <div>
-            <span className="text-slate-500 uppercase tracking-wider text-[10px]">Assento</span>
-            <p className="font-bold text-indigo-400 font-mono text-sm">
+            <span className="text-zinc-500 uppercase tracking-wider text-[10px] font-bold">Assento</span>
+            <p className="font-bold text-emerald-400 font-mono text-sm">
               {seat.row_name} - N° {seat.seat_number}
             </p>
           </div>
         </div>
 
         {/* QR Code Container */}
-        <div className="flex flex-col items-center justify-center p-4 bg-white rounded-2xl shadow-inner relative group">
+        <div className="flex flex-col items-center justify-center p-5 bg-white rounded-2xl shadow-2xl relative group border-2 border-zinc-800">
           <QRCodeSVG
             value={finalQrString}
             size={160}
@@ -102,37 +111,46 @@ export const TicketCard: React.FC<TicketCardProps> = ({ ticket, qrData }) => {
             includeMargin={true}
           />
           <div className="mt-2 text-center">
-            <span className="text-[10px] font-mono text-slate-500 block truncate max-w-[200px]">
+            <span className="text-[10px] font-mono text-zinc-600 block truncate max-w-[220px] font-semibold">
               ID: {ticket.id}
             </span>
-            <span className="text-[9px] font-bold text-indigo-600 tracking-wider flex items-center justify-center gap-1 mt-0.5">
-              <ShieldCheck className="w-3 h-3" /> Assinado via HMAC-SHA256
+            <span className="text-[10px] font-bold text-emerald-700 tracking-wider flex items-center justify-center gap-1 mt-0.5">
+              <ShieldCheck className="w-3.5 h-3.5" /> Assinado via HMAC-SHA256
             </span>
           </div>
 
           {isUsed && (
-            <div className="absolute inset-0 bg-slate-950/90 rounded-2xl flex flex-col items-center justify-center text-amber-400 p-4 text-center">
-              <AlertTriangle className="w-10 h-10 mb-2" />
+            <div className="absolute inset-0 bg-zinc-950/95 rounded-2xl flex flex-col items-center justify-center text-amber-400 p-4 text-center">
+              <AlertTriangle className="w-10 h-10 mb-2 animate-bounce" />
               <span className="font-extrabold text-sm uppercase">Ingresso Já Validado</span>
-              <span className="text-[10px] text-slate-400 mt-1">Entrada registrada na portaria</span>
+              <span className="text-[10px] text-zinc-400 mt-1">Entrada registrada na portaria</span>
             </div>
           )}
         </div>
 
         {/* Share Link Action */}
-        <div className="mt-4 pt-3 border-t border-slate-800 flex items-center justify-between">
-          <span className="text-[11px] text-slate-400">Ingresso Transferível / Link Público</span>
+        <div className="mt-5 pt-4 border-t border-zinc-800 flex items-center justify-between">
+          <span className="text-[11px] text-zinc-400">Link Público de Entrada</span>
           <button
             type="button"
-            onClick={() => {
-              const link = `${window.location.origin}/#ticket-${ticket.id}`;
-              navigator.clipboard.writeText(link);
-              alert('Link de compartilhamento copiado para a área de transferência!\n\nLink: ' + link);
-            }}
-            className="px-3 py-1.5 rounded-lg bg-indigo-950 hover:bg-indigo-900 border border-indigo-500/40 text-indigo-300 text-xs font-semibold flex items-center gap-1.5 transition"
+            onClick={handleCopyLink}
+            className={`px-3.5 py-1.5 rounded-xl border text-xs font-bold flex items-center gap-1.5 transition-all active:scale-95 ${
+              copied
+                ? 'bg-emerald-500 text-zinc-950 border-emerald-400 shadow-md shadow-emerald-500/30'
+                : 'bg-zinc-900 hover:bg-zinc-800 text-emerald-400 border-zinc-700'
+            }`}
           >
-            <Ticket className="w-3.5 h-3.5" />
-            <span>Copiar Link</span>
+            {copied ? (
+              <>
+                <Check className="w-3.5 h-3.5 text-zinc-950" />
+                <span>Copiado!</span>
+              </>
+            ) : (
+              <>
+                <Copy className="w-3.5 h-3.5" />
+                <span>Copiar Link</span>
+              </>
+            )}
           </button>
         </div>
       </div>
