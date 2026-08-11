@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Plus, X, Film, Music, Sparkles, Calendar, MapPin, DollarSign, Search, CheckCircle2, ArrowRight } from 'lucide-react';
+import { Plus, X, Film, Music, Calendar, MapPin, ArrowRight, CheckCircle2 } from 'lucide-react';
 import { api, EventItem } from '../lib/api';
 
 interface OrganizerModalProps {
@@ -13,13 +13,11 @@ export const OrganizerModal: React.FC<OrganizerModalProps> = ({
   onClose,
   onEventCreated,
 }) => {
-  const [activeTab, setActiveTab] = useState<'import' | 'manual'>('import');
+  const [step, setStep] = useState<'select' | 'configure'>('select');
   const [source, setSource] = useState<'tmdb' | 'ticketmaster'>('tmdb');
-  const [searchQuery, setSearchQuery] = useState('');
   const [externalResults, setExternalResults] = useState<any[]>([]);
   const [selectedExternalItem, setSelectedExternalItem] = useState<any | null>(null);
 
-  // Form Fields
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [venue, setVenue] = useState('Arena Anhembi - São Paulo, SP');
@@ -28,7 +26,6 @@ export const OrganizerModal: React.FC<OrganizerModalProps> = ({
   const [bannerUrl, setBannerUrl] = useState('');
 
   const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState<string | null>(null);
 
   useEffect(() => {
     if (isOpen) {
@@ -43,7 +40,7 @@ export const OrganizerModal: React.FC<OrganizerModalProps> = ({
 
   const loadCatalog = async () => {
     setLoading(true);
-    const results = await api.fetchExternalCatalog(source, searchQuery);
+    const results = await api.fetchExternalCatalog(source, '');
     setExternalResults(results);
     setLoading(false);
   };
@@ -66,11 +63,10 @@ export const OrganizerModal: React.FC<OrganizerModalProps> = ({
     e.preventDefault();
     if (!title || !venue || !date) return;
 
-    setLoading(true);
     const newEvent: EventItem = {
       id: `e-org-${Date.now()}`,
       title,
-      description: description || 'Evento oficial publicado pelo organizador.',
+      description: description || 'Evento publicado pelo organizador.',
       venue,
       date: new Date(date).toISOString(),
       price: parseFloat(price) || 200.00,
@@ -78,252 +74,205 @@ export const OrganizerModal: React.FC<OrganizerModalProps> = ({
     };
 
     onEventCreated(newEvent);
-    setLoading(false);
     onClose();
   };
 
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-in fade-in duration-200">
-      <div className="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-2xl overflow-hidden shadow-2xl relative flex flex-col max-h-[90vh]">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
+      <div className="bg-[#111113] border border-zinc-800/60 rounded-2xl w-full max-w-xl overflow-hidden shadow-2xl flex flex-col max-h-[85vh]">
         {/* Header */}
-        <div className="p-6 border-b border-slate-800 flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-indigo-600/20 border border-indigo-500/40 flex items-center justify-center">
-              <Plus className="w-4 h-4 text-indigo-400" />
-            </div>
-            <div>
-              <h3 className="font-bold text-base font-display text-white">Painel do Organizador</h3>
-              <p className="text-xs text-slate-400">Monte um evento a partir das APIs TMDb (Filmes) ou Ticketmaster (Shows)</p>
-            </div>
+        <div className="p-5 border-b border-zinc-800/40 flex items-center justify-between shrink-0">
+          <div>
+            <h3 className="text-base font-semibold text-white">Publicar evento</h3>
+            <p className="text-xs text-zinc-500 mt-0.5">Selecione da API externa ou configure manualmente.</p>
           </div>
-
           <button
             onClick={onClose}
-            className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition"
+            className="p-1 rounded-md text-zinc-500 hover:text-white hover:bg-zinc-800 transition-colors"
           >
-            <X className="w-5 h-5" />
+            <X className="w-4 h-4" />
           </button>
         </div>
 
-        {/* Tab Selection */}
-        <div className="flex border-b border-slate-800 bg-slate-950/50 p-1.5 gap-1">
+        {/* Steps */}
+        <div className="flex border-b border-zinc-800/40 bg-zinc-900/30 shrink-0">
           <button
             type="button"
-            onClick={() => setActiveTab('import')}
-            className={`flex-1 py-2.5 rounded-xl text-xs font-semibold flex items-center justify-center gap-2 transition ${
-              activeTab === 'import'
-                ? 'bg-indigo-600 text-white shadow'
-                : 'text-slate-400 hover:text-white'
+            onClick={() => setStep('select')}
+            className={`flex-1 py-2.5 text-[12px] font-medium text-center transition-colors ${
+              step === 'select' ? 'text-white border-b-2 border-emerald-500' : 'text-zinc-500 hover:text-zinc-300'
             }`}
           >
-            <Sparkles className="w-3.5 h-3.5" />
-            <span>1. Selecionar de API Externa (TMDb / Ticketmaster)</span>
+            1. Selecionar evento
           </button>
           <button
             type="button"
-            onClick={() => setActiveTab('manual')}
-            className={`flex-1 py-2.5 rounded-xl text-xs font-semibold flex items-center justify-center gap-2 transition ${
-              activeTab === 'manual'
-                ? 'bg-indigo-600 text-white shadow'
-                : 'text-slate-400 hover:text-white'
+            onClick={() => setStep('configure')}
+            className={`flex-1 py-2.5 text-[12px] font-medium text-center transition-colors ${
+              step === 'configure' ? 'text-white border-b-2 border-emerald-500' : 'text-zinc-500 hover:text-zinc-300'
             }`}
           >
-            <Plus className="w-3.5 h-3.5" />
-            <span>2. Definir Data, Local & Preço</span>
+            2. Configurar detalhes
           </button>
         </div>
 
-        {/* Modal Scrollable Body */}
-        <div className="p-6 overflow-y-auto space-y-6 flex-1">
-          {activeTab === 'import' ? (
-            <div className="space-y-4">
-              {/* API Source Switcher */}
-              <div className="flex items-center justify-between gap-3 bg-slate-950 p-2 rounded-2xl border border-slate-800">
-                <div className="flex gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setSource('tmdb')}
-                    className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition ${
-                      source === 'tmdb'
-                        ? 'bg-blue-600 text-white shadow'
-                        : 'text-slate-400 hover:text-white'
-                    }`}
-                  >
-                    <Film className="w-3.5 h-3.5" />
-                    TMDb (Filmes Cinema)
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setSource('ticketmaster')}
-                    className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition ${
-                      source === 'ticketmaster'
-                        ? 'bg-pink-600 text-white shadow'
-                        : 'text-slate-400 hover:text-white'
-                    }`}
-                  >
-                    <Music className="w-3.5 h-3.5" />
-                    Ticketmaster (Shows)
-                  </button>
-                </div>
-
-                <span className="text-[11px] text-slate-500 font-mono hidden sm:inline">API Externa Ativa</span>
+        {/* Body */}
+        <div className="p-5 overflow-y-auto flex-1 space-y-4">
+          {step === 'select' ? (
+            <>
+              {/* Source tabs */}
+              <div className="flex gap-1.5 bg-zinc-900/60 p-1 rounded-lg border border-zinc-800/40 w-fit">
+                <button
+                  type="button"
+                  onClick={() => setSource('tmdb')}
+                  className={`px-3 py-1.5 rounded-md text-[11px] font-medium flex items-center gap-1.5 transition-colors ${
+                    source === 'tmdb' ? 'bg-zinc-800 text-white' : 'text-zinc-500 hover:text-zinc-300'
+                  }`}
+                >
+                  <Film className="w-3 h-3" />
+                  TMDb (Filmes)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSource('ticketmaster')}
+                  className={`px-3 py-1.5 rounded-md text-[11px] font-medium flex items-center gap-1.5 transition-colors ${
+                    source === 'ticketmaster' ? 'bg-zinc-800 text-white' : 'text-zinc-500 hover:text-zinc-300'
+                  }`}
+                >
+                  <Music className="w-3 h-3" />
+                  Ticketmaster
+                </button>
               </div>
 
-              {/* External Catalog Items Grid */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+              {/* Results */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                 {externalResults.map((item) => {
                   const isSelected = selectedExternalItem?.externalId === item.externalId;
                   return (
-                    <div
+                    <button
                       key={item.externalId}
+                      type="button"
                       onClick={() => handleSelectExternalItem(item)}
-                      className={`p-3.5 rounded-2xl border transition cursor-pointer flex flex-col justify-between ${
+                      className={`p-3 rounded-xl border text-left transition-colors ${
                         isSelected
-                          ? 'bg-indigo-950/80 border-indigo-500 ring-2 ring-indigo-500/30'
-                          : 'bg-slate-950 border-slate-800 hover:border-slate-700'
+                          ? 'bg-emerald-950/20 border-emerald-700/50'
+                          : 'bg-zinc-900/40 border-zinc-800/40 hover:border-zinc-700'
                       }`}
                     >
-                      <div className="flex gap-3 items-start">
+                      <div className="flex gap-2.5 items-start">
                         <img
                           src={item.banner_url}
                           alt={item.title}
-                          className="w-16 h-16 rounded-xl object-cover shrink-0"
+                          className="w-12 h-12 rounded-lg object-cover shrink-0"
                         />
                         <div className="min-w-0">
-                          <span className="text-[10px] font-semibold text-indigo-400 uppercase tracking-wider block">
-                            {item.category}
-                          </span>
-                          <h4 className="font-bold text-xs text-white truncate mt-0.5">{item.title}</h4>
-                          <p className="text-[11px] text-slate-400 line-clamp-2 mt-1 leading-tight">
+                          <p className="text-xs font-medium text-white truncate">{item.title}</p>
+                          <p className="text-[11px] text-zinc-500 line-clamp-2 mt-0.5 leading-tight">
                             {item.description}
                           </p>
                         </div>
                       </div>
-
-                      <div className="mt-3 pt-2.5 border-t border-slate-800/80 flex items-center justify-between text-[11px]">
-                        <span className="text-slate-500">Fonte: {item.source.toUpperCase()}</span>
+                      <div className="mt-2 pt-2 border-t border-zinc-800/30 flex items-center justify-between text-[11px]">
+                        <span className="text-zinc-600">{item.source.toUpperCase()}</span>
                         {isSelected ? (
-                          <span className="text-emerald-400 font-bold flex items-center gap-1">
-                            <CheckCircle2 className="w-3.5 h-3.5" /> Selecionado
+                          <span className="text-emerald-400 font-medium flex items-center gap-1">
+                            <CheckCircle2 className="w-3 h-3" /> Selecionado
                           </span>
                         ) : (
-                          <span className="text-indigo-400 font-semibold flex items-center gap-1">
-                            Montar Evento <ArrowRight className="w-3 h-3" />
-                          </span>
+                          <span className="text-zinc-500">Selecionar</span>
                         )}
                       </div>
-                    </div>
+                    </button>
                   );
                 })}
               </div>
 
               {selectedExternalItem && (
-                <div className="pt-4 flex justify-end">
+                <div className="flex justify-end pt-2">
                   <button
                     type="button"
-                    onClick={() => setActiveTab('manual')}
-                    className="px-6 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs shadow-lg shadow-indigo-500/25 flex items-center gap-2 transition"
+                    onClick={() => setStep('configure')}
+                    className="px-4 py-2 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-semibold text-xs transition-colors flex items-center gap-1.5"
                   >
-                    <span>Avançar para Definir Data, Local e Preço</span>
-                    <ArrowRight className="w-4 h-4" />
+                    Continuar
+                    <ArrowRight className="w-3.5 h-3.5" />
                   </button>
                 </div>
               )}
-            </div>
+            </>
           ) : (
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit} className="space-y-3">
               <div>
-                <label className="block text-xs font-medium text-slate-300 mb-1">
-                  Título do Evento *
-                </label>
+                <label className="block text-xs text-zinc-400 mb-1.5">Título *</label>
                 <input
                   type="text"
                   required
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
-                  placeholder="Ex: Avatar: O Caminho da Água (Sessão Especial IMAX)"
-                  className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-white focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none"
+                  className="w-full bg-zinc-900/60 border border-zinc-800 rounded-lg px-3 py-2.5 text-xs text-white outline-none focus:border-zinc-600 transition-colors"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-medium text-slate-300 mb-1">
-                    Data & Horário do Evento *
-                  </label>
+                  <label className="block text-xs text-zinc-400 mb-1.5">Data *</label>
                   <input
                     type="datetime-local"
                     required
                     value={date}
                     onChange={(e) => setDate(e.target.value)}
-                    className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-white focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none"
+                    className="w-full bg-zinc-900/60 border border-zinc-800 rounded-lg px-3 py-2.5 text-xs text-white outline-none focus:border-zinc-600 transition-colors"
                   />
                 </div>
-
                 <div>
-                  <label className="block text-xs font-medium text-slate-300 mb-1">
-                    Preço Base do Ingresso (R$) *
-                  </label>
+                  <label className="block text-xs text-zinc-400 mb-1.5">Preço (R$) *</label>
                   <input
                     type="number"
                     step="0.01"
                     required
                     value={price}
                     onChange={(e) => setPrice(e.target.value)}
-                    className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-white focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none"
+                    className="w-full bg-zinc-900/60 border border-zinc-800 rounded-lg px-3 py-2.5 text-xs text-white outline-none focus:border-zinc-600 transition-colors"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-slate-300 mb-1">
-                  Local / Arena / Sala de Cinema *
-                </label>
+                <label className="block text-xs text-zinc-400 mb-1.5">Local *</label>
                 <input
                   type="text"
                   required
                   value={venue}
                   onChange={(e) => setVenue(e.target.value)}
-                  placeholder="Ex: Cinemark Shopping Eldorado - Sala IMAX 3D"
-                  className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-white focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none"
+                  className="w-full bg-zinc-900/60 border border-zinc-800 rounded-lg px-3 py-2.5 text-xs text-white outline-none focus:border-zinc-600 transition-colors"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-slate-300 mb-1">
-                  Descrição Completa
-                </label>
+                <label className="block text-xs text-zinc-400 mb-1.5">Descrição</label>
                 <textarea
-                  rows={3}
+                  rows={2}
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-white focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none"
+                  className="w-full bg-zinc-900/60 border border-zinc-800 rounded-lg px-3 py-2.5 text-xs text-white outline-none focus:border-zinc-600 transition-colors resize-none"
                 />
               </div>
 
-              <div className="pt-3 flex gap-3">
+              <div className="flex gap-2.5 pt-2">
                 <button
                   type="button"
-                  onClick={() => setActiveTab('import')}
-                  className="px-4 py-3 rounded-xl bg-slate-950 border border-slate-800 text-slate-300 hover:text-white text-xs font-semibold transition"
+                  onClick={() => setStep('select')}
+                  className="px-3 py-2.5 rounded-lg border border-zinc-800 text-zinc-400 hover:text-white text-xs font-medium transition-colors"
                 >
-                  Voltar às APIs
+                  Voltar
                 </button>
                 <button
                   type="submit"
-                  disabled={loading}
-                  className="flex-1 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs shadow-lg shadow-indigo-500/25 flex items-center justify-center gap-2 transition disabled:opacity-50"
+                  className="flex-1 py-2.5 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-semibold text-xs transition-colors"
                 >
-                  {loading ? (
-                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                  ) : (
-                    <>
-                      <Sparkles className="w-4 h-4" />
-                      <span>Publicar Evento no Catálogo</span>
-                    </>
-                  )}
+                  Publicar evento
                 </button>
               </div>
             </form>

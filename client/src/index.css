@@ -5,68 +5,13 @@
 @layer base {
   body {
     background-color: #09090b;
-    color: #f4f4f5;
+    color: #fafafa;
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
-    overflow-x: hidden;
   }
-}
 
-/* Glassmorphism & Card Panel */
-.panel-card {
-  background-color: #121215;
-  border: 1px solid #27272a;
-}
-
-.glass-panel {
-  background: rgba(18, 18, 21, 0.8);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-}
-
-/* Ticket Stub Semi-Circular Cutouts */
-.ticket-stub {
-  position: relative;
-  background-color: #121215;
-  border: 1px solid #27272a;
-}
-
-.ticket-stub::before,
-.ticket-stub::after {
-  content: "";
-  position: absolute;
-  top: 50%;
-  width: 24px;
-  height: 24px;
-  background-color: #09090b;
-  border-radius: 50%;
-  transform: translateY(-50%);
-  z-index: 10;
-}
-
-.ticket-stub::before {
-  left: -12px;
-  border-right: 1px solid #27272a;
-}
-
-.ticket-stub::after {
-  right: -12px;
-  border-left: 1px solid #27272a;
-}
-
-/* Ambient Glow Animations */
-@keyframes ambientGlow {
-  0%, 100% { opacity: 0.4; transform: scale(1); }
-  50% { opacity: 0.8; transform: scale(1.05); }
-}
-
-.animate-ambient-glow {
-  animation: ambientGlow 8s ease-in-out infinite;
-}
-
-/* Stage Screen Light Beam */
-.stage-beam {
-  background: linear-gradient(180deg, rgba(16, 185, 129, 0.25) 0%, rgba(99, 102, 241, 0.08) 60%, transparent 100%);
-  border-bottom: 2px solid rgba(52, 211, 153, 0.6);
-  box-shadow: 0 8px 32px -4px rgba(16, 185, 129, 0.25);
+  /* Scrollbar — minimal */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: #27272a; border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: #3f3f46; }
 }

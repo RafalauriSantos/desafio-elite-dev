@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { api, EventItem, SeatItem } from '../lib/api';
 import { SeatMap } from '../components/SeatMap';
 import { CheckoutModal } from '../components/CheckoutModal';
-import { ArrowLeft, Calendar, MapPin, ShieldCheck, Sparkles, AlertCircle } from 'lucide-react';
+import { ArrowLeft, Calendar, MapPin } from 'lucide-react';
 
 interface EventDetailsProps {
   eventId: string;
@@ -43,109 +43,95 @@ export const EventDetails: React.FC<EventDetailsProps> = ({
   const handleProceedToCheckout = async () => {
     if (!selectedSeat) return;
     setIsReserving(true);
-    
-    // Call pessimistic lock RPC reservation endpoint
+
     const res = await api.reserveSeat(selectedSeat.id, 'usuario@exemplo.com');
 
     setIsReserving(false);
     if (res.success) {
       setIsModalOpen(true);
     } else {
-      setReserveMessage(res.message || 'Assento indisponível ou já reservado por outro usuário.');
-      // Refresh seat status
+      setReserveMessage(res.message || 'Assento indisponível.');
       loadEventData();
     }
   };
 
   if (loading || !event) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[400px]">
-        <div className="w-10 h-10 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
-        <p className="text-slate-400 text-xs mt-4">Carregando mapa de assentos em tempo real...</p>
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="w-5 h-5 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-300">
-      {/* Back Header */}
+    <div className="space-y-6">
+      {/* Back */}
       <button
         onClick={onBack}
-        className="inline-flex items-center gap-2 text-xs font-semibold text-slate-400 hover:text-white transition"
+        className="inline-flex items-center gap-1.5 text-[13px] text-zinc-500 hover:text-white transition-colors"
       >
-        <ArrowLeft className="w-4 h-4" />
-        <span>Voltar ao Catálogo</span>
+        <ArrowLeft className="w-3.5 h-3.5" />
+        Voltar
       </button>
 
-      {/* Event Header Card */}
-      <div className="glass-panel p-6 sm:p-8 rounded-3xl border border-slate-800 flex flex-col md:flex-row gap-6 items-start md:items-center justify-between relative overflow-hidden">
-        <div className="space-y-3 max-w-2xl">
-          <div className="inline-flex items-center gap-2 bg-indigo-950/80 border border-indigo-500/30 px-3 py-1 rounded-full text-[11px] font-semibold text-indigo-300">
-            <Sparkles className="w-3.5 h-3.5 text-indigo-400" />
-            <span>Seleção Numerada de Assentos</span>
-          </div>
-
-          <h1 className="text-2xl sm:text-4xl font-extrabold font-display text-white">{event.title}</h1>
-          
-          <div className="flex flex-wrap gap-4 text-xs text-slate-300">
-            <div className="flex items-center gap-1.5">
-              <Calendar className="w-4 h-4 text-indigo-400" />
-              <span>{new Date(event.date).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <MapPin className="w-4 h-4 text-indigo-400" />
-              <span>{event.venue}</span>
-            </div>
+      {/* Event header + sidebar */}
+      <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-6">
+        <div className="space-y-2">
+          <h1 className="text-2xl font-semibold text-white tracking-tight">{event.title}</h1>
+          <div className="flex flex-wrap gap-4 text-xs text-zinc-500">
+            <span className="flex items-center gap-1.5">
+              <Calendar className="w-3.5 h-3.5" />
+              {new Date(event.date).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+            </span>
+            <span className="flex items-center gap-1.5">
+              <MapPin className="w-3.5 h-3.5" />
+              {event.venue}
+            </span>
           </div>
         </div>
 
-        {/* Selected Seat Checkout Card Floating */}
-        <div className="w-full md:w-auto bg-slate-900/90 p-5 rounded-2xl border border-slate-700/80 min-w-[260px] flex flex-col gap-3">
-          <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Assento Selecionado</span>
+        {/* Selection summary */}
+        <div className="w-full lg:w-72 bg-[#111113] p-4 rounded-xl border border-zinc-800/60 shrink-0">
+          <p className="text-[11px] uppercase tracking-wider text-zinc-500 font-medium mb-3">Assento selecionado</p>
           {selectedSeat ? (
-            <div>
+            <div className="space-y-3">
               <div className="flex justify-between items-baseline">
-                <span className="font-extrabold text-lg text-white font-mono">
-                  Fileira {selectedSeat.row_name} - N° {selectedSeat.seat_number}
+                <span className="font-mono font-semibold text-white">
+                  {selectedSeat.row_name}{selectedSeat.seat_number}
                 </span>
-                <span className="text-xs text-indigo-400 font-bold bg-indigo-950 px-2 py-0.5 rounded border border-indigo-800">
+                <span className="text-xs text-zinc-400 bg-zinc-800 px-2 py-0.5 rounded">
                   {selectedSeat.category}
                 </span>
               </div>
-              <p className="text-xl font-black text-indigo-400 mt-1">
+              <p className="text-lg font-semibold text-emerald-400 font-mono">
                 R$ {selectedSeat.price.toFixed(2)}
               </p>
+              <button
+                onClick={handleProceedToCheckout}
+                disabled={isReserving}
+                className="w-full py-2.5 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-semibold text-sm transition-colors disabled:opacity-40 flex items-center justify-center gap-2"
+              >
+                {isReserving ? (
+                  <div className="w-4 h-4 border-2 border-zinc-950/30 border-t-zinc-950 rounded-full animate-spin" />
+                ) : (
+                  'Reservar'
+                )}
+              </button>
             </div>
           ) : (
-            <p className="text-xs text-slate-500 italic">Nenhum assento clicado até o momento</p>
+            <p className="text-xs text-zinc-600">Clique em um assento no mapa.</p>
           )}
-
-          <button
-            onClick={handleProceedToCheckout}
-            disabled={!selectedSeat || isReserving}
-            className="w-full py-3 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-semibold text-xs shadow-lg shadow-indigo-500/25 flex items-center justify-center gap-2 transition disabled:opacity-40"
-          >
-            {isReserving ? (
-              <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-            ) : (
-              <>
-                <ShieldCheck className="w-4 h-4" />
-                <span>Reservar & Ir para Checkout</span>
-              </>
-            )}
-          </button>
         </div>
       </div>
 
-      {/* Reservation Error Banner */}
+      {/* Error */}
       {reserveMessage && (
-        <div className="p-4 bg-amber-950/70 border border-amber-800 text-amber-300 text-xs rounded-2xl flex items-center gap-3">
-          <AlertCircle className="w-5 h-5 shrink-0" />
-          <span>{reserveMessage}</span>
+        <div className="p-3 bg-red-950/40 border border-red-900/50 text-red-400 text-xs rounded-lg">
+          {reserveMessage}
         </div>
       )}
 
-      {/* Interactive Seat Map Component */}
+      {/* Seat Map */}
       <SeatMap
         seats={seats}
         selectedSeatId={selectedSeat?.id || null}
