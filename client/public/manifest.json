@@ -1,0 +1,16 @@
+{
+  "short_name": "Elite Tickets",
+  "name": "Elite Tickets - Plataforma de Eventos & Portaria",
+  "icons": [
+    {
+      "src": "/vite.svg",
+      "sizes": "192x192 512x512",
+      "type": "image/svg+xml"
+    }
+  ],
+  "start_url": "/",
+  "background_color": "#020617",
+  "theme_color": "#020617",
+  "display": "standalone",
+  "orientation": "portrait"
+}
