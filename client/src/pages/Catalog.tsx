@@ -42,7 +42,7 @@ export const Catalog: React.FC<CatalogProps> = ({ onSelectEvent }) => {
           </div>
 
           <h1 className="text-3xl sm:text-5xl font-extrabold font-display tracking-tight text-white leading-tight">
-            Garanta seu lugar nos maiores eventos com <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400">trava de segurança otimista</span>.
+            Garanta seu lugar nos maiores eventos com <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400">trava de segurança atômica</span>.
           </h1>
 
           <p className="text-slate-400 text-sm sm:text-base leading-relaxed">
