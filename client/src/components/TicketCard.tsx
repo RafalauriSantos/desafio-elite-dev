@@ -120,6 +120,23 @@ export const TicketCard: React.FC<TicketCardProps> = ({ ticket, qrData }) => {
             </div>
           )}
         </div>
+
+        {/* Share Link Action */}
+        <div className="mt-4 pt-3 border-t border-slate-800 flex items-center justify-between">
+          <span className="text-[11px] text-slate-400">Ingresso Transferível / Link Público</span>
+          <button
+            type="button"
+            onClick={() => {
+              const link = `${window.location.origin}/#ticket-${ticket.id}`;
+              navigator.clipboard.writeText(link);
+              alert('Link de compartilhamento copiado para a área de transferência!\n\nLink: ' + link);
+            }}
+            className="px-3 py-1.5 rounded-lg bg-indigo-950 hover:bg-indigo-900 border border-indigo-500/40 text-indigo-300 text-xs font-semibold flex items-center gap-1.5 transition"
+          >
+            <Ticket className="w-3.5 h-3.5" />
+            <span>Copiar Link</span>
+          </button>
+        </div>
       </div>
     </div>
   );
