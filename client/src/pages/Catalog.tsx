@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { api, EventItem } from '../lib/api';
-import { Calendar, MapPin, Search, ArrowRight, Sparkles, Ticket } from 'lucide-react';
+import { Calendar, MapPin, Search, ArrowRight, Sparkles, Ticket, Plus } from 'lucide-react';
+import { OrganizerModal } from '../components/OrganizerModal';
 
 interface CatalogProps {
   onSelectEvent: (eventId: string) => void;
@@ -10,6 +11,7 @@ export const Catalog: React.FC<CatalogProps> = ({ onSelectEvent }) => {
   const [events, setEvents] = useState<EventItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
+  const [isOrganizerOpen, setIsOrganizerOpen] = useState(false);
 
   useEffect(() => {
     loadEvents();
@@ -20,6 +22,10 @@ export const Catalog: React.FC<CatalogProps> = ({ onSelectEvent }) => {
     const data = await api.getEvents();
     setEvents(data);
     setLoading(false);
+  };
+
+  const handleEventCreated = (newEvent: EventItem) => {
+    setEvents((prev) => [newEvent, ...prev]);
   };
 
   const filteredEvents = events.filter(
@@ -63,16 +69,25 @@ export const Catalog: React.FC<CatalogProps> = ({ onSelectEvent }) => {
             </div>
           </div>
         </div>
-      </div>
 
-      {/* Events Grid */}
+      {/* Events Grid Header */}
       <div>
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
           <h2 className="text-2xl font-bold font-display text-white flex items-center gap-2">
             <Ticket className="w-6 h-6 text-indigo-400" />
             Próximos Eventos em Destaque
           </h2>
-          <span className="text-xs text-slate-400 font-mono">{filteredEvents.length} eventos disponíveis</span>
+          <div className="flex items-center gap-3 w-full sm:w-auto">
+            <span className="text-xs text-slate-400 font-mono hidden sm:inline">{filteredEvents.length} eventos disponíveis</span>
+            <button
+              onClick={() => setIsOrganizerOpen(true)}
+              className="px-4 py-2 rounded-xl bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 border border-indigo-500/40 text-xs font-semibold flex items-center gap-2 transition ml-auto sm:ml-0"
+            >
+              <Plus className="w-4 h-4 text-indigo-400" />
+              <span>Painel do Organizador</span>
+            </button>
+          </div>
+        </div>
         </div>
 
         {loading ? (
@@ -139,6 +154,12 @@ export const Catalog: React.FC<CatalogProps> = ({ onSelectEvent }) => {
           </div>
         )}
       </div>
+
+      <OrganizerModal
+        isOpen={isOrganizerOpen}
+        onClose={() => setIsOrganizerOpen(false)}
+        onEventCreated={handleEventCreated}
+      />
     </div>
   );
 };
