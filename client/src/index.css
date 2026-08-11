@@ -16,28 +16,73 @@
   ::-webkit-scrollbar-thumb:hover { background: #3f3f46; }
 }
 
-/* Printable PDF stylesheet */
+/* Otimização de Impressão de Bilhete em PDF (Estilo E-Ticket Oficial) */
 @media print {
-  body {
-    background-color: #ffffff !important;
-    color: #000000 !important;
+  /* Oculta tudo que não for o ticket selecionado */
+  body * {
+    visibility: hidden;
   }
 
-  header, footer, nav, button, input, textarea {
-    display: none !important;
+  /* Exibe exclusivamente a área do bilhete imprimível */
+  .printable-ticket-area,
+  .printable-ticket-area * {
+    visibility: visible;
   }
 
-  .ticket-card-printable {
-    background-color: #ffffff !important;
-    border: 2px solid #000000 !important;
-    color: #000000 !important;
-    box-shadow: none !important;
-    max-width: 100% !important;
+  .printable-ticket-area {
+    position: absolute;
+    left: 0;
+    top: 0;
     width: 100% !important;
-    page-break-inside: avoid;
+    max-width: 650px !important;
+    margin: 0 auto !important;
+    padding: 24px !important;
+    background-color: #ffffff !important;
+    color: #09090b !important;
+    border: 2px solid #18181b !important;
+    border-radius: 16px !important;
+    box-shadow: none !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
   }
 
-  .ticket-card-printable * {
-    color: #000000 !important;
+  /* Ajusta os textos do ticket impresso para alto contraste */
+  .printable-ticket-area h1,
+  .printable-ticket-area h2,
+  .printable-ticket-area h3,
+  .printable-ticket-area h4,
+  .printable-ticket-area p,
+  .printable-ticket-area span,
+  .printable-ticket-area div {
+    color: #09090b !important;
+  }
+
+  .printable-ticket-area .bg-zinc-900\/60,
+  .printable-ticket-area .bg-\[\#111113\],
+  .printable-ticket-area .bg-zinc-900 {
+    background-color: #f4f4f5 !important;
+    border: 1px solid #e4e4e7 !important;
+  }
+
+  .printable-ticket-area .text-emerald-400,
+  .printable-ticket-area .text-emerald-500 {
+    color: #059669 !important;
+    font-weight: 700 !important;
+  }
+
+  .printable-ticket-area .text-zinc-500,
+  .printable-ticket-area .text-zinc-400 {
+    color: #52525b !important;
+  }
+
+  /* Mantém o QR Code em destaque absoluto */
+  .printable-ticket-area svg {
+    display: block !important;
+    margin: 0 auto !important;
+  }
+
+  /* Esconde botões de ação na impressão */
+  .no-print {
+    display: none !important;
   }
 }

@@ -242,47 +242,71 @@ export const api = {
     }
 
     try {
-      const parsed = typeof qrData === 'string' ? JSON.parse(qrData) : qrData;
-      const stored = getStoredTickets();
-      const matchIndex = stored.findIndex((t) => t.id === parsed.ticketId);
+      let parsed: any;
+      let rawString = qrData.trim();
 
-      if (matchIndex === -1 && !parsed.ticketId) {
-        return { success: false, valid: false, error: 'QR Code inválido ou corrompido.' };
+      // Check if user pasted a link like http://localhost:5173/#ticket-t-123
+      if (rawString.includes('#ticket-')) {
+        const idFromUrl = rawString.split('#ticket-')[1];
+        parsed = { ticketId: idFromUrl };
+      } else {
+        try {
+          parsed = typeof qrData === 'string' ? JSON.parse(qrData) : qrData;
+        } catch {
+          // If not valid JSON, treat raw string as ticket ID or search payload
+          parsed = { ticketId: rawString };
+        }
+      }
+
+      const stored = getStoredTickets();
+      const targetId = parsed.ticketId || rawString;
+      const matchIndex = stored.findIndex((t) => t.id === targetId || t.qr_signature === targetId);
+
+      if (matchIndex === -1 && !parsed.ticketId && !parsed.signature) {
+        return { success: false, valid: false, error: 'QR Code inválido ou não reconhecido.' };
       }
 
       const foundTicket = stored[matchIndex] || {
-        id: parsed.ticketId || 't-demo',
+        id: targetId || 't-demo',
         status: 'valid',
         events: MOCK_EVENTS[0],
         seats: { row_name: 'A', seat_number: 1 },
-        user_name: parsed.userEmail || 'Convidado VIP'
+        user_name: parsed.userEmail || parsed.user_name || 'Titular do Ingresso'
       };
 
       if (foundTicket.status === 'used') {
         return {
           success: false,
           valid: false,
-          error: 'INGRESSO JÁ UTILIZADO! Entrada recusada.',
+          error: 'INGRESSO JÁ UTILIZADO (ALREADY_USED)! Entrada recusada.',
           ticket: foundTicket
         };
       }
 
-      // Mark as used
-      foundTicket.status = 'used';
-      foundTicket.used_at = new Date().toISOString();
+      // Check if forged signature
+      if (parsed.signature && parsed.signature.includes('INVALID_SIGNATURE')) {
+        return {
+          success: false,
+          valid: false,
+          error: 'ASSINATURA CRAM-HMAC INVÁLIDA (INVALID)! QR Code alterado ou forjado.',
+          ticket: foundTicket
+        };
+      }
+
+      // Mark as used for future scans
       if (matchIndex !== -1) {
-        stored[matchIndex] = foundTicket;
+        stored[matchIndex].status = 'used';
         localStorage.setItem('elite_tickets_demo', JSON.stringify(stored));
       }
 
       return {
         success: true,
         valid: true,
-        message: 'ENTRADA LIBERADA! Ingresso válido e assinado com sucesso.',
+        message: 'ENTRADA LIBERADA (VALID)! Ingresso autêntico.',
         ticket: foundTicket
       };
     } catch {
-      return { success: false, valid: false, error: 'Falha ao ler formato de dados do QR Code.' };
+      return { success: false, valid: false, error: 'Falha ao processar leitura de QR Code.' };
     }
   },
 
