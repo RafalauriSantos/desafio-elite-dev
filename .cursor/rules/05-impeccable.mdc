@@ -1,0 +1,30 @@
+---
+description: Impeccable UI/UX Engineering Skill (v3.9.1) - Production-grade frontend craft, anti-AI-slop rules, design systems, contrast, motion, and accessibility.
+globs: ["client/src/**/*", "**/*.tsx", "**/*.css"]
+---
+
+# 💎 Skill: Impeccable (Production-Grade UI/UX Craft & Anti-AI-Slop)
+
+Use when designing, auditing, polishing, refining, or adapting any frontend interface in `client/src/`.
+
+## 1. Absolute Design Bans (Anti-AI-Slop Rules)
+- **NO Side-stripe borders:** Do not use `border-left` or `border-right` > 1px as colored accents on cards.
+- **NO Gradient text:** Avoid `background-clip: text` combined with gradients. Use solid high-contrast colors.
+- **NO Decorative Grid Overlays:** Avoid arbitrary line background grids unless building a drawing canvas.
+- **NO Excessive Border Radius:** Cards top out at 12–16px (`rounded-xl` / `rounded-2xl`). Do not use 32px+ on standard cards.
+- **NO Low-Contrast Text:** Body text must hit ≥4.5:1 against its background. Do not use washed-out muted gray text on near-black.
+
+## 2. Layout & Typography Rules
+- **Line Length:** Cap body line length at 65–75ch for optimal readability.
+- **Headings:** Balance title wrapping using `text-wrap: balance` on H1–H3.
+- **Display Tracking:** Display heading letter-spacing floor: ≥ -0.04em. Never cramp letter spacing below -0.04em.
+- **Grid Layouts:** Use `repeat(auto-fit, minmax(280px, 1fr))` for responsive flex grids.
+
+## 3. Motion & Micro-Interactions
+- **Exponential Easing:** Use smooth exponential ease-out curves (`ease-out-quart`, 150-200ms).
+- **Tactile Feedback:** Buttons and interactive cards must have subtle active states (`active:scale-95 transition-all`).
+- **Accessibility (a11y):** Respect `@media (prefers-reduced-motion: reduce)` for all entrance animations.
+
+## 4. Accessibility (a11y)
+- Ensure all interactive elements have keyboard focus rings (`focus-visible:ring-2 focus-visible:ring-emerald-500`).
+- Use native semantic HTML elements (`<button>`, `<main>`, `<header>`, `<section>`).
