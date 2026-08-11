@@ -1,0 +1,27 @@
+# Dependências
+node_modules/
+.pnpm-store/
+
+# Builds e Deploy (Cloudflare / Vite)
+dist/
+build/
+.output/
+.cloudflare/
+.wrangler/
+
+# Chaves Secretas e Variáveis de Ambiente
+.env
+.env.local
+.env.*.local
+*.pem
+
+# Logs do Sistema
+*.log
+npm-debug.log*
+
+# Arquivos de IDE e SO
+.DS_Store
+Thumbs.db
+.vscode/*
+!.vscode/settings.json
+.idea/

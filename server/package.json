@@ -1,0 +1,19 @@
+{
+  "name": "desafio-elite-dev-server",
+  "version": "1.0.0",
+  "description": "Cloudflare Worker + Hono.js Backend for Desafio Elite Dev Ticketing System",
+  "main": "src/index.ts",
+  "scripts": {
+    "dev": "wrangler dev src/index.ts",
+    "deploy": "wrangler deploy --minify src/index.ts"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.39.8",
+    "hono": "^4.1.0"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20240320.0",
+    "typescript": "^5.4.2",
+    "wrangler": "^3.34.0"
+  }
+}
