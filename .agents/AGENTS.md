@@ -36,3 +36,4 @@ Você é um Engenheiro Full-Stack Sênior atuando como copiloto no desenvolvimen
 5. **`impeccable`** ([SKILL.md](file:///c:/Users/Rafael%20lauri/desafio-elite-dev/.agents/skills/impeccable/SKILL.md)): Polimento industrial de UI/UX, acessibilidade WCAG e craft visual.
 6. **`web-perf`** ([SKILL.md](file:///c:/Users/Rafael%20lauri/desafio-elite-dev/.agents/skills/web-perf/SKILL.md)): Auditoria e otimização de performance, Core Web Vitals e renderização sub-100ms.
 7. **`cyber-security`** ([SKILL.md](file:///c:/Users/Rafael%20lauri/desafio-elite-dev/.agents/skills/cyber-security/SKILL.md)): Proteção de borda, defesa contra falsificação de QR Code e RLS no Postgres.
+8. **`webapp-testing`** ([SKILL.md](file:///c:/Users/Rafael%20lauri/desafio-elite-dev/.agents/skills/webapp-testing/SKILL.md)): Toolkit Playwright para automação, validação E2E e captura de testes de interface.
