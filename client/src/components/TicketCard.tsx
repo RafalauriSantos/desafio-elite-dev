@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import { TicketItem } from '../lib/api';
 import { Calendar, MapPin, Copy, Check, Printer, CalendarPlus } from 'lucide-react';
+import { PrintableTicket } from './PrintableTicket';
 
 interface TicketCardProps {
   ticket: TicketItem;
@@ -52,125 +53,124 @@ export const TicketCard: React.FC<TicketCardProps> = ({ ticket, qrData }) => {
   };
 
   return (
-    <div className="w-full max-w-sm mx-auto bg-[#111113] rounded-2xl overflow-hidden border border-zinc-800/60 printable-ticket-area">
-      {/* Banner */}
-      {event.banner_url && (
-        <div className="h-32 w-full relative overflow-hidden">
-          <img
-            src={event.banner_url}
-            alt={event.title}
-            className="w-full h-full object-cover brightness-75"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-[#111113] via-transparent to-transparent" />
-        </div>
-      )}
-
-      <div className="p-5 space-y-4">
-        {/* Header Branding (Visible in PDF print) */}
-        <div className="flex items-center justify-between border-b border-zinc-800/40 pb-2">
-          <span className="text-[11px] font-bold font-mono text-emerald-400 uppercase tracking-wider">
-            ELITE TICKETS • BILHETE DIGITAL
-          </span>
-          <span className="text-[10px] text-zinc-500 font-mono">2026</span>
-        </div>
-
-        {/* Title + status */}
-        <div className="flex items-start justify-between gap-2">
-          <h3 className="text-[15px] font-semibold text-white leading-snug">{event.title}</h3>
-          <span className={`shrink-0 inline-flex items-center gap-1 text-[11px] font-medium px-2 py-0.5 rounded ${
-            isUsed
-              ? 'text-amber-400 bg-amber-950/30'
-              : 'text-emerald-400 bg-emerald-950/30'
-          }`}>
-            <span className={`w-1.5 h-1.5 rounded-full ${isUsed ? 'bg-amber-400' : 'bg-emerald-400'}`} />
-            {isUsed ? 'Usado' : 'Válido'}
-          </span>
-        </div>
-
-        {/* Meta */}
-        <div className="space-y-1.5 text-xs text-zinc-500">
-          <div className="flex items-center gap-1.5">
-            <Calendar className="w-3.5 h-3.5 shrink-0" />
-            <span>{new Date(event.date || Date.now()).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
+    <>
+      {/* Screen View Ticket Card */}
+      <div className="w-full max-w-sm mx-auto bg-[#111113] rounded-2xl overflow-hidden border border-zinc-800/60 no-print">
+        {/* Banner */}
+        {event.banner_url && (
+          <div className="h-32 w-full relative overflow-hidden">
+            <img
+              src={event.banner_url}
+              alt={event.title}
+              className="w-full h-full object-cover brightness-75"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-[#111113] via-transparent to-transparent" />
           </div>
-          <div className="flex items-center gap-1.5">
-            <MapPin className="w-3.5 h-3.5 shrink-0" />
-            <span className="truncate">{event.venue}</span>
-          </div>
-        </div>
+        )}
 
-        {/* Seat info */}
-        <div className="flex items-center justify-between bg-zinc-900/60 px-3 py-2.5 rounded-lg border border-zinc-800/40 text-xs">
-          <div>
-            <span className="text-zinc-500 text-[10px] uppercase font-mono">Titular</span>
-            <p className="text-zinc-200 font-medium truncate">{ticket.user_name || ticket.user_email}</p>
+        <div className="p-5 space-y-4">
+          {/* Title + status */}
+          <div className="flex items-start justify-between gap-2">
+            <h3 className="text-[15px] font-semibold text-white leading-snug">{event.title}</h3>
+            <span className={`shrink-0 inline-flex items-center gap-1 text-[11px] font-medium px-2 py-0.5 rounded ${
+              isUsed
+                ? 'text-amber-400 bg-amber-950/30'
+                : 'text-emerald-400 bg-emerald-950/30'
+            }`}>
+              <span className={`w-1.5 h-1.5 rounded-full ${isUsed ? 'bg-amber-400' : 'bg-emerald-400'}`} />
+              {isUsed ? 'Usado' : 'Válido'}
+            </span>
           </div>
-          <div className="text-right">
-            <span className="text-zinc-500 text-[10px] uppercase font-mono">Assento</span>
-            <p className="text-emerald-400 font-mono font-semibold">{seat.row_name}{seat.seat_number}</p>
-          </div>
-        </div>
 
-        {/* QR Code */}
-        <div className="flex flex-col items-center p-4 bg-white rounded-xl relative">
-          <QRCodeSVG
-            value={finalQrString}
-            size={160}
-            level="H"
-            includeMargin={false}
-          />
-          <p className="text-[10px] text-zinc-600 font-mono font-bold mt-2">ID: {ticket.id}</p>
-          <p className="text-[9px] text-emerald-700 font-mono font-semibold mt-0.5">Assinado via HMAC-SHA256</p>
-
-          {isUsed && (
-            <div className="absolute inset-0 bg-zinc-950/90 rounded-xl flex flex-col items-center justify-center">
-              <span className="text-sm font-semibold text-amber-400">Já utilizado</span>
-              <span className="text-xs text-zinc-500 mt-0.5">Entrada registrada</span>
+          {/* Meta */}
+          <div className="space-y-1.5 text-xs text-zinc-500">
+            <div className="flex items-center gap-1.5">
+              <Calendar className="w-3.5 h-3.5 shrink-0" />
+              <span>{new Date(event.date || Date.now()).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
             </div>
-          )}
-        </div>
+            <div className="flex items-center gap-1.5">
+              <MapPin className="w-3.5 h-3.5 shrink-0" />
+              <span className="truncate">{event.venue}</span>
+            </div>
+          </div>
 
-        {/* Actions bar: Calendar & Print & Copy (Hidden on print) */}
-        <div className="pt-2 border-t border-zinc-800/40 flex items-center justify-between text-xs text-zinc-400 no-print">
-          <button
-            type="button"
-            onClick={handleAddToCalendar}
-            className="flex items-center gap-1 hover:text-white transition-colors"
-            title="Adicionar ao Google Calendar"
-          >
-            <CalendarPlus className="w-3.5 h-3.5 text-emerald-400" />
-            <span>Agenda</span>
-          </button>
+          {/* Seat info */}
+          <div className="flex items-center justify-between bg-zinc-900/60 px-3 py-2.5 rounded-lg border border-zinc-800/40 text-xs">
+            <div>
+              <span className="text-zinc-500 text-[10px] uppercase font-mono">Titular</span>
+              <p className="text-zinc-200 font-medium truncate">{ticket.user_name || ticket.user_email}</p>
+            </div>
+            <div className="text-right">
+              <span className="text-zinc-500 text-[10px] uppercase font-mono">Assento</span>
+              <p className="text-emerald-400 font-mono font-semibold">{seat.row_name}{seat.seat_number}</p>
+            </div>
+          </div>
 
-          <button
-            type="button"
-            onClick={handlePrint}
-            className="flex items-center gap-1 hover:text-white transition-colors"
-            title="Baixar PDF / Imprimir"
-          >
-            <Printer className="w-3.5 h-3.5 text-zinc-300" />
-            <span>Imprimir / PDF</span>
-          </button>
+          {/* QR Code */}
+          <div className="flex flex-col items-center p-4 bg-white rounded-xl relative">
+            <QRCodeSVG
+              value={finalQrString}
+              size={150}
+              level="H"
+              includeMargin={false}
+            />
+            <p className="text-[10px] text-zinc-600 font-mono font-bold mt-2">ID: {ticket.id}</p>
 
-          <button
-            type="button"
-            onClick={handleCopyLink}
-            className="flex items-center gap-1 hover:text-white transition-colors"
-          >
-            {copied ? (
-              <>
-                <Check className="w-3.5 h-3.5 text-emerald-400" />
-                <span className="text-emerald-400">Copiado</span>
-              </>
-            ) : (
-              <>
-                <Copy className="w-3.5 h-3.5" />
-                <span>Link</span>
-              </>
+            {isUsed && (
+              <div className="absolute inset-0 bg-zinc-950/90 rounded-xl flex flex-col items-center justify-center">
+                <span className="text-sm font-semibold text-amber-400">Já utilizado</span>
+                <span className="text-xs text-zinc-500 mt-0.5">Entrada registrada</span>
+              </div>
             )}
-          </button>
+          </div>
+
+          {/* Actions bar: Calendar & Print & Copy */}
+          <div className="pt-2 border-t border-zinc-800/40 flex items-center justify-between text-xs text-zinc-400">
+            <button
+              type="button"
+              onClick={handleAddToCalendar}
+              className="flex items-center gap-1 hover:text-white transition-colors"
+              title="Adicionar ao Google Calendar"
+            >
+              <CalendarPlus className="w-3.5 h-3.5 text-emerald-400" />
+              <span>Agenda</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={handlePrint}
+              className="flex items-center gap-1 hover:text-white transition-colors"
+              title="Baixar PDF / Imprimir"
+            >
+              <Printer className="w-3.5 h-3.5 text-zinc-300" />
+              <span>Imprimir / PDF</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={handleCopyLink}
+              className="flex items-center gap-1 hover:text-white transition-colors"
+            >
+              {copied ? (
+                <>
+                  <Check className="w-3.5 h-3.5 text-emerald-400" />
+                  <span className="text-emerald-400">Copiado</span>
+                </>
+              ) : (
+                <>
+                  <Copy className="w-3.5 h-3.5" />
+                  <span>Link</span>
+                </>
+              )}
+            </button>
+          </div>
         </div>
       </div>
-    </div>
+
+      {/* Hidden PDF Printable Ticket Pass (Renders only during print) */}
+      <div className="hidden print:block">
+        <PrintableTicket ticket={ticket} qrData={finalQrString} />
+      </div>
+    </>
   );
 };
