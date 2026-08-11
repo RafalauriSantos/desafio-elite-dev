@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import { TicketItem } from '../lib/api';
-import { Calendar, MapPin, Copy, Check } from 'lucide-react';
+import { Calendar, MapPin, Copy, Check, Printer, CalendarPlus } from 'lucide-react';
 
 interface TicketCardProps {
   ticket: TicketItem;
@@ -37,8 +37,22 @@ export const TicketCard: React.FC<TicketCardProps> = ({ ticket, qrData }) => {
     setTimeout(() => setCopied(false), 2000);
   };
 
+  const handlePrint = () => {
+    window.print();
+  };
+
+  const handleAddToCalendar = () => {
+    const rawDate = event.date || new Date().toISOString();
+    const eventTitle = event.title || 'Evento';
+    const eventVenue = event.venue || 'Local do Evento';
+    const startDate = new Date(rawDate).toISOString().replace(/-|:|\.\d\d\d/g, '');
+    const endDate = new Date(new Date(rawDate).getTime() + 3 * 3600 * 1000).toISOString().replace(/-|:|\.\d\d\d/g, '');
+    const googleCalendarUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(eventTitle)}&dates=${startDate}/${endDate}&details=${encodeURIComponent('Ingresso emitido via Elite Tickets. Assento: ' + seat.row_name + seat.seat_number)}&location=${encodeURIComponent(eventVenue)}`;
+    window.open(googleCalendarUrl, '_blank');
+  };
+
   return (
-    <div className="w-full max-w-sm mx-auto bg-[#111113] rounded-2xl overflow-hidden border border-zinc-800/60">
+    <div className="w-full max-w-sm mx-auto bg-[#111113] rounded-2xl overflow-hidden border border-zinc-800/60 ticket-card-printable">
       {/* Banner */}
       {event.banner_url && (
         <div className="h-32 w-full relative overflow-hidden">
@@ -107,24 +121,46 @@ export const TicketCard: React.FC<TicketCardProps> = ({ ticket, qrData }) => {
           )}
         </div>
 
-        {/* Copy link */}
-        <button
-          type="button"
-          onClick={handleCopyLink}
-          className="w-full flex items-center justify-center gap-1.5 py-2 text-xs text-zinc-400 hover:text-white transition-colors"
-        >
-          {copied ? (
-            <>
-              <Check className="w-3.5 h-3.5 text-emerald-400" />
-              <span className="text-emerald-400">Copiado</span>
-            </>
-          ) : (
-            <>
-              <Copy className="w-3.5 h-3.5" />
-              <span>Copiar link de validação</span>
-            </>
-          )}
-        </button>
+        {/* Actions bar: Calendar & Print & Copy */}
+        <div className="pt-2 border-t border-zinc-800/40 flex items-center justify-between text-xs text-zinc-400">
+          <button
+            type="button"
+            onClick={handleAddToCalendar}
+            className="flex items-center gap-1 hover:text-white transition-colors"
+            title="Adicionar ao Google Calendar"
+          >
+            <CalendarPlus className="w-3.5 h-3.5 text-emerald-400" />
+            <span>Agenda</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={handlePrint}
+            className="flex items-center gap-1 hover:text-white transition-colors"
+            title="Baixar PDF / Imprimir"
+          >
+            <Printer className="w-3.5 h-3.5 text-zinc-300" />
+            <span>PDF</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={handleCopyLink}
+            className="flex items-center gap-1 hover:text-white transition-colors"
+          >
+            {copied ? (
+              <>
+                <Check className="w-3.5 h-3.5 text-emerald-400" />
+                <span className="text-emerald-400">Copiado</span>
+              </>
+            ) : (
+              <>
+                <Copy className="w-3.5 h-3.5" />
+                <span>Link</span>
+              </>
+            )}
+          </button>
+        </div>
       </div>
     </div>
   );

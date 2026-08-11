@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { api, EventItem, SeatItem } from '../lib/api';
 import { SeatMap } from '../components/SeatMap';
 import { CheckoutModal } from '../components/CheckoutModal';
+import { EmailPreviewModal } from '../components/EmailPreviewModal';
 import { ArrowLeft, Calendar, MapPin } from 'lucide-react';
 
 interface EventDetailsProps {
@@ -23,8 +24,25 @@ export const EventDetails: React.FC<EventDetailsProps> = ({
   const [isReserving, setIsReserving] = useState(false);
   const [reserveMessage, setReserveMessage] = useState<string | null>(null);
 
+  // Email preview state
+  const [purchasedTicket, setPurchasedTicket] = useState<any | null>(null);
+  const [purchasedQrData, setPurchasedQrData] = useState<string>('');
+  const [isEmailModalOpen, setIsEmailModalOpen] = useState(false);
+
   useEffect(() => {
     loadEventData();
+
+    // Silent background polling every 3s to sync seat map locks in realtime across browsers
+    const pollingInterval = setInterval(async () => {
+      try {
+        const data = await api.getEventDetails(eventId);
+        setSeats(data.seats);
+      } catch {
+        // Ignore silent background refresh errors
+      }
+    }, 3000);
+
+    return () => clearInterval(pollingInterval);
   }, [eventId]);
 
   const loadEventData = async () => {
@@ -148,10 +166,21 @@ export const EventDetails: React.FC<EventDetailsProps> = ({
           onClose={() => setIsModalOpen(false)}
           onSuccess={(ticket, qrData) => {
             setIsModalOpen(false);
+            setPurchasedTicket(ticket);
+            setPurchasedQrData(qrData);
+            setIsEmailModalOpen(true);
             onTicketPurchased(ticket, qrData);
           }}
         />
       )}
+
+      {/* Email Confirmation Preview Modal */}
+      <EmailPreviewModal
+        isOpen={isEmailModalOpen}
+        ticket={purchasedTicket}
+        qrData={purchasedQrData}
+        onClose={() => setIsEmailModalOpen(false)}
+      />
     </div>
   );
 };
