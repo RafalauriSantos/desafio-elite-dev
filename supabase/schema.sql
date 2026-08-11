@@ -186,15 +186,15 @@ END;
 $$;
 
 -- --------------------------------------------------------
--- 5. SEED DATA (1 Organizer, 2 Clients, 1 Gatekeeper, 1 Event + Seats)
+-- 5. SEED DATA (Verzel Test Accounts)
 -- --------------------------------------------------------
 
 -- Profiles
 INSERT INTO public.profiles (id, email, name, role) VALUES
-    ('u1111111-1111-1111-1111-111111111111', 'organizer@elitetickets.com', 'Carlos Organizador', 'organizer'),
-    ('u2222222-2222-2222-2222-222222222222', 'cliente1@exemplo.com', 'Ana Cliente', 'client'),
-    ('u3333333-3333-3333-3333-333333333333', 'cliente2@exemplo.com', 'Bruno Cliente', 'client'),
-    ('u4444444-4444-4444-4444-444444444444', 'gatekeeper@elitetickets.com', 'Roberto Portaria', 'gatekeeper')
+    ('u1111111-1111-1111-1111-111111111111', 'organizador@verzel.com', 'Carlos Organizador', 'organizer'),
+    ('u2222222-2222-2222-2222-222222222222', 'ana.cliente@verzel.com', 'Ana Cliente', 'client'),
+    ('u3333333-3333-3333-3333-333333333333', 'bruno.cliente@verzel.com', 'Bruno Cliente', 'client'),
+    ('u4444444-4444-4444-4444-444444444444', 'portaria@verzel.com', 'Roberto Portaria', 'gatekeeper')
 ON CONFLICT (email) DO NOTHING;
 
 -- 1 Demo Event
