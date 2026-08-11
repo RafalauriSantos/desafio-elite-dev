@@ -11,26 +11,26 @@ type Bindings = {
 
 const app = new Hono<{ Bindings: Bindings }>();
 
-// Habilitar CORS para o cliente React
+// Enable CORS for frontend clients
 app.use('*', cors({
   origin: '*',
   allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowHeaders: ['Content-Type', 'Authorization'],
 }));
 
-// Helper Supabase
+// Helper to initialize Supabase client
 function getSupabaseClient(c: any) {
   const url = c.env?.SUPABASE_URL || 'https://your-supabase-project.supabase.co';
   const key = c.env?.SUPABASE_ANON_KEY || 'your-supabase-anon-key';
   return createClient(url, key);
 }
 
-// Helper HMAC Secret
+// Helper secret key
 function getHmacSecret(c: any): string {
   return c.env?.HMAC_SECRET || 'super-secret-hmac-key-elite-dev-2026';
 }
 
-// Health check
+// Health check endpoint
 app.get('/api/health', (c) => {
   return c.json({ status: 'ok', service: 'Desafio Elite Dev Hono API (Cloudflare Workers)' });
 });
@@ -44,7 +44,7 @@ app.get('/api/events', async (c) => {
     // Exemplo de rota de importação via TMDb ou Ticketmaster
     if (importSource === 'tmdb' || importSource === 'ticketmaster') {
       const externalEvent = {
-        title: importSource === 'tmdb' ? 'Filme Destaque: Avatar 3' : 'Show Internacional: Coldplay Tour',
+        title: importSource === 'tmdb' ? 'Filme Destaque: Avatar 3 (TMDb Sync)' : 'Show Internacional: Coldplay Tour (Ticketmaster Sync)',
         description: `Evento importado dinamicamente via API ${importSource.toUpperCase()}.`,
         venue: 'Cine Arena Cultural - SP',
         date: new Date(Date.now() + 86400000 * 30).toISOString(),
@@ -208,27 +208,42 @@ app.post('/api/checkout', async (c) => {
   }
 });
 
-// 2.3.3 - POST /api/gatekeeper/validate (Valida HMAC e executa Stored Procedure `validate_ticket_gatekeeper`)
+// 2.3.3 - POST /api/gatekeeper/validate (MÁQUINA DE ESTADOS: VALID, ALREADY_USED, INVALID, WRONG_EVENT)
 const validateHandler = async (c: any) => {
   try {
     const body = await c.req.json();
-    const { qrData } = body;
+    const { qrData, targetEventId } = body;
 
     if (!qrData) {
-      return c.json({ success: false, valid: false, error: 'QR Data é obrigatório.' }, 400);
+      return c.json({
+        success: false,
+        valid: false,
+        code: 'INVALID',
+        error: 'QR Data é obrigatório.'
+      }, 400);
     }
 
     let parsed: any;
     try {
       parsed = typeof qrData === 'string' ? JSON.parse(qrData) : qrData;
     } catch {
-      return c.json({ success: false, valid: false, error: 'Formato de QR Code inválido.' }, 400);
+      return c.json({
+        success: false,
+        valid: false,
+        code: 'INVALID',
+        error: 'Formato de QR Code inválido ou corrompido.'
+      }, 400);
     }
 
     const { ticketId, eventId, seatId, clientId, userEmail, issuedAt, signature } = parsed;
 
     if (!ticketId || !signature) {
-      return c.json({ success: false, valid: false, error: 'QR Code incompleto.' }, 400);
+      return c.json({
+        success: false,
+        valid: false,
+        code: 'INVALID',
+        error: 'Estrutura de QR Code incompleta (Ticket ID / Assinatura ausentes).'
+      }, 400);
     }
 
     const hmacSecret = getHmacSecret(c);
@@ -246,6 +261,7 @@ const validateHandler = async (c: any) => {
       return c.json({
         success: false,
         valid: false,
+        code: 'INVALID',
         error: 'ASSINATURA HMAC INVÁLIDA! QR Code alterado ou forjado.'
       }, 401);
     }
@@ -255,14 +271,33 @@ const validateHandler = async (c: any) => {
     // 2. Invoca Stored Procedure `validate_ticket_gatekeeper`
     const { data: dbResult, error: dbErr } = await supabase.rpc('validate_ticket_gatekeeper', {
       p_ticket_id: ticketId,
-      p_qr_signature: signature
+      p_qr_signature: signature,
+      p_target_event_id: targetEventId || null
     });
 
     if (dbErr) throw dbErr;
 
-    return c.json(dbResult);
+    // Trata códigos de status HTTP por estado
+    if (dbResult.code === 'ALREADY_USED') {
+      return c.json(dbResult, 409); // Conflict
+    }
+
+    if (dbResult.code === 'WRONG_EVENT') {
+      return c.json(dbResult, 422); // Unprocessable Entity / Wrong Event
+    }
+
+    if (dbResult.code === 'INVALID') {
+      return c.json(dbResult, 400); // Bad Request
+    }
+
+    return c.json(dbResult, 200); // 200 OK - VALID
   } catch (err: any) {
-    return c.json({ success: false, valid: false, error: err.message }, 500);
+    return c.json({
+      success: false,
+      valid: false,
+      code: 'INVALID',
+      error: err.message
+    }, 500);
   }
 };
 

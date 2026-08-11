@@ -142,10 +142,11 @@ BEGIN
 END;
 $$;
 
--- Procedure 2: validate_ticket_gatekeeper (Atomic Gate Entry Check)
+-- Procedure 2: validate_ticket_gatekeeper (Atomic Gate Entry Check: VALID, ALREADY_USED, INVALID, WRONG_EVENT)
 CREATE OR REPLACE FUNCTION public.validate_ticket_gatekeeper(
     p_ticket_id UUID,
-    p_qr_signature TEXT
+    p_qr_signature TEXT,
+    p_target_event_id UUID DEFAULT NULL
 )
 RETURNS JSONB
 LANGUAGE plpgsql
@@ -163,19 +164,52 @@ BEGIN
     FOR UPDATE;
 
     IF v_ticket IS NULL THEN
-        RETURN jsonb_build_object('success', false, 'valid', false, 'message', 'Ingresso não encontrado no sistema.');
+        RETURN jsonb_build_object(
+            'success', false,
+            'valid', false,
+            'code', 'INVALID',
+            'message', 'Ingresso não encontrado no sistema.'
+        );
     END IF;
 
     IF v_ticket.qr_signature != p_qr_signature THEN
-        RETURN jsonb_build_object('success', false, 'valid', false, 'message', 'ASSINATURA INVÁLIDA! QR Code forjado.');
+        RETURN jsonb_build_object(
+            'success', false,
+            'valid', false,
+            'code', 'INVALID',
+            'message', 'ASSINATURA INVÁLIDA! QR Code forjado.'
+        );
     END IF;
 
+    -- Check WRONG_EVENT
+    IF p_target_event_id IS NOT NULL AND v_ticket.event_id != p_target_event_id THEN
+        RETURN jsonb_build_object(
+            'success', false,
+            'valid', false,
+            'code', 'WRONG_EVENT',
+            'message', 'INGRESSO DE OUTRO EVENTO! Este ingresso pertence a: ' || v_ticket.event_title,
+            'ticket_event', v_ticket.event_title
+        );
+    END IF;
+
+    -- Check ALREADY_USED
     IF v_ticket.status = 'used' THEN
-        RETURN jsonb_build_object('success', false, 'valid', false, 'message', 'INGRESSO JÁ UTILIZADO! Entrada recusada.', 'used_at', v_ticket.used_at);
+        RETURN jsonb_build_object(
+            'success', false,
+            'valid', false,
+            'code', 'ALREADY_USED',
+            'message', 'INGRESSO JÁ UTILIZADO! Entrada recusada.',
+            'used_at', v_ticket.used_at
+        );
     END IF;
 
     IF v_ticket.status = 'cancelled' THEN
-        RETURN jsonb_build_object('success', false, 'valid', false, 'message', 'INGRESSO CANCELADO.');
+        RETURN jsonb_build_object(
+            'success', false,
+            'valid', false,
+            'code', 'INVALID',
+            'message', 'INGRESSO CANCELADO.'
+        );
     END IF;
 
     -- Mark as used and update timestamp
@@ -187,6 +221,7 @@ BEGIN
     RETURN jsonb_build_object(
         'success', true,
         'valid', true,
+        'code', 'VALID',
         'message', 'ENTRADA LIBERADA! Ingresso válido.',
         'user_name', v_ticket.user_name,
         'event_title', v_ticket.event_title,
