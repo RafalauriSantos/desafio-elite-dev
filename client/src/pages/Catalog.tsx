@@ -38,15 +38,15 @@ export const Catalog: React.FC<CatalogProps> = ({ onSelectEvent }) => {
         <div className="relative z-10 max-w-2xl space-y-4">
           <div className="inline-flex items-center gap-2 bg-indigo-950/80 border border-indigo-500/30 px-3.5 py-1.5 rounded-full text-xs font-semibold text-indigo-300">
             <Sparkles className="w-3.5 h-3.5 text-indigo-400" />
-            <span>Reserva de Assentos em Tempo Real & Anti-Fraude</span>
+            <span>Eventos Exclusivos 2026</span>
           </div>
 
           <h1 className="text-3xl sm:text-5xl font-extrabold font-display tracking-tight text-white leading-tight">
-            Garanta seu lugar nos maiores eventos com <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400">trava de segurança atômica</span>.
+            Garanta seu lugar nos melhores eventos com <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400">seleção de assentos em tempo real</span>.
           </h1>
 
           <p className="text-slate-400 text-sm sm:text-base leading-relaxed">
-            Plataforma de alta concorrência com assentos numerados, validação de ingressos por assinatura HMAC e leitura instantânea por QR Code.
+            Escolha seu assento no mapa interativo, obtenha confirmação instantânea e receba seu ingresso digital verificado.
           </p>
 
           {/* Search Bar */}

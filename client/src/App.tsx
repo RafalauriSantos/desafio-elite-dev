@@ -48,7 +48,7 @@ export function App() {
                 </span>
               </div>
               <p className="text-[10px] text-slate-400 uppercase tracking-widest font-mono">
-                Plataforma de Alta Concorrência
+                Eventos & Portaria
               </p>
             </div>
           </button>
@@ -128,7 +128,7 @@ export function App() {
         <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2">
             <ShieldCheck className="w-4 h-4 text-indigo-400" />
-            <span>Desafio Elite Dev • Trava Pessimista Atômica (FOR UPDATE) & Assinatura HMAC-SHA256</span>
+            <span>Elite Tickets • Plataforma Oficial de Ingressos & Validação de Entrada</span>
           </div>
           <p>© 2026 Elite Tickets. Todos os direitos reservados.</p>
         </div>

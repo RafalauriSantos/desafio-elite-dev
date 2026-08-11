@@ -30,10 +30,10 @@ export const Gatekeeper: React.FC = () => {
         <div>
           <div className="inline-flex items-center gap-2 bg-indigo-950/80 border border-indigo-500/30 px-3 py-1 rounded-full text-[11px] font-semibold text-indigo-300 mb-3">
             <ShieldCheck className="w-3.5 h-3.5" />
-            <span>Painel de Controle de Acesso Portaria</span>
+            <span>Validador Portaria</span>
           </div>
-          <h1 className="text-3xl font-extrabold font-display text-white">Validador de Entrada (Gatekeeper)</h1>
-          <p className="text-xs text-slate-400 mt-1">Verificação criptográfica de integridade de ingressos via HMAC-SHA256</p>
+          <h1 className="text-3xl font-extrabold font-display text-white">Controle de Acesso</h1>
+          <p className="text-xs text-slate-400 mt-1">Leitura instantânea de QR Code e verificação de autorização de entrada</p>
         </div>
       </div>
 

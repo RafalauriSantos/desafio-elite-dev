@@ -77,7 +77,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
           </div>
           <div>
             <h2 className="text-xl font-bold font-display text-white">Finalizar Compra</h2>
-            <p className="text-xs text-slate-400">Reserva temporária garantida por trava atômica (FOR UPDATE)</p>
+            <p className="text-xs text-slate-400">Insira seus dados para receber o ingresso digital</p>
           </div>
         </div>
 
