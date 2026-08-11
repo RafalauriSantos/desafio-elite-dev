@@ -74,10 +74,20 @@ ALTER TABLE public.events ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.seats ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.tickets ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "Allow public read profiles" ON public.profiles FOR SELECT USING (true);
-CREATE POLICY "Allow public read events" ON public.events FOR SELECT USING (true);
-CREATE POLICY "Allow public read seats" ON public.seats FOR SELECT USING (true);
-CREATE POLICY "Allow public read tickets" ON public.tickets FOR SELECT USING (true);
+DO $$ BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Allow public read profiles') THEN
+        CREATE POLICY "Allow public read profiles" ON public.profiles FOR SELECT USING (true);
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Allow public read events') THEN
+        CREATE POLICY "Allow public read events" ON public.events FOR SELECT USING (true);
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Allow public read seats') THEN
+        CREATE POLICY "Allow public read seats" ON public.seats FOR SELECT USING (true);
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Allow public read tickets') THEN
+        CREATE POLICY "Allow public read tickets" ON public.tickets FOR SELECT USING (true);
+    END IF;
+END $$;
 
 -- --------------------------------------------------------
 -- 4. ATOMIC PROCEDURES (PESSIMISTIC LOCKING & ENTRY VALIDATION)
@@ -191,17 +201,17 @@ $$;
 
 -- Profiles
 INSERT INTO public.profiles (id, email, name, role) VALUES
-    ('u1111111-1111-1111-1111-111111111111', 'organizador@verzel.com', 'Carlos Organizador', 'organizer'),
-    ('u2222222-2222-2222-2222-222222222222', 'ana.cliente@verzel.com', 'Ana Cliente', 'client'),
-    ('u3333333-3333-3333-3333-333333333333', 'bruno.cliente@verzel.com', 'Bruno Cliente', 'client'),
-    ('u4444444-4444-4444-4444-444444444444', 'portaria@verzel.com', 'Roberto Portaria', 'gatekeeper')
+    ('11111111-1111-1111-1111-111111111111', 'organizador@verzel.com', 'Carlos Organizador', 'organizer'),
+    ('22222222-2222-2222-2222-222222222222', 'ana.cliente@verzel.com', 'Ana Cliente', 'client'),
+    ('33333333-3333-3333-3333-333333333333', 'bruno.cliente@verzel.com', 'Bruno Cliente', 'client'),
+    ('44444444-4444-4444-4444-444444444444', 'portaria@verzel.com', 'Roberto Portaria', 'gatekeeper')
 ON CONFLICT (email) DO NOTHING;
 
 -- 1 Demo Event
 INSERT INTO public.events (id, organizer_id, title, description, venue, date, price, banner_url)
 VALUES (
     'e1111111-1111-1111-1111-111111111111',
-    'u1111111-1111-1111-1111-111111111111',
+    '11111111-1111-1111-1111-111111111111',
     'Tech Summit Elite 2026',
     'O maior evento de engenharia de software e inteligência artificial da América Latina.',
     'Arena Innovation Hub - São Paulo',
