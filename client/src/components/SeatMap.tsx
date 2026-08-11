@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { SeatItem } from '../lib/api';
-import { ShieldCheck, Lock, CheckCircle2 } from 'lucide-react';
+import { ShieldCheck, Lock, CheckCircle2, Clock, Sparkles, ArrowRight } from 'lucide-react';
 
 interface SeatMapProps {
   seats: SeatItem[];
@@ -17,14 +17,33 @@ export const SeatMap: React.FC<SeatMapProps> = ({
 }) => {
   // Group seats by row
   const rows = Array.from(new Set(seats.map((s) => s.row_name))).sort();
+  const selectedSeat = seats.find((s) => s.id === selectedSeatId);
+
+  // Timer countdown simulation
+  const [timeLeft, setTimeLeft] = useState(600); // 10 minutes in seconds
+
+  useEffect(() => {
+    if (!selectedSeatId) return;
+    setTimeLeft(600);
+    const interval = setInterval(() => {
+      setTimeLeft((prev) => (prev > 0 ? prev - 1 : 0));
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [selectedSeatId]);
+
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  };
 
   return (
-    <div className="w-full bg-[#121215] p-6 sm:p-8 rounded-3xl border border-zinc-800 shadow-2xl relative overflow-hidden">
+    <div className="w-full bg-[#141417] p-6 sm:p-10 rounded-3xl border border-zinc-800 shadow-2xl relative overflow-hidden space-y-8">
       {/* Stage Screen Backdrop (Curved Top Screen with Light Beam) */}
-      <div className="relative mb-10 text-center">
-        <div className="w-full h-12 stage-beam rounded-b-full flex items-center justify-center shadow-lg shadow-emerald-500/10">
-          <span className="text-[11px] uppercase tracking-[0.3em] font-mono font-bold text-emerald-400">
-            TELA / PALCO PRINCIPAL
+      <div className="relative text-center">
+        <div className="w-full h-14 stage-beam rounded-b-full flex items-center justify-center shadow-2xl shadow-emerald-500/20">
+          <span className="text-xs uppercase tracking-[0.35em] font-mono font-extrabold text-emerald-400 flex items-center gap-2">
+            <Sparkles className="w-3.5 h-3.5 text-emerald-400" /> TELA / PALCO PRINCIPAL
           </span>
         </div>
       </div>
@@ -57,7 +76,7 @@ export const SeatMap: React.FC<SeatMapProps> = ({
                     if (seat.category === 'VIP') {
                       seatStyle = 'bg-emerald-950/70 text-emerald-300 border-emerald-500/50 hover:bg-emerald-500 hover:text-zinc-950 hover:border-emerald-400 hover:shadow-lg hover:shadow-emerald-500/20';
                     } else if (seat.category === 'Premium') {
-                      seatStyle = 'bg-indigo-950/70 text-indigo-300 border-indigo-500/50 hover:bg-indigo-500 hover:text-white hover:border-indigo-400 hover:shadow-lg hover:shadow-indigo-500/20';
+                      seatStyle = 'bg-cyan-950/70 text-cyan-300 border-cyan-500/50 hover:bg-cyan-400 hover:text-zinc-950 hover:border-cyan-300 hover:shadow-lg hover:shadow-cyan-500/20';
                     } else {
                       seatStyle = 'bg-zinc-900 text-zinc-300 border-zinc-700 hover:bg-zinc-700 hover:text-white';
                     }
@@ -72,7 +91,7 @@ export const SeatMap: React.FC<SeatMapProps> = ({
                   }
 
                   if (isSelected) {
-                    seatStyle = 'bg-emerald-400 text-zinc-950 font-extrabold border-emerald-300 shadow-xl shadow-emerald-500/40 scale-110 ring-2 ring-emerald-300 z-10';
+                    seatStyle = 'bg-emerald-400 text-zinc-950 font-extrabold border-emerald-300 shadow-2xl shadow-emerald-500/50 scale-110 ring-2 ring-emerald-300 z-10';
                   }
 
                   return (
@@ -90,7 +109,7 @@ export const SeatMap: React.FC<SeatMapProps> = ({
                       {isSelected && <CheckCircle2 className="w-3.5 h-3.5 text-zinc-950 absolute bottom-1" />}
 
                       {/* Tooltip on hover */}
-                      <div className="absolute bottom-full mb-2 hidden group-hover:flex flex-col items-center bg-zinc-900 text-zinc-100 text-[10px] py-1.5 px-3 rounded-xl shadow-2xl border border-zinc-700 whitespace-nowrap z-30 pointer-events-none animate-in fade-in duration-150">
+                      <div className="absolute bottom-full mb-2 hidden group-hover:flex flex-col items-center bg-[#09090b] text-zinc-100 text-[11px] py-1.5 px-3 rounded-xl shadow-2xl border border-zinc-700 whitespace-nowrap z-30 pointer-events-none animate-in fade-in duration-150">
                         <span className="font-bold text-emerald-400 font-mono">Fileira {seat.row_name} • Assento {seat.seat_number}</span>
                         <span className="text-zinc-300 font-medium">{seat.category} - R$ {seat.price.toFixed(2)}</span>
                       </div>
@@ -103,15 +122,47 @@ export const SeatMap: React.FC<SeatMapProps> = ({
         })}
       </div>
 
+      {/* Floating Order Summary Dock (UI/UX Pro Max) */}
+      {selectedSeat && (
+        <div className="bg-[#09090b]/95 backdrop-blur-xl border border-emerald-500/40 p-4 sm:p-5 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-4 shadow-2xl shadow-emerald-500/10 animate-in slide-in-from-bottom-3 duration-300">
+          <div className="flex items-center gap-4 w-full sm:w-auto">
+            <div className="w-12 h-12 rounded-xl bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center shrink-0">
+              <CheckCircle2 className="w-6 h-6 text-emerald-400" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-zinc-400 uppercase font-mono tracking-wider font-bold">Assento Selecionado:</span>
+                <span className="font-mono font-extrabold text-white text-base bg-zinc-900 px-2 py-0.5 rounded border border-zinc-800">
+                  Fileira {selectedSeat.row_name} • N° {selectedSeat.seat_number}
+                </span>
+                <span className="bg-emerald-950 text-emerald-400 text-[10px] font-bold px-2 py-0.5 rounded-full border border-emerald-800">
+                  {selectedSeat.category}
+                </span>
+              </div>
+              <p className="text-xs text-zinc-300 mt-1 font-medium">
+                Total: <span className="text-emerald-400 font-mono font-extrabold text-sm">R$ {selectedSeat.price.toFixed(2)}</span>
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-4 w-full sm:w-auto justify-between sm:justify-end border-t sm:border-t-0 border-zinc-800 pt-3 sm:pt-0">
+            <div className="flex items-center gap-1.5 text-xs text-amber-400 bg-amber-950/60 px-3 py-1.5 rounded-xl border border-amber-800/60 font-mono font-bold">
+              <Clock className="w-4 h-4 text-amber-400 animate-pulse" />
+              <span>Retenção: {formatTime(timeLeft)}</span>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Legend & Concurrency Assurance */}
-      <div className="mt-8 pt-6 border-t border-zinc-800 flex flex-wrap items-center justify-between gap-4 text-xs">
+      <div className="pt-6 border-t border-zinc-800/80 flex flex-wrap items-center justify-between gap-4 text-xs">
         <div className="flex flex-wrap items-center gap-4 text-zinc-300 font-medium">
           <div className="flex items-center gap-1.5">
             <span className="w-3.5 h-3.5 rounded-md bg-emerald-950 border border-emerald-500"></span>
             <span>VIP</span>
           </div>
           <div className="flex items-center gap-1.5">
-            <span className="w-3.5 h-3.5 rounded-md bg-indigo-950 border border-indigo-500"></span>
+            <span className="w-3.5 h-3.5 rounded-md bg-cyan-950 border border-cyan-500"></span>
             <span>Premium</span>
           </div>
           <div className="flex items-center gap-1.5">
