@@ -223,9 +223,10 @@ export const api = {
   },
 
   // 5. Gatekeeper Validate Ticket
-  async validateTicket(qrData: string): Promise<{
+  async validateTicket(qrData: string, targetEventId?: string): Promise<{
     success: boolean;
     valid: boolean;
+    code?: string;
     message?: string;
     error?: string;
     ticket?: TicketItem;
@@ -234,7 +235,7 @@ export const api = {
       const res = await fetch(`${API_BASE_URL}/api/validate-ticket`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ qrData })
+        body: JSON.stringify({ qrData, targetEventId })
       });
       return await res.json();
     } catch {
@@ -263,21 +264,35 @@ export const api = {
       const matchIndex = stored.findIndex((t) => t.id === targetId || t.qr_signature === targetId);
 
       if (matchIndex === -1 && !parsed.ticketId && !parsed.signature) {
-        return { success: false, valid: false, error: 'QR Code inválido ou não reconhecido.' };
+        return { success: false, valid: false, code: 'INVALID', error: 'QR Code inválido ou não reconhecido.' };
       }
 
       const foundTicket = stored[matchIndex] || {
         id: targetId || 't-demo',
+        event_id: parsed.eventId || MOCK_EVENTS[0].id,
         status: 'valid',
         events: MOCK_EVENTS[0],
         seats: { row_name: 'A', seat_number: 1 },
         user_name: parsed.userEmail || parsed.user_name || 'Titular do Ingresso'
       };
 
+      // Check WRONG_EVENT
+      const ticketEventId = foundTicket.event_id || parsed.eventId;
+      if (targetEventId && targetEventId !== 'all' && ticketEventId && ticketEventId !== targetEventId) {
+        return {
+          success: false,
+          valid: false,
+          code: 'WRONG_EVENT',
+          error: 'INGRESSO DE OUTRO EVENTO (WRONG_EVENT)! Este bilhete pertence a outro espetáculo.',
+          ticket: foundTicket
+        };
+      }
+
       if (foundTicket.status === 'used') {
         return {
           success: false,
           valid: false,
+          code: 'ALREADY_USED',
           error: 'INGRESSO JÁ UTILIZADO (ALREADY_USED)! Entrada recusada.',
           ticket: foundTicket
         };
@@ -288,6 +303,7 @@ export const api = {
         return {
           success: false,
           valid: false,
+          code: 'INVALID',
           error: 'ASSINATURA CRAM-HMAC INVÁLIDA (INVALID)! QR Code alterado ou forjado.',
           ticket: foundTicket
         };
@@ -302,11 +318,12 @@ export const api = {
       return {
         success: true,
         valid: true,
+        code: 'VALID',
         message: 'ENTRADA LIBERADA (VALID)! Ingresso autêntico.',
         ticket: foundTicket
       };
     } catch {
-      return { success: false, valid: false, error: 'Falha ao processar leitura de QR Code.' };
+      return { success: false, valid: false, code: 'INVALID', error: 'Falha ao processar leitura de QR Code.' };
     }
   },
 

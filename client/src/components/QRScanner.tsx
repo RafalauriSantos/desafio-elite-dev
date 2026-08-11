@@ -4,10 +4,11 @@ import { Camera, CheckCircle2, QrCode, Play, AlertCircle, Check, ShieldAlert } f
 import { api } from '../lib/api';
 
 interface QRScannerProps {
+  targetEventId?: string;
   onResult: (result: { success: boolean; valid: boolean; message?: string; error?: string; ticket?: any }) => void;
 }
 
-export const QRScanner: React.FC<QRScannerProps> = ({ onResult }) => {
+export const QRScanner: React.FC<QRScannerProps> = ({ targetEventId, onResult }) => {
   const [manualInput, setManualInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [mode, setMode] = useState<'camera' | 'manual'>('manual');
@@ -41,7 +42,7 @@ export const QRScanner: React.FC<QRScannerProps> = ({ onResult }) => {
     if (!data.trim()) return;
     setLoading(true);
     try {
-      const res = await api.validateTicket(data);
+      const res = await api.validateTicket(data, targetEventId);
       onResult(res);
     } catch (err: any) {
       onResult({
