@@ -15,7 +15,7 @@ export function Layout({ children, activeTab, onTabChange, ticketCount }: Layout
   ];
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#09090b] text-zinc-100 antialiased overflow-x-hidden">
+    <div className="min-h-[100dvh] flex flex-col flex-1 bg-[#09090b] text-zinc-100 antialiased overflow-x-hidden">
       {/* Header Fixo/Sticky */}
       <header className="w-full border-b border-zinc-800/80 bg-[#09090b]/90 backdrop-blur-md sticky top-0 z-40">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
@@ -55,7 +55,7 @@ export function Layout({ children, activeTab, onTabChange, ticketCount }: Layout
       </main>
 
       {/* Rodapé fixado na base do conteúdo sem espaço abaixo dele */}
-      <footer className="w-full border-t border-zinc-800/60 py-6 text-center text-xs font-mono text-zinc-500 bg-[#09090b]">
+      <footer className="w-full border-t border-zinc-800/60 py-6 text-center text-xs font-mono text-zinc-500 bg-[#09090b] mt-auto">
         © 2026 Elite Tickets
       </footer>
     </div>

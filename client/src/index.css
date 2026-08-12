@@ -3,20 +3,26 @@
 @tailwind utilities;
 
 @layer base {
-  html, body {
-    min-height: 100%;
-    height: 100%;
-    background-color: #09090b;
+  html, body, #root {
+    min-height: 100dvh;
+    margin: 0;
+    padding: 0;
+    background-color: #09090b !important;
     color: #fafafa;
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    overscroll-behavior: none;
     overscroll-behavior-y: none;
   }
 
-  #root {
-    min-height: 100%;
+  body {
     display: flex;
     flex-direction: column;
-    background-color: #09090b;
+  }
+
+  #root {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
   }
 
   /* Scrollbar — minimal */
