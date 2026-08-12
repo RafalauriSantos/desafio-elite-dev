@@ -85,7 +85,7 @@ export const EventDetails: React.FC<EventDetailsProps> = ({
 
   if (loading || !event) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
+      <div className="flex items-center justify-center py-20 w-full flex-1">
         <div className="w-5 h-5 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin" />
       </div>
     );
