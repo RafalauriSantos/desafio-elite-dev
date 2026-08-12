@@ -12,6 +12,7 @@ interface AuthContextValue {
   recoveryMode: boolean;
   isDemoMode: boolean;
   signIn: (email: string, password: string) => Promise<{ error?: string }>;
+  signUp: (email: string, password: string, name: string) => Promise<{ error?: string; needsConfirmation?: boolean }>;
   resetPassword: (email: string) => Promise<{ error?: string }>;
   updatePassword: (password: string) => Promise<{ error?: string }>;
   signOut: () => Promise<void>;
@@ -48,6 +49,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     signIn: async (email, password) => {
       const { error } = await supabase.auth.signInWithPassword({ email, password });
       return error ? { error: error.message } : {};
+    },
+    signUp: async (email, password, name) => {
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: { data: { name } }
+      });
+      return error ? { error: error.message } : { needsConfirmation: !data.session };
     },
     resetPassword: async (email) => {
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
