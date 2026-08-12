@@ -1,6 +1,6 @@
 import os
 import time
-from playwright.sync_api import sync_playwright
+from playwright.sync_api import expect, sync_playwright
 
 def run_e2e_test():
     os.makedirs("tests/screenshots", exist_ok=True)
@@ -82,8 +82,7 @@ def run_e2e_test():
                     confirm_pay_btn = page.query_selector("button:has-text('Confirmar e emitir')") or page.query_selector("button:has-text('Confirmar Pagamento')")
                     if confirm_pay_btn:
                         confirm_pay_btn.click()
-                        time.sleep(1.5)
-                        assert page.get_by_text("Meus ingressos", exact=True).count() > 0
+                        expect(page.get_by_text("Meus ingressos", exact=True)).to_be_visible(timeout=10000)
                         page.screenshot(path="tests/screenshots/06_my_tickets.png")
                         print("  -> Payment simulated! Ticket generated with HMAC QR Code.")
 
