@@ -576,62 +576,95 @@ app.post('/api/checkout', async (c) => {
   try {
     const body = await c.req.json();
     const { seatId, eventId, userEmail, userName } = body;
+    const seatIds: string[] = Array.isArray(body.seatIds)
+      ? Array.from(new Set(body.seatIds.filter((id: unknown): id is string => typeof id === 'string' && id.length > 0)))
+      : seatId
+      ? [seatId]
+      : [];
+    const paymentOutcome = body.paymentOutcome || body.payment_status || 'approved';
 
-    if (!seatId || !eventId || !userEmail || !userName) {
+    if (!seatIds.length || !eventId || !userEmail || !userName) {
       return c.json({ success: false, error: 'Campos obrigatórios ausentes.' }, 400);
     }
 
+    if (paymentOutcome !== 'approved' && paymentOutcome !== 'declined') {
+      return c.json({ success: false, error: 'paymentOutcome deve ser approved ou declined.' }, 400);
+    }
+
+    if (paymentOutcome === 'declined') {
+      if (isSupabaseConfigured(c)) {
+        const supabase = getSupabaseClient(c);
+        const { error } = await supabase.rpc('release_tickets_batch_atomic', {
+          p_seat_ids: seatIds,
+          p_user_email: userEmail
+        });
+
+        if (error) {
+          return c.json({ success: false, paymentStatus: 'declined', error: 'Não foi possível liberar a reserva após a recusa.' }, 500);
+        }
+      }
+
+      return c.json({
+        success: false,
+        paymentStatus: 'declined',
+        tickets: [],
+        error: 'Pagamento recusado na simulação. Nenhum ingresso foi emitido.'
+      }, 402);
+    }
+
     const hmacSecret = getHmacSecret(c);
-    const ticketId = crypto.randomUUID();
     const issuedAt = Date.now();
+    const ticketRows: any[] = [];
+    const qrCodes: string[] = [];
 
-    const payload: TicketPayload = {
-      ticketId,
-      eventId,
-      seatId,
-      clientId: userEmail,
-      issuedAt
-    };
+    for (const currentSeatId of seatIds) {
+      const ticketId = crypto.randomUUID();
+      const payload: TicketPayload = {
+        ticketId,
+        eventId,
+        seatId: currentSeatId,
+        clientId: userEmail,
+        issuedAt
+      };
+      const signature = await signTicketPayload(payload, hmacSecret);
 
-    // Assinatura digital HMAC-SHA256
-    const signature = await signTicketPayload(payload, hmacSecret);
-
-    let ticket: any = {
-      id: ticketId,
-      event_id: eventId,
-      seat_id: seatId,
-      user_email: userEmail,
-      user_name: userName,
-      status: 'valid',
-      qr_signature: signature,
-      created_at: new Date().toISOString()
-    };
+      ticketRows.push({
+        id: ticketId,
+        event_id: eventId,
+        seat_id: currentSeatId,
+        user_email: userEmail,
+        user_name: userName,
+        status: 'valid',
+        qr_signature: signature,
+        created_at: new Date().toISOString()
+      });
+      qrCodes.push(JSON.stringify({ ...payload, signature }));
+    }
 
     if (isSupabaseConfigured(c)) {
       const supabase = getSupabaseClient(c);
-      const { data: dbTicket, error: ticketErr } = await supabase
-        .from('tickets')
-        .insert(ticket)
-        .select()
-        .single();
+      const { error } = await supabase.rpc('complete_checkout_batch_atomic', {
+        p_seat_ids: seatIds,
+        p_event_id: eventId,
+        p_user_email: userEmail,
+        p_ticket_rows: ticketRows
+      });
 
-      if (!ticketErr && dbTicket) {
-        ticket = dbTicket;
+      if (error) {
+        return c.json({ success: false, error: error.message || 'A reserva expirou ou não pertence a este comprador.' }, 409);
       }
-
-      await supabase
-        .from('seats')
-        .update({ status: 'sold', locked_by: null, locked_until: null })
-        .eq('id', seatId);
     }
 
-    const qrCodeData = JSON.stringify({ ...payload, signature });
+    const ticket = ticketRows[0];
 
     return c.json({
       success: true,
       ticket,
-      qrCodeData,
-      signature
+      tickets: ticketRows,
+      qrCodeData: qrCodes[0],
+      qrCodes,
+      signatures: ticketRows.map((row) => row.qr_signature),
+      paymentStatus: 'approved'
     });
   } catch (err: any) {
     return c.json({ success: false, error: err.message }, 500);

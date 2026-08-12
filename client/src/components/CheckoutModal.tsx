@@ -8,7 +8,7 @@ interface CheckoutModalProps {
   seat?: SeatItem;
   seats?: SeatItem[];
   onClose: () => void;
-  onSuccess: (ticket: any, qrData: string) => void;
+  onSuccess: (tickets: any[], qrData: string[]) => void;
 }
 
 export const CheckoutModal: React.FC<CheckoutModalProps> = ({
@@ -23,6 +23,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
   const [userEmail, setUserEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [paymentOutcome, setPaymentOutcome] = useState<'approved' | 'declined'>('approved');
 
   if (!isOpen) return null;
 
@@ -46,18 +47,22 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
 
     try {
       const { api } = await import('../lib/api');
+      const reservation = await api.reserveSeatsBatch(targetSeats.map((targetSeat) => targetSeat.id), userEmail);
+      if (!reservation.success) {
+        setError(reservation.message || 'Um ou mais assentos ficaram indisponíveis.');
+        return;
+      }
       
-      // Issue ticket for the primary/first seat in batch or single
-      const primarySeat = targetSeats[0];
       const res = await api.checkout({
-        seatId: primarySeat.id,
+        seatIds: targetSeats.map((targetSeat) => targetSeat.id),
         eventId: event.id,
         userEmail,
         userName,
+        paymentOutcome,
       });
 
-      if (res.success && res.ticket && res.qrCodeData) {
-        onSuccess(res.ticket, res.qrCodeData);
+      if (res.success && res.tickets?.length && res.qrCodes?.length) {
+        onSuccess(res.tickets, res.qrCodes);
       } else {
         setError(res.error || 'Erro ao processar checkout.');
       }
@@ -144,6 +149,19 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
               autoCapitalize="none"
               className="w-full bg-zinc-900/60 border border-zinc-800 rounded-lg px-3.5 py-2.5 text-sm text-white placeholder-zinc-600 outline-none focus:border-zinc-600 transition-colors"
             />
+          </div>
+
+          <div>
+            <label className="block text-xs text-zinc-400 mb-1.5">Resultado do pagamento simulado</label>
+            <select
+              value={paymentOutcome}
+              onChange={(e) => setPaymentOutcome(e.target.value as 'approved' | 'declined')}
+              className="w-full bg-zinc-900/60 border border-zinc-800 rounded-lg px-3.5 py-2.5 text-sm text-white outline-none focus:border-zinc-600 transition-colors"
+            >
+              <option value="approved">Aprovar pagamento</option>
+              <option value="declined">Recusar pagamento</option>
+            </select>
+            <p className="text-[11px] text-zinc-600 mt-1.5">A recusa libera os assentos e não emite ingressos.</p>
           </div>
 
           <div className="flex gap-2.5 pt-2">

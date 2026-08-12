@@ -3,6 +3,8 @@
 **Data:** 2026-08-12  
 **Escopo:** comparação do enunciado anexado com o código e os testes atuais do repositório.
 
+**Atualização de implementação:** a Fase 1 do plano foi implementada nesta branch. O checkout agora aceita `seatIds`, emite um ticket/QR por assento, suporta `approved`/`declined` e possui RPCs SQL para finalizar ou liberar reservas. A migração SQL e o deploy do Worker precisam ser aplicados no ambiente Supabase/Cloudflare antes de considerar o comportamento remoto atualizado.
+
 ## Veredito executivo
 
 O projeto entrega um fluxo demonstrável de ponta a ponta para catálogo, mapa de assentos, reserva em lote, checkout de confirmação, ingresso com QR, portaria manual/câmera e prevenção de dupla entrada no caminho Supabase. Ele ainda não deve ser descrito como cumprimento integral do enunciado sem ressalvas.

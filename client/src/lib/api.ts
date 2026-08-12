@@ -112,6 +112,19 @@ const saveStoredTicket = (ticket: TicketItem) => {
   localStorage.setItem('elite_tickets_demo', JSON.stringify(existing));
 };
 
+const saveLocalReservation = (seatIds: string[], userEmail: string) => {
+  const reservations = JSON.parse(localStorage.getItem('elite_ticket_reservations') || '{}');
+  const expiresAt = Date.now() + 10 * 60 * 1000;
+  seatIds.forEach((seatId) => { reservations[seatId] = { userEmail, expiresAt }; });
+  localStorage.setItem('elite_ticket_reservations', JSON.stringify(reservations));
+};
+
+const clearLocalReservations = (seatIds: string[]) => {
+  const reservations = JSON.parse(localStorage.getItem('elite_ticket_reservations') || '{}');
+  seatIds.forEach((seatId) => { delete reservations[seatId]; });
+  localStorage.setItem('elite_ticket_reservations', JSON.stringify(reservations));
+};
+
 export const api = {
   // 1. Get events list
   async getEvents(): Promise<EventItem[]> {
@@ -171,6 +184,7 @@ export const api = {
       const json = await res.json();
       return json;
     } catch {
+      saveLocalReservation(seatIds, userEmail);
       return { success: true, message: `${seatIds.length} assentos reservados (Modo Demonstração).` };
     }
   },
@@ -199,64 +213,78 @@ export const api = {
   },
 
   // 4. Checkout & Issue Signed Ticket
-  async checkout(params: { seatId: string; eventId: string; userEmail: string; userName: string }): Promise<{
+  async checkout(params: { seatId?: string; seatIds?: string[]; eventId: string; userEmail: string; userName: string; paymentOutcome?: 'approved' | 'declined' }): Promise<{
     success: boolean;
     ticket?: TicketItem;
+    tickets?: TicketItem[];
     qrCodeData?: string;
+    qrCodes?: string[];
+    paymentStatus?: 'approved' | 'declined';
     error?: string;
   }> {
+    const seatIds = params.seatIds?.length ? params.seatIds : params.seatId ? [params.seatId] : [];
+    const requestBody = { ...params, seatIds, seatId: seatIds[0] };
     try {
       const res = await fetch(`${API_BASE_URL}/api/checkout`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(params)
+        body: JSON.stringify(requestBody)
       });
       const json = await res.json();
-      if (json.success && json.ticket) {
-        saveStoredTicket(json.ticket);
+      if (json.success && (json.tickets?.length || json.ticket)) {
+        const tickets = json.tickets?.length ? json.tickets : [json.ticket];
+        const qrCodes = json.qrCodes?.length ? json.qrCodes : json.qrCodeData ? [json.qrCodeData] : [];
+        tickets.forEach(saveStoredTicket);
+        clearLocalReservations(seatIds);
+        return { ...json, ticket: tickets[0], tickets, qrCodes };
+      }
+      if (!json.success) {
+        if (json.paymentStatus === 'declined') clearLocalReservations(seatIds);
         return json;
       }
     } catch {
       console.warn('API server offline. Generating demo signed ticket payload locally.');
     }
 
+    if (params.paymentOutcome === 'declined') {
+      clearLocalReservations(seatIds);
+      return { success: false, paymentStatus: 'declined', tickets: [], error: 'Pagamento recusado na simulação. Nenhum ingresso foi emitido.' };
+    }
+
     // Client-side fallback calculation for local presentation
-    const ticketId = 't-' + Math.random().toString(36).substring(2, 9);
     const event = MOCK_EVENTS.find(e => e.id === params.eventId) || MOCK_EVENTS[0];
-    const [row, num] = params.seatId.split('-').slice(-2);
+    const issuedAt = Date.now();
+    const tickets = seatIds.map((currentSeatId) => {
+      const ticketId = 't-' + Math.random().toString(36).substring(2, 9);
+      const [row, num] = currentSeatId.split('-').slice(-2);
+      const payload = { ticketId, eventId: params.eventId, seatId: currentSeatId, userEmail: params.userEmail, issuedAt, nonce: Math.random().toString(36).substring(2, 8) };
+      const signature = 'hmac_sha256_' + btoa(JSON.stringify(payload)).substring(0, 32);
+      return {
+        id: ticketId,
+        event_id: params.eventId,
+        seat_id: currentSeatId,
+        user_email: params.userEmail,
+        user_name: params.userName,
+        status: 'valid' as const,
+        qr_signature: signature,
+        created_at: new Date().toISOString(),
+        events: event,
+        seats: { row_name: row || 'A', seat_number: parseInt(num || '1') },
+        qrCodeData: JSON.stringify({ ...payload, signature })
+      };
+    });
 
-    const payload = {
-      ticketId,
-      eventId: params.eventId,
-      seatId: params.seatId,
-      userEmail: params.userEmail,
-      issuedAt: Date.now(),
-      nonce: Math.random().toString(36).substring(2, 8)
-    };
-
-    // Simple deterministic demo hash
-    const signature = 'hmac_sha256_' + btoa(JSON.stringify(payload)).substring(0, 32);
-
-    const demoTicket: TicketItem = {
-      id: ticketId,
-      event_id: params.eventId,
-      seat_id: params.seatId,
-      user_email: params.userEmail,
-      user_name: params.userName,
-      status: 'valid',
-      qr_signature: signature,
-      created_at: new Date().toISOString(),
-      events: event,
-      seats: { row_name: row || 'A', seat_number: parseInt(num || '1') }
-    };
-
-    saveStoredTicket(demoTicket);
-    const qrCodeData = JSON.stringify({ ...payload, signature });
+    tickets.forEach(({ qrCodeData: _qrCodeData, ...ticket }) => saveStoredTicket(ticket));
+    clearLocalReservations(seatIds);
+    const qrCodes = tickets.map((ticket) => ticket.qrCodeData);
 
     return {
       success: true,
-      ticket: demoTicket,
-      qrCodeData
+      paymentStatus: 'approved',
+      ticket: tickets[0],
+      tickets,
+      qrCodeData: qrCodes[0],
+      qrCodes
     };
   },
 

@@ -18,8 +18,8 @@ export function App() {
     setActiveTab('event-details');
   };
 
-  const handleTicketPurchased = (newTicket: TicketItem) => {
-    setTickets((prev) => [newTicket, ...prev]);
+  const handleTicketPurchased = (newTickets: TicketItem[]) => {
+    setTickets((prev) => [...newTickets, ...prev]);
     setActiveTab('my-tickets');
   };
 

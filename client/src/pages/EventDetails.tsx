@@ -8,7 +8,7 @@ import { ArrowLeft, Calendar, MapPin, X } from 'lucide-react';
 interface EventDetailsProps {
   eventId: string;
   onBack: () => void;
-  onTicketPurchased: (ticket: any, qrData: string) => void;
+  onTicketPurchased: (tickets: any[], qrData: string[]) => void;
 }
 
 export const EventDetails: React.FC<EventDetailsProps> = ({
@@ -67,18 +67,8 @@ export const EventDetails: React.FC<EventDetailsProps> = ({
 
   const handleProceedToCheckout = async () => {
     if (selectedSeats.length === 0) return;
-    setIsReserving(true);
-
-    const seatIds = selectedSeats.map((s) => s.id);
-    const res = await api.reserveSeatsBatch(seatIds, 'usuario@exemplo.com');
-
-    setIsReserving(false);
-    if (res.success) {
-      setIsModalOpen(true);
-    } else {
-      setReserveMessage(res.message || 'Um ou mais assentos estão indisponíveis.');
-      loadEventData();
-    }
+    setReserveMessage(null);
+    setIsModalOpen(true);
   };
 
   const totalPrice = selectedSeats.reduce((acc, s) => acc + s.price, 0);
@@ -194,12 +184,12 @@ export const EventDetails: React.FC<EventDetailsProps> = ({
           event={event}
           seats={selectedSeats}
           onClose={() => setIsModalOpen(false)}
-          onSuccess={(ticket, qrData) => {
+          onSuccess={(tickets, qrData) => {
             setIsModalOpen(false);
-            setPurchasedTicket(ticket);
-            setPurchasedQrData(qrData);
+            setPurchasedTicket(tickets[0]);
+            setPurchasedQrData(qrData[0]);
             setIsEmailModalOpen(true);
-            onTicketPurchased(ticket, qrData);
+            onTicketPurchased(tickets, qrData);
           }}
         />
       )}

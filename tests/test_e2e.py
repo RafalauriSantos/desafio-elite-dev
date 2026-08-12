@@ -67,11 +67,16 @@ def run_e2e_test():
                     name_input = page.query_selector("input[placeholder*='Rafael']") or page.query_selector("input[placeholder*='Nome']")
                     if name_input:
                         name_input.fill("Rafa Tester")
+
+                    email_input = page.query_selector("input[type='email']")
+                    if email_input:
+                        email_input.fill("rafa.tester@example.com")
                     
                     confirm_pay_btn = page.query_selector("button:has-text('Confirmar e emitir')") or page.query_selector("button:has-text('Confirmar Pagamento')")
                     if confirm_pay_btn:
                         confirm_pay_btn.click()
                         time.sleep(1.5)
+                        assert page.get_by_text("Meus ingressos", exact=True).count() > 0
                         page.screenshot(path="tests/screenshots/06_my_tickets.png")
                         print("  -> Payment simulated! Ticket generated with HMAC QR Code.")
 
