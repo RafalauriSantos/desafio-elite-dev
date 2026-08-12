@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Plus, X, Film, Music, Calendar, MapPin, ArrowRight, CheckCircle2 } from 'lucide-react';
+import { Plus, X, Film, Music, Calendar, MapPin, ArrowRight, CheckCircle2, CheckSquare, Square } from 'lucide-react';
 import { api, EventItem } from '../lib/api';
 
 interface OrganizerModalProps {
@@ -16,7 +16,7 @@ export const OrganizerModal: React.FC<OrganizerModalProps> = ({
   const [step, setStep] = useState<'select' | 'configure'>('select');
   const [source, setSource] = useState<'tmdb' | 'ticketmaster'>('tmdb');
   const [externalResults, setExternalResults] = useState<any[]>([]);
-  const [selectedExternalItem, setSelectedExternalItem] = useState<any | null>(null);
+  const [selectedExternalItems, setSelectedExternalItems] = useState<any[]>([]);
 
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -45,8 +45,17 @@ export const OrganizerModal: React.FC<OrganizerModalProps> = ({
     setLoading(false);
   };
 
-  const handleSelectExternalItem = (item: any) => {
-    setSelectedExternalItem(item);
+  const handleToggleExternalItem = (item: any) => {
+    setSelectedExternalItems((prev) => {
+      const exists = prev.some((i) => i.externalId === item.externalId);
+      if (exists) {
+        return prev.filter((i) => i.externalId !== item.externalId);
+      } else {
+        return [...prev, item];
+      }
+    });
+
+    // Populate single form fields with latest selected item
     setTitle(item.title);
     setDescription(item.description);
     setBannerUrl(item.banner_url);
@@ -56,6 +65,19 @@ export const OrganizerModal: React.FC<OrganizerModalProps> = ({
     } else {
       setVenue('Allianz Parque - São Paulo, SP');
       setPrice('380.00');
+    }
+  };
+
+  const handleBulkImport = async () => {
+    if (selectedExternalItems.length === 0) return;
+    setLoading(true);
+
+    const res = await api.bulkImportEvents(selectedExternalItems);
+    setLoading(false);
+
+    if (res.success && res.events && res.events.length > 0) {
+      res.events.forEach((evt) => onEventCreated(evt));
+      onClose();
     }
   };
 
@@ -80,13 +102,14 @@ export const OrganizerModal: React.FC<OrganizerModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
-      <div className="bg-[#111113] border border-zinc-800/60 rounded-2xl w-full max-w-xl overflow-hidden shadow-2xl flex flex-col max-h-[85vh]">
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
+      {/* Bottom Sheet Mobile / Centered Modal Desktop */}
+      <div className="bg-[#111113] border border-zinc-800/60 rounded-t-2xl sm:rounded-2xl w-full max-w-xl overflow-hidden shadow-2xl flex flex-col max-h-[90vh] pb-[calc(1.5rem+env(safe-area-inset-bottom))] sm:pb-0">
         {/* Header */}
         <div className="p-5 border-b border-zinc-800/40 flex items-center justify-between shrink-0">
           <div>
-            <h3 className="text-base font-semibold text-white">Publicar evento</h3>
-            <p className="text-xs text-zinc-500 mt-0.5">Selecione da API externa ou configure manualmente.</p>
+            <h3 className="text-base font-semibold text-white">Publicar evento / Importação em lote</h3>
+            <p className="text-xs text-zinc-500 mt-0.5">Selecione eventos das APIs externas ou configure manualmente.</p>
           </div>
           <button
             onClick={onClose}
@@ -105,7 +128,7 @@ export const OrganizerModal: React.FC<OrganizerModalProps> = ({
               step === 'select' ? 'text-white border-b-2 border-emerald-500' : 'text-zinc-500 hover:text-zinc-300'
             }`}
           >
-            1. Selecionar evento
+            1. Seleção individual / lote
           </button>
           <button
             type="button"
@@ -123,51 +146,70 @@ export const OrganizerModal: React.FC<OrganizerModalProps> = ({
           {step === 'select' ? (
             <>
               {/* Source tabs */}
-              <div className="flex gap-1.5 bg-zinc-900/60 p-1 rounded-lg border border-zinc-800/40 w-fit">
-                <button
-                  type="button"
-                  onClick={() => setSource('tmdb')}
-                  className={`px-3 py-1.5 rounded-md text-[11px] font-medium flex items-center gap-1.5 transition-colors ${
-                    source === 'tmdb' ? 'bg-zinc-800 text-white' : 'text-zinc-500 hover:text-zinc-300'
-                  }`}
-                >
-                  <Film className="w-3 h-3" />
-                  TMDb (Filmes)
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setSource('ticketmaster')}
-                  className={`px-3 py-1.5 rounded-md text-[11px] font-medium flex items-center gap-1.5 transition-colors ${
-                    source === 'ticketmaster' ? 'bg-zinc-800 text-white' : 'text-zinc-500 hover:text-zinc-300'
-                  }`}
-                >
-                  <Music className="w-3 h-3" />
-                  Ticketmaster
-                </button>
+              <div className="flex items-center justify-between">
+                <div className="flex gap-1.5 bg-zinc-900/60 p-1 rounded-lg border border-zinc-800/40 w-fit">
+                  <button
+                    type="button"
+                    onClick={() => setSource('tmdb')}
+                    className={`px-3 py-1.5 rounded-md text-[11px] font-medium flex items-center gap-1.5 transition-colors ${
+                      source === 'tmdb' ? 'bg-zinc-800 text-white' : 'text-zinc-500 hover:text-zinc-300'
+                    }`}
+                  >
+                    <Film className="w-3 h-3" />
+                    TMDb (Filmes)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setSource('ticketmaster')}
+                    className={`px-3 py-1.5 rounded-md text-[11px] font-medium flex items-center gap-1.5 transition-colors ${
+                      source === 'ticketmaster' ? 'bg-zinc-800 text-white' : 'text-zinc-500 hover:text-zinc-300'
+                    }`}
+                  >
+                    <Music className="w-3 h-3" />
+                    Ticketmaster
+                  </button>
+                </div>
+
+                {selectedExternalItems.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={handleBulkImport}
+                    disabled={loading}
+                    className="px-3 py-1.5 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-bold text-xs transition-colors flex items-center gap-1 shadow-sm"
+                  >
+                    {loading ? (
+                      <div className="w-3.5 h-3.5 border-2 border-zinc-950/30 border-t-zinc-950 rounded-full animate-spin" />
+                    ) : (
+                      <>Importar em Lote ({selectedExternalItems.length})</>
+                    )}
+                  </button>
+                )}
               </div>
 
-              {/* Results */}
+              {/* Results with Checkboxes */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                 {externalResults.map((item) => {
-                  const isSelected = selectedExternalItem?.externalId === item.externalId;
+                  const isSelected = selectedExternalItems.some((i) => i.externalId === item.externalId);
                   return (
-                    <button
+                    <div
                       key={item.externalId}
-                      type="button"
-                      onClick={() => handleSelectExternalItem(item)}
-                      className={`p-3 rounded-xl border text-left transition-colors ${
+                      onClick={() => handleToggleExternalItem(item)}
+                      className={`p-3 rounded-xl border text-left transition-colors cursor-pointer ${
                         isSelected
                           ? 'bg-emerald-950/20 border-emerald-700/50'
                           : 'bg-zinc-900/40 border-zinc-800/40 hover:border-zinc-700'
                       }`}
                     >
                       <div className="flex gap-2.5 items-start">
+                        <div className="shrink-0 pt-0.5 text-emerald-400">
+                          {isSelected ? <CheckSquare className="w-4 h-4" /> : <Square className="w-4 h-4 text-zinc-600" />}
+                        </div>
                         <img
                           src={item.banner_url}
                           alt={item.title}
                           className="w-12 h-12 rounded-lg object-cover shrink-0"
                         />
-                        <div className="min-w-0">
+                        <div className="min-w-0 flex-1">
                           <p className="text-xs font-medium text-white truncate">{item.title}</p>
                           <p className="text-[11px] text-zinc-500 line-clamp-2 mt-0.5 leading-tight">
                             {item.description}
@@ -181,23 +223,31 @@ export const OrganizerModal: React.FC<OrganizerModalProps> = ({
                             <CheckCircle2 className="w-3 h-3" /> Selecionado
                           </span>
                         ) : (
-                          <span className="text-zinc-500">Selecionar</span>
+                          <span className="text-zinc-500">Clique para selecionar</span>
                         )}
                       </div>
-                    </button>
+                    </div>
                   );
                 })}
               </div>
 
-              {selectedExternalItem && (
-                <div className="flex justify-end pt-2">
+              {selectedExternalItems.length > 0 && (
+                <div className="flex justify-end pt-2 gap-2">
                   <button
                     type="button"
                     onClick={() => setStep('configure')}
-                    className="px-4 py-2 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-semibold text-xs transition-colors flex items-center gap-1.5"
+                    className="px-4 py-2 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-white font-medium text-xs transition-colors flex items-center gap-1.5"
                   >
-                    Continuar
+                    Editar detalhes
                     <ArrowRight className="w-3.5 h-3.5" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleBulkImport}
+                    disabled={loading}
+                    className="px-4 py-2 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-bold text-xs transition-colors flex items-center gap-1.5"
+                  >
+                    Importar ({selectedExternalItems.length}) em Lote
                   </button>
                 </div>
               )}
@@ -211,6 +261,7 @@ export const OrganizerModal: React.FC<OrganizerModalProps> = ({
                   required
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
+                  autoCapitalize="words"
                   className="w-full bg-zinc-900/60 border border-zinc-800 rounded-lg px-3 py-2.5 text-xs text-white outline-none focus:border-zinc-600 transition-colors"
                 />
               </div>
@@ -246,6 +297,7 @@ export const OrganizerModal: React.FC<OrganizerModalProps> = ({
                   required
                   value={venue}
                   onChange={(e) => setVenue(e.target.value)}
+                  autoCapitalize="words"
                   className="w-full bg-zinc-900/60 border border-zinc-800 rounded-lg px-3 py-2.5 text-xs text-white outline-none focus:border-zinc-600 transition-colors"
                 />
               </div>
