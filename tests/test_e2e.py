@@ -13,10 +13,12 @@ def run_e2e_test():
         
         print(f"[STEP 1] Accessing Catalog ({target_url})...")
         try:
-            page.goto(target_url, wait_until="domcontentloaded", timeout=10000)
-        except Exception:
+            page.goto(target_url, wait_until="domcontentloaded", timeout=15000)
+        except Exception as err:
+            print(f"  -> Local server connection error ({err}). Trying fallback URL...")
+            page.close()
+            page = context.new_page()
             fallback_url = "https://elite-tickets.pages.dev"
-            print(f"  -> Local server unavailable at {target_url}. Falling back to production URL ({fallback_url})...")
             page.goto(fallback_url, wait_until="domcontentloaded", timeout=30000)
             
         page.screenshot(path="tests/screenshots/01_home_catalog.png")

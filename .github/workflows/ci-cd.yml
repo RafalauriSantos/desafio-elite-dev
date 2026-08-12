@@ -91,7 +91,7 @@ jobs:
         with:
           node-version: 20
 
-      - name: Setup Python for Playwright Script
+      - name: Setup Python for Playwright & Local WebServer
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
@@ -116,10 +116,10 @@ jobs:
       - name: Build Front-End Bundle for E2E
         run: npm run build --prefix client
 
-      - name: Start Local Preview Server for E2E
+      - name: Start Failproof Python WebServer for E2E
         run: |
-          npx vite preview --prefix client --port 5173 &
-          sleep 3
+          python -m http.server 5173 --directory client/dist &
+          sleep 2
 
       - name: Run Playwright E2E Automation Suite (Strict)
         run: python tests/test_e2e.py
