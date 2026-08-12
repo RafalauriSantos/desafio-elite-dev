@@ -142,6 +142,61 @@ BEGIN
 END;
 $$;
 
+-- Procedure 1.1: reserve_tickets_batch_atomic (Pessimistic Locking Batch Reservation FOR UPDATE ORDER BY 1 ASC)
+CREATE OR REPLACE FUNCTION public.reserve_tickets_batch_atomic(
+    p_seat_ids UUID[],
+    p_user_email TEXT,
+    p_hold_minutes INT DEFAULT 10
+)
+RETURNS JSONB
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+    v_seat RECORD;
+    v_now TIMESTAMPTZ := NOW();
+    v_lock_expiration TIMESTAMPTZ := NOW() + (p_hold_minutes || ' minutes')::INTERVAL;
+    v_seat_id UUID;
+BEGIN
+    -- Sort seat IDs to strictly prevent deadlocks during concurrent multi-seat reservations
+    FOR v_seat_id IN SELECT unnest(p_seat_ids) ORDER BY 1 ASC LOOP
+        SELECT * INTO v_seat
+        FROM public.seats
+        WHERE id = v_seat_id
+        FOR UPDATE;
+
+        IF v_seat IS NULL THEN
+            RAISE EXCEPTION 'Assento não encontrado.';
+        END IF;
+
+        IF v_seat.status = 'sold' THEN
+            RAISE EXCEPTION 'Assento % % já foi vendido.', v_seat.row_name, v_seat.seat_number;
+        END IF;
+
+        IF v_seat.status = 'locked' AND v_seat.locked_until > v_now AND v_seat.locked_by != p_user_email THEN
+            RAISE EXCEPTION 'Assento % % já está reservado por outro cliente.', v_seat.row_name, v_seat.seat_number;
+        END IF;
+
+        UPDATE public.seats
+        SET status = 'locked',
+            locked_until = v_lock_expiration,
+            locked_by = p_user_email
+        WHERE id = v_seat_id;
+    END LOOP;
+
+    RETURN jsonb_build_object(
+        'success', true,
+        'message', 'Assentos reservados com sucesso.',
+        'locked_until', v_lock_expiration
+    );
+EXCEPTION WHEN OTHERS THEN
+    RETURN jsonb_build_object(
+        'success', false,
+        'message', SQLERRM
+    );
+END;
+$$;
+
 -- Procedure 2: validate_ticket_gatekeeper (Atomic Gate Entry Check: VALID, ALREADY_USED, INVALID, WRONG_EVENT)
 CREATE OR REPLACE FUNCTION public.validate_ticket_gatekeeper(
     p_ticket_id UUID,
