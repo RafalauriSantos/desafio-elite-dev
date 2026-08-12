@@ -3,10 +3,20 @@
 @tailwind utilities;
 
 @layer base {
-  body {
+  html, body {
+    min-height: 100%;
+    height: 100%;
     background-color: #09090b;
     color: #fafafa;
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    overscroll-behavior-y: none;
+  }
+
+  #root {
+    min-height: 100%;
+    display: flex;
+    flex-direction: column;
+    background-color: #09090b;
   }
 
   /* Scrollbar — minimal */
@@ -18,12 +28,10 @@
 
 /* Otimização de Impressão de Bilhete em PDF (Estilo E-Ticket Oficial) */
 @media print {
-  /* Oculta tudo que não for o ticket selecionado */
   body * {
     visibility: hidden;
   }
 
-  /* Exibe exclusivamente a área do bilhete imprimível */
   .printable-ticket-area,
   .printable-ticket-area * {
     visibility: visible;
@@ -34,9 +42,9 @@
     left: 0;
     top: 0;
     width: 100% !important;
-    max-width: 650px !important;
+    max-width: 380px !important;
     margin: 0 auto !important;
-    padding: 24px !important;
+    padding: 20px !important;
     background-color: #ffffff !important;
     color: #09090b !important;
     border: 2px solid #18181b !important;
@@ -46,7 +54,6 @@
     print-color-adjust: exact !important;
   }
 
-  /* Ajusta os textos do ticket impresso para alto contraste */
   .printable-ticket-area h1,
   .printable-ticket-area h2,
   .printable-ticket-area h3,
@@ -75,13 +82,11 @@
     color: #52525b !important;
   }
 
-  /* Mantém o QR Code em destaque absoluto */
   .printable-ticket-area svg {
     display: block !important;
     margin: 0 auto !important;
   }
 
-  /* Esconde botões de ação na impressão */
   .no-print {
     display: none !important;
   }
