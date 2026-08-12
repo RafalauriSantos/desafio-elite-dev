@@ -2,11 +2,14 @@ import { Hono } from 'hono';
 import { cors } from 'hono/cors';
 import { createClient } from '@supabase/supabase-js';
 import { signTicketPayload, verifyTicketSignature, TicketPayload } from './crypto';
+import { sendTicketEmail } from './email';
 
 type Bindings = {
   SUPABASE_URL: string;
   SUPABASE_ANON_KEY: string;
   HMAC_SECRET: string;
+  RESEND_API_KEY?: string;
+  RESEND_FROM_EMAIL?: string;
 };
 
 const app = new Hono<{ Bindings: Bindings }>();
@@ -690,7 +693,7 @@ app.post('/api/checkout', async (c) => {
 
     const ticket = ticketRows[0];
 
-    return c.json({
+    const response = c.json({
       success: true,
       ticket,
       tickets: ticketRows,
@@ -699,6 +702,26 @@ app.post('/api/checkout', async (c) => {
       signatures: ticketRows.map((row) => row.qr_signature),
       paymentStatus: 'approved'
     });
+
+    let executionCtx: any;
+    try { executionCtx = c.executionCtx; } catch { executionCtx = undefined; }
+    const waitUntil = executionCtx?.waitUntil;
+    if (typeof waitUntil === 'function') {
+      ticketRows.forEach((row, index) => {
+        waitUntil.call(executionCtx,
+          sendTicketEmail(c.env || {}, {
+            to: row.user_email,
+            userName: row.user_name,
+            eventId: row.event_id,
+            ticketId: row.id,
+            seatId: row.seat_id,
+            qrCodeData: qrCodes[index]
+          }).catch((error) => console.warn('Ticket email delivery failed:', error.message))
+        );
+      });
+    }
+
+    return response;
   } catch (err: any) {
     return c.json({ success: false, error: err.message }, 500);
   }

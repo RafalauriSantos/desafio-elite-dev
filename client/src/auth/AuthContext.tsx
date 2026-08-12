@@ -9,8 +9,11 @@ interface AuthContextValue {
   session: Session | null;
   profile: Profile | null;
   loading: boolean;
+  recoveryMode: boolean;
   isDemoMode: boolean;
   signIn: (email: string, password: string) => Promise<{ error?: string }>;
+  resetPassword: (email: string) => Promise<{ error?: string }>;
+  updatePassword: (password: string) => Promise<{ error?: string }>;
   signOut: () => Promise<void>;
 }
 
@@ -20,6 +23,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(isSupabaseConfigured);
+  const [recoveryMode, setRecoveryMode] = useState(false);
 
   useEffect(() => {
     if (!isSupabaseConfigured) return;
@@ -32,18 +36,32 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (mounted) { setProfile((data as Profile | null) ?? null); setLoading(false); }
     };
     void supabase.auth.getSession().then(({ data }) => syncSession(data.session));
-    const { data: listener } = supabase.auth.onAuthStateChange((_event, nextSession) => { void syncSession(nextSession); });
+    const { data: listener } = supabase.auth.onAuthStateChange((event, nextSession) => {
+      if (event === 'PASSWORD_RECOVERY') setRecoveryMode(true);
+      void syncSession(nextSession);
+    });
     return () => { mounted = false; listener.subscription.unsubscribe(); };
   }, []);
 
   const value = useMemo<AuthContextValue>(() => ({
-    session, profile, loading, isDemoMode: !isSupabaseConfigured,
+    session, profile, loading, recoveryMode, isDemoMode: !isSupabaseConfigured,
     signIn: async (email, password) => {
       const { error } = await supabase.auth.signInWithPassword({ email, password });
       return error ? { error: error.message } : {};
     },
+    resetPassword: async (email) => {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/reset-password`
+      });
+      return error ? { error: error.message } : {};
+    },
+    updatePassword: async (password) => {
+      const { error } = await supabase.auth.updateUser({ password });
+      if (!error) setRecoveryMode(false);
+      return error ? { error: error.message } : {};
+    },
     signOut: async () => { await supabase.auth.signOut(); setSession(null); setProfile(null); },
-  }), [loading, profile, session]);
+  }), [loading, profile, recoveryMode, session]);
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 

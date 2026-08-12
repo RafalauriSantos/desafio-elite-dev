@@ -93,6 +93,8 @@ Com `VITE_SUPABASE_URL` e `VITE_SUPABASE_ANON_KEY` configurados, a aplicação e
 
 ---
 
+O fluxo de recuperação de senha usa o Supabase Auth. Para entrega de e-mails em produção, configure o Resend como SMTP do Supabase e mantenha a API key fora do frontend. O Worker também aceita `RESEND_API_KEY` e `RESEND_FROM_EMAIL` como secrets para enviar a confirmação do ingresso após o checkout; a ausência desses secrets não interrompe a emissão.
+
 ## 🚀 Como Executar Localmente
 
 ### Deploy do Worker
