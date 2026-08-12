@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Html5Qrcode } from 'html5-qrcode';
-import { Camera, CheckCircle2, QrCode, ChevronDown, ChevronUp, ShieldAlert, RefreshCw, Volume2, AlertCircle } from 'lucide-react';
+import { Camera, CheckCircle2, QrCode, ChevronDown, ChevronUp, ShieldAlert, RefreshCw, AlertCircle } from 'lucide-react';
 import { api } from '../lib/api';
 
 interface QRScannerProps {
@@ -27,6 +27,9 @@ export const QRScanner: React.FC<QRScannerProps> = ({ targetEventId, onResult })
   } | null>(null);
 
   const html5QrCodeRef = useRef<Html5Qrcode | null>(null);
+  const scanInFlightRef = useRef(false);
+  const mountedRef = useRef(true);
+  const resumeTimerRef = useRef<number | null>(null);
 
   // Helper Web Audio BEEP synthesizer for instant audio feedback
   const playBeep = (valid: boolean) => {
@@ -59,11 +62,23 @@ export const QRScanner: React.FC<QRScannerProps> = ({ targetEventId, onResult })
     }
   };
 
-  // Initialize and list cameras when switching to camera mode
+  // Stop the active reader when the component leaves the page.
   useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+      if (resumeTimerRef.current !== null) window.clearTimeout(resumeTimerRef.current);
+      void stopCamera();
+    };
+  }, []);
+
+  // Initialize and list cameras when switching to camera mode.
+  useEffect(() => {
+    let cancelled = false;
     if (mode === 'camera') {
       Html5Qrcode.getCameras()
         .then((devices) => {
+          if (cancelled || !mountedRef.current) return;
           if (devices && devices.length > 0) {
             setCameras(devices);
             // Default to back camera or first device
@@ -75,14 +90,16 @@ export const QRScanner: React.FC<QRScannerProps> = ({ targetEventId, onResult })
           }
         })
         .catch((err) => {
+          if (cancelled || !mountedRef.current) return;
           setCameraError('Permissão de câmera negada ou indisponível: ' + (err.message || err));
         });
     } else {
-      stopCamera();
+      void stopCamera();
     }
 
     return () => {
-      stopCamera();
+      cancelled = true;
+      void stopCamera();
     };
   }, [mode]);
 
@@ -94,6 +111,7 @@ export const QRScanner: React.FC<QRScannerProps> = ({ targetEventId, onResult })
   }, [selectedCameraId, mode]);
 
   const startCamera = async (cameraId: string) => {
+    if (!cameraId || !document.getElementById('qr-reader-viewport')) return;
     await stopCamera();
     try {
       const html5QrCode = new Html5Qrcode('qr-reader-viewport');
@@ -106,39 +124,56 @@ export const QRScanner: React.FC<QRScannerProps> = ({ targetEventId, onResult })
           qrbox: { width: 220, height: 220 }
         },
         async (decodedText) => {
+          // html5-qrcode can report the same frame several times before the
+          // async validation finishes. Only one ticket may be processed at a time.
+          if (scanInFlightRef.current || html5QrCodeRef.current !== html5QrCode) return;
+          scanInFlightRef.current = true;
           // Pause camera during validation processing
           try {
             await html5QrCode.pause();
           } catch {}
-          await handleValidate(decodedText);
-          // Resume camera scan after 3 seconds
-          setTimeout(() => {
-            try {
-              html5QrCode.resume();
-            } catch {}
-          }, 3000);
+          try {
+            await handleValidate(decodedText);
+          } finally {
+            scanInFlightRef.current = false;
+            // Give the operator time to see the result before accepting another scan.
+            resumeTimerRef.current = window.setTimeout(() => {
+              if (html5QrCodeRef.current !== html5QrCode || !mountedRef.current) return;
+              try { html5QrCode.resume(); } catch {}
+            }, 3000);
+          }
         },
         () => {}
       );
-      setIsScanning(true);
-      setCameraError(null);
+      if (mountedRef.current && html5QrCodeRef.current === html5QrCode) {
+        setIsScanning(true);
+        setCameraError(null);
+      }
     } catch (err: any) {
-      setIsScanning(false);
-      setCameraError('Erro ao iniciar a câmera: ' + (err.message || err));
+      if (mountedRef.current) {
+        setIsScanning(false);
+        setCameraError('Erro ao iniciar a câmera: ' + (err.message || err));
+      }
     }
   };
 
   const stopCamera = async () => {
-    if (html5QrCodeRef.current) {
-      try {
-        if (html5QrCodeRef.current.isScanning) {
-          await html5QrCodeRef.current.stop();
-        }
-        await html5QrCodeRef.current.clear();
-      } catch {}
-      html5QrCodeRef.current = null;
-      setIsScanning(false);
+    const scanner = html5QrCodeRef.current;
+    html5QrCodeRef.current = null;
+    scanInFlightRef.current = false;
+    if (resumeTimerRef.current !== null) {
+      window.clearTimeout(resumeTimerRef.current);
+      resumeTimerRef.current = null;
     }
+    if (scanner) {
+      try {
+        if (scanner.isScanning) {
+          await scanner.stop();
+        }
+        await scanner.clear();
+      } catch {}
+    }
+    if (mountedRef.current) setIsScanning(false);
   };
 
   const handleValidate = async (data: string) => {
