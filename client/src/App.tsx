@@ -5,10 +5,13 @@ import { EventDetails } from './pages/EventDetails';
 import { MyTickets } from './pages/MyTickets';
 import { Gatekeeper } from './pages/Gatekeeper';
 import { TicketItem } from './lib/api';
+import { useAuth } from './auth/AuthContext';
+import { Login } from './pages/Login';
 
 type Tab = 'catalog' | 'event-details' | 'my-tickets' | 'gatekeeper';
 
 export function App() {
+  const { loading, session, profile, isDemoMode, signOut } = useAuth();
   const [activeTab, setActiveTab] = useState<Tab>('catalog');
   const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
   const [tickets, setTickets] = useState<TicketItem[]>([]);
@@ -23,11 +26,17 @@ export function App() {
     setActiveTab('my-tickets');
   };
 
+  if (loading) return <div className="min-h-[100dvh] bg-[#09090b] text-zinc-500 grid place-items-center">Carregando sessão...</div>;
+  if (!isDemoMode && (!session || !profile)) return <Login />;
+  const role = profile?.role ?? 'client';
   return (
     <Layout
       activeTab={activeTab}
       onTabChange={(tab) => setActiveTab(tab)}
       ticketCount={tickets.length}
+      role={role}
+      userName={profile?.name}
+      onSignOut={isDemoMode ? undefined : signOut}
     >
       {activeTab === 'catalog' && (
         <Catalog onSelectEvent={handleSelectEvent} />
@@ -48,7 +57,7 @@ export function App() {
         />
       )}
 
-      {activeTab === 'gatekeeper' && <Gatekeeper />}
+      {activeTab === 'gatekeeper' && (role === 'gatekeeper' || isDemoMode) && <Gatekeeper />}
     </Layout>
   );
 }

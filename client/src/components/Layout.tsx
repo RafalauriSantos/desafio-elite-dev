@@ -5,13 +5,16 @@ interface LayoutProps {
   activeTab: string;
   onTabChange: (tab: 'catalog' | 'event-details' | 'my-tickets' | 'gatekeeper') => void;
   ticketCount: number;
+  role: 'organizer' | 'client' | 'gatekeeper';
+  userName?: string;
+  onSignOut?: () => Promise<void>;
 }
 
-export function Layout({ children, activeTab, onTabChange, ticketCount }: LayoutProps) {
+export function Layout({ children, activeTab, onTabChange, ticketCount, role, userName, onSignOut }: LayoutProps) {
   const tabs: Array<{ id: 'catalog' | 'my-tickets' | 'gatekeeper'; label: string }> = [
     { id: 'catalog', label: 'Eventos' },
     { id: 'my-tickets', label: 'Ingressos' },
-    { id: 'gatekeeper', label: 'Portaria' },
+    ...(role === 'gatekeeper' ? [{ id: 'gatekeeper' as const, label: 'Portaria' }] : []),
   ];
 
   return (
@@ -46,6 +49,7 @@ export function Layout({ children, activeTab, onTabChange, ticketCount }: Layout
               </button>
             ))}
           </nav>
+          {onSignOut && <button onClick={() => void onSignOut()} className="ml-3 text-xs text-zinc-500 hover:text-white" title={userName}>Sair</button>}
         </div>
       </header>
 

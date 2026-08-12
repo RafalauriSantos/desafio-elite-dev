@@ -2,12 +2,14 @@ import React, { useEffect, useState } from 'react';
 import { api, EventItem } from '../lib/api';
 import { Search, ArrowRight, Plus, Calendar, MapPin } from 'lucide-react';
 import { OrganizerModal } from '../components/OrganizerModal';
+import { useAuth } from '../auth/AuthContext';
 
 interface CatalogProps {
   onSelectEvent: (eventId: string) => void;
 }
 
 export const Catalog: React.FC<CatalogProps> = ({ onSelectEvent }) => {
+  const { profile, isDemoMode } = useAuth();
   const [events, setEvents] = useState<EventItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
@@ -42,13 +44,13 @@ export const Catalog: React.FC<CatalogProps> = ({ onSelectEvent }) => {
           <p className="text-sm text-zinc-500 mt-1">Escolha um evento e selecione seu assento.</p>
         </div>
 
-        <button
+        {(isDemoMode || profile?.role === 'organizer') && <button
           onClick={() => setIsOrganizerOpen(true)}
           className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-[13px] font-medium text-zinc-200 bg-zinc-900 hover:bg-zinc-800 border border-zinc-700/80 transition-colors shadow-sm"
         >
           <Plus className="w-3.5 h-3.5" />
           Publicar evento
-        </button>
+        </button>}
       </div>
 
       {/* Search */}
@@ -123,11 +125,11 @@ export const Catalog: React.FC<CatalogProps> = ({ onSelectEvent }) => {
         </div>
       )}
 
-      <OrganizerModal
+      {(isDemoMode || profile?.role === 'organizer') && <OrganizerModal
         isOpen={isOrganizerOpen}
         onClose={() => setIsOrganizerOpen(false)}
         onEventCreated={handleEventCreated}
-      />
+      />}
     </div>
   );
 };

@@ -3,7 +3,7 @@ main = "src/index.ts"
 compatibility_date = "2024-03-20"
 compatibility_flags = ["nodejs_compat"]
 
+# The deployed Worker keeps SUPABASE_ANON_KEY and HMAC_SECRET as existing
+# Cloudflare bindings. Use `wrangler deploy --keep-vars` for subsequent deploys.
 [vars]
-SUPABASE_URL = "https://your-supabase-project.supabase.co"
-SUPABASE_ANON_KEY = "your-supabase-anon-key"
-HMAC_SECRET = "super-secret-hmac-key-elite-dev-2026"
+SUPABASE_URL = "https://extkyeckajhcozjervyr.supabase.co"

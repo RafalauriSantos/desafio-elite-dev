@@ -82,6 +82,8 @@ Uma pipeline de 4 estágios encadeados garante a qualidade do código:
 
 ## 👥 Credenciais para Teste (Seed Data)
 
+Com `VITE_SUPABASE_URL` e `VITE_SUPABASE_ANON_KEY` configurados, a aplicação exige sessão Supabase Auth e carrega o papel em `public.profiles`. As contas abaixo são os perfis seed; a senha deve ser definida no painel Auth do projeto, sem ser versionada.
+
 | Role | E-mail | Acesso na Aplicação |
 |---|---|---|
 | **Organizador** | `organizador@verzel.com` | Painel de publicação e importação em lote. |
@@ -92,6 +94,15 @@ Uma pipeline de 4 estágios encadeados garante a qualidade do código:
 ---
 
 ## 🚀 Como Executar Localmente
+
+### Deploy do Worker
+
+O Worker de produção usa o projeto Supabase `extkyeckajhcozjervyr`. Os valores públicos/secretos ficam nos bindings da Cloudflare; mantenha-os ao publicar:
+
+```bash
+cd server
+npx wrangler deploy --keep-vars
+```
 
 ### Pré-requisitos
 - Node.js 20+ instalado.
