@@ -3,7 +3,7 @@ import { api, EventItem, SeatItem } from '../lib/api';
 import { SeatMap } from '../components/SeatMap';
 import { CheckoutModal } from '../components/CheckoutModal';
 import { EmailPreviewModal } from '../components/EmailPreviewModal';
-import { ArrowLeft, Calendar, MapPin } from 'lucide-react';
+import { ArrowLeft, Calendar, MapPin, X } from 'lucide-react';
 
 interface EventDetailsProps {
   eventId: string;
@@ -19,7 +19,7 @@ export const EventDetails: React.FC<EventDetailsProps> = ({
   const [event, setEvent] = useState<EventItem | null>(null);
   const [seats, setSeats] = useState<SeatItem[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedSeat, setSelectedSeat] = useState<SeatItem | null>(null);
+  const [selectedSeats, setSelectedSeats] = useState<SeatItem[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isReserving, setIsReserving] = useState(false);
   const [reserveMessage, setReserveMessage] = useState<string | null>(null);
@@ -53,25 +53,35 @@ export const EventDetails: React.FC<EventDetailsProps> = ({
     setLoading(false);
   };
 
-  const handleSelectSeat = async (seat: SeatItem) => {
-    setSelectedSeat(seat);
+  const handleToggleSeat = (seat: SeatItem) => {
     setReserveMessage(null);
+    setSelectedSeats((prev) => {
+      const exists = prev.some((s) => s.id === seat.id);
+      if (exists) {
+        return prev.filter((s) => s.id !== seat.id);
+      } else {
+        return [...prev, seat];
+      }
+    });
   };
 
   const handleProceedToCheckout = async () => {
-    if (!selectedSeat) return;
+    if (selectedSeats.length === 0) return;
     setIsReserving(true);
 
-    const res = await api.reserveSeat(selectedSeat.id, 'usuario@exemplo.com');
+    const seatIds = selectedSeats.map((s) => s.id);
+    const res = await api.reserveSeatsBatch(seatIds, 'usuario@exemplo.com');
 
     setIsReserving(false);
     if (res.success) {
       setIsModalOpen(true);
     } else {
-      setReserveMessage(res.message || 'Assento indisponível.');
+      setReserveMessage(res.message || 'Um ou mais assentos estão indisponíveis.');
       loadEventData();
     }
   };
+
+  const totalPrice = selectedSeats.reduce((acc, s) => acc + s.price, 0);
 
   if (loading || !event) {
     return (
@@ -108,22 +118,42 @@ export const EventDetails: React.FC<EventDetailsProps> = ({
           </div>
         </div>
 
-        {/* Selection summary */}
-        <div className="w-full lg:w-72 bg-[#111113] p-4 rounded-xl border border-zinc-800/60 shrink-0">
-          <p className="text-[11px] uppercase tracking-wider text-zinc-500 font-medium mb-3">Assento selecionado</p>
-          {selectedSeat ? (
+        {/* Selection summary with multi-seat support */}
+        <div className="w-full lg:w-80 bg-[#111113] p-4 rounded-xl border border-zinc-800/60 shrink-0 space-y-3">
+          <div className="flex items-center justify-between">
+            <p className="text-[11px] uppercase tracking-wider text-zinc-500 font-bold">
+              Assentos selecionados ({selectedSeats.length})
+            </p>
+            {selectedSeats.length > 0 && (
+              <button
+                onClick={() => setSelectedSeats([])}
+                className="text-[11px] text-zinc-500 hover:text-zinc-300 flex items-center gap-0.5"
+              >
+                <X className="w-3 h-3" /> Limpar
+              </button>
+            )}
+          </div>
+
+          {selectedSeats.length > 0 ? (
             <div className="space-y-3">
-              <div className="flex justify-between items-baseline">
-                <span className="font-mono font-semibold text-white">
-                  {selectedSeat.row_name}{selectedSeat.seat_number}
-                </span>
-                <span className="text-xs text-zinc-400 bg-zinc-800 px-2 py-0.5 rounded">
-                  {selectedSeat.category}
+              <div className="flex flex-wrap gap-1.5 max-h-24 overflow-y-auto">
+                {selectedSeats.map((s) => (
+                  <span
+                    key={s.id}
+                    className="inline-flex items-center gap-1 bg-zinc-800 px-2 py-1 rounded text-xs font-mono font-semibold text-emerald-400 border border-zinc-700/60"
+                  >
+                    {s.row_name}{s.seat_number}
+                  </span>
+                ))}
+              </div>
+
+              <div className="flex justify-between items-baseline pt-2 border-t border-zinc-800/60">
+                <span className="text-xs text-zinc-400">Total do Lote:</span>
+                <span className="text-xl font-bold text-emerald-400 font-mono">
+                  R$ {totalPrice.toFixed(2)}
                 </span>
               </div>
-              <p className="text-lg font-semibold text-emerald-400 font-mono">
-                R$ {selectedSeat.price.toFixed(2)}
-              </p>
+
               <button
                 onClick={handleProceedToCheckout}
                 disabled={isReserving}
@@ -132,12 +162,12 @@ export const EventDetails: React.FC<EventDetailsProps> = ({
                 {isReserving ? (
                   <div className="w-4 h-4 border-2 border-zinc-950/30 border-t-zinc-950 rounded-full animate-spin" />
                 ) : (
-                  'Reservar'
+                  `Reservar Lote (${selectedSeats.length})`
                 )}
               </button>
             </div>
           ) : (
-            <p className="text-xs text-zinc-600">Clique em um assento no mapa.</p>
+            <p className="text-xs text-zinc-600 py-2">Clique em uma ou mais poltronas no mapa para seleção múltipla.</p>
           )}
         </div>
       </div>
@@ -152,17 +182,17 @@ export const EventDetails: React.FC<EventDetailsProps> = ({
       {/* Seat Map */}
       <SeatMap
         seats={seats}
-        selectedSeatId={selectedSeat?.id || null}
-        onSelectSeat={handleSelectSeat}
+        selectedSeatIds={selectedSeats.map((s) => s.id)}
+        onToggleSeat={handleToggleSeat}
         isReserving={isReserving}
       />
 
       {/* Checkout Modal */}
-      {selectedSeat && (
+      {selectedSeats.length > 0 && (
         <CheckoutModal
           isOpen={isModalOpen}
           event={event}
-          seat={selectedSeat}
+          seats={selectedSeats}
           onClose={() => setIsModalOpen(false)}
           onSuccess={(ticket, qrData) => {
             setIsModalOpen(false);
