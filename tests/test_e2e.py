@@ -48,7 +48,14 @@ def run_e2e_test():
             print("  -> Seat Map rendered.")
             
             # Click available seat
-            available_seat = page.query_selector("button[title*='VIP']") or page.query_selector("button[title*='Standard']")
+            available_seat = next(
+                (
+                    candidate
+                    for candidate in page.locator("button[title*='VIP'], button[title*='Premium'], button[title*='Standard']").all()
+                    if candidate.is_enabled()
+                ),
+                None,
+            )
             if available_seat:
                 available_seat.click()
                 time.sleep(0.5)
