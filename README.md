@@ -99,7 +99,7 @@ O fluxo de recuperação de senha usa o Supabase Auth. Para entrega de e-mails e
 
 ### Deploy do Worker
 
-O Worker de produção usa o projeto Supabase `extkyeckajhcozjervyr`. Os valores públicos/secretos ficam nos bindings da Cloudflare; mantenha-os ao publicar:
+O Worker de produção usa o projeto Supabase `zgbhmduzypqfgfuncnhl` (Verzel DB). Os valores públicos/secretos ficam nos bindings da Cloudflare; mantenha-os ao publicar:
 
 ```bash
 cd server

@@ -3,7 +3,7 @@
 **Data:** 2026-08-12  
 **Escopo:** comparação do enunciado anexado com o código e os testes atuais do repositório.
 
-**Atualização de implementação:** a Fase 1 foi aplicada no Supabase correto (`extkyeckajhcozjervyr`) e publicada no Worker. O checkout aceita `seatIds`, emite um ticket/QR por assento, suporta `approved`/`declined` e possui RPCs SQL para finalizar ou liberar reservas. A base da Fase 2 também foi iniciada com Supabase Auth, `AuthContext`, login e navegação por papel.
+**Atualização de implementação:** a Fase 1 foi aplicada no Supabase correto (`zgbhmduzypqfgfuncnhl`, Verzel DB) e publicada no Worker. O checkout aceita `seatIds`, emite um ticket/QR por assento, suporta `approved`/`declined` e possui RPCs SQL para finalizar ou liberar reservas. A base da Fase 2 também foi iniciada com Supabase Auth, `AuthContext`, login e navegação por papel.
 
 ## Veredito executivo
 

@@ -429,6 +429,6 @@ BEGIN
             INSERT INTO public.seats (event_id, row_name, seat_number, category, price, status)
             VALUES ('e1111111-1111-1111-1111-111111111111', row_char, seat_num, cat_val, price_val, 'available')
             ON CONFLICT DO NOTHING;
-        END FOR;
+        END LOOP;
     END LOOP;
 END $$;
