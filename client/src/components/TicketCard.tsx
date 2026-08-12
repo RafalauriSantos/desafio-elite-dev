@@ -114,7 +114,9 @@ export const TicketCard: React.FC<TicketCardProps> = ({ ticket, qrData }) => {
               level="H"
               includeMargin={false}
             />
-            <p className="text-[10px] text-zinc-600 font-mono font-bold mt-2">ID: {ticket.id}</p>
+            <p className="text-[10px] text-zinc-600 font-mono font-bold mt-2">
+              REF: #${(ticket?.id || 'TICK0000').slice(0, 4).toUpperCase()}-${(ticket?.id || 'TICK0000').slice(4, 8).toUpperCase()}
+            </p>
 
             {isUsed && (
               <div className="absolute inset-0 bg-zinc-950/90 rounded-xl flex flex-col items-center justify-center">

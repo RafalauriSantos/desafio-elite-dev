@@ -160,6 +160,44 @@ export const api = {
     }
   },
 
+  // 3.1 Reserve Seats in Batch (Pessimistic lock array FOR UPDATE)
+  async reserveSeatsBatch(seatIds: string[], userEmail: string): Promise<{ success: boolean; message?: string }> {
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/reserve-batch`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ seatIds, userEmail })
+      });
+      const json = await res.json();
+      return json;
+    } catch {
+      return { success: true, message: `${seatIds.length} assentos reservados (Modo Demonstração).` };
+    }
+  },
+
+  // 3.2 Bulk Import Events (Organizador)
+  async bulkImportEvents(items: any[]): Promise<{ success: boolean; message?: string; events?: EventItem[] }> {
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/events/bulk-import`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ items })
+      });
+      return await res.json();
+    } catch {
+      const demoCreated = items.map((item, idx) => ({
+        id: `e-bulk-${Date.now()}-${idx}`,
+        title: item.title,
+        description: item.description || 'Evento importado em lote.',
+        venue: item.venue || 'Arena Cultural - SP',
+        date: item.date || new Date(Date.now() + 86400000 * 30).toISOString(),
+        price: parseFloat(item.price) || 200.00,
+        banner_url: item.banner_url || 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&w=1200&q=80'
+      }));
+      return { success: true, message: `${items.length} eventos importados no modo demonstração.`, events: demoCreated };
+    }
+  },
+
   // 4. Checkout & Issue Signed Ticket
   async checkout(params: { seatId: string; eventId: string; userEmail: string; userName: string }): Promise<{
     success: boolean;
@@ -370,7 +408,7 @@ export const api = {
       console.warn('API external-catalog offline, using fallback list.');
     }
 
-    return [
+    const fullList = [
       {
         externalId: 'tmdb-1',
         source: 'tmdb',
@@ -390,14 +428,138 @@ export const api = {
         category: 'Cinema / Épico'
       },
       {
+        externalId: 'tmdb-3',
+        source: 'tmdb',
+        type: 'movie',
+        title: 'Oppenheimer',
+        description: 'A história do físico americano J. Robert Oppenheimer e seu papel no Projeto Manhattan.',
+        banner_url: 'https://images.unsplash.com/photo-1440404653325-ab127d49abc1?auto=format&fit=crop&w=1200&q=80',
+        category: 'Cinema / Drama'
+      },
+      {
+        externalId: 'tmdb-4',
+        source: 'tmdb',
+        type: 'movie',
+        title: 'Deadpool & Wolverine',
+        description: 'Wolverine se recupera de seus ferimentos quando cruza o caminho do tagarela Deadpool.',
+        banner_url: 'https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?auto=format&fit=crop&w=1200&q=80',
+        category: 'Cinema / Ação'
+      },
+      {
+        externalId: 'tmdb-5',
+        source: 'tmdb',
+        type: 'movie',
+        title: 'Homem-Aranha: Através do Aranhaverso',
+        description: 'Miles Morales é catapultado através do Multiverso, onde encontra uma equipe de Pessoas-Aranha.',
+        banner_url: 'https://images.unsplash.com/photo-1635805737707-575885ab0820?auto=format&fit=crop&w=1200&q=80',
+        category: 'Cinema / Animação'
+      },
+      {
+        externalId: 'tmdb-6',
+        source: 'tmdb',
+        type: 'movie',
+        title: 'Interstellar: Re-exibição IMAX 10 Anos',
+        description: 'Uma equipe de exploradores viaja através de um buraco de minhoca no espaço.',
+        banner_url: 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&w=1200&q=80',
+        category: 'Cinema / Sci-Fi'
+      },
+      {
+        externalId: 'tmdb-7',
+        source: 'tmdb',
+        type: 'movie',
+        title: 'The Batman II',
+        description: 'O Cavaleiro das Trevas enfrenta novas ameaças e corrupção nas profundezas de Gotham City.',
+        banner_url: 'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&w=1200&q=80',
+        category: 'Cinema / Policial'
+      },
+      {
+        externalId: 'tmdb-8',
+        source: 'tmdb',
+        type: 'movie',
+        title: 'Gladiador II',
+        description: 'Anos após testemunhar a morte de Maximus, Lucius precisa entrar no Coliseu.',
+        banner_url: 'https://images.unsplash.com/photo-1568872396765-917c724d7698?auto=format&fit=crop&w=1200&q=80',
+        category: 'Cinema / Histórico'
+      },
+      {
         externalId: 'tm-1',
         source: 'ticketmaster',
         type: 'show',
         title: 'Coldplay: Music of the Spheres Tour',
-        description: 'A mundialmente aclamada turnê sustentável do Coldplay com hits inesquecíveis e show de luzes.',
+        description: 'A mundialmente aclamada turnê sustentável do Coldplay com hits inesquecíveis.',
         banner_url: 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?auto=format&fit=crop&w=1200&q=80',
         category: 'Show Internacional'
+      },
+      {
+        externalId: 'tm-2',
+        source: 'ticketmaster',
+        type: 'show',
+        title: 'Taylor Swift: The Eras Tour',
+        description: 'Uma jornada musical através de todas as eras da carreira da maior artista pop.',
+        banner_url: 'https://images.unsplash.com/photo-1501386761578-eac5c94b800a?auto=format&fit=crop&w=1200&q=80',
+        category: 'Show Internacional'
+      },
+      {
+        externalId: 'tm-3',
+        source: 'ticketmaster',
+        type: 'show',
+        title: 'Rock in Rio 2026 - Dia Metal & Tech',
+        description: 'O maior festival de música do planeta com palcos interativos e atrações mundiais.',
+        banner_url: 'https://images.unsplash.com/photo-1459749411175-04bf5292ceea?auto=format&fit=crop&w=1200&q=80',
+        category: 'Festival'
+      },
+      {
+        externalId: 'tm-4',
+        source: 'ticketmaster',
+        type: 'show',
+        title: 'The Weeknd: After Hours Til Dawn',
+        description: 'Espetáculo épico stadium tour com infraestrutura cinematográfica e sintetizadores.',
+        banner_url: 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&fit=crop&w=1200&q=80',
+        category: 'Show Internacional'
+      },
+      {
+        externalId: 'tm-5',
+        source: 'ticketmaster',
+        type: 'show',
+        title: 'Bruno Mars: Live in São Paulo',
+        description: 'Performances vibrantes de R&B, Funk e Pop com banda ao vivo no Estádio do MorumBIS.',
+        banner_url: 'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&w=1200&q=80',
+        category: 'Show Internacional'
+      },
+      {
+        externalId: 'tm-6',
+        source: 'ticketmaster',
+        type: 'show',
+        title: 'Ed Sheeran: +-=÷x Mathematics Tour',
+        description: 'Apresentação solo acústica em palco 360 graus com pedais de loop ao vivo.',
+        banner_url: 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?auto=format&fit=crop&w=1200&q=80',
+        category: 'Show Internacional'
+      },
+      {
+        externalId: 'tm-7',
+        source: 'ticketmaster',
+        type: 'show',
+        title: 'Lollapalooza Brasil 2026 - Passaporte 3 Dias',
+        description: '3 dias de pura música no Autódromo de Interlagos com mais de 70 bandas.',
+        banner_url: 'https://images.unsplash.com/photo-1506157786151-b8491531f063?auto=format&fit=crop&w=1200&q=80',
+        category: 'Festival'
+      },
+      {
+        externalId: 'tm-8',
+        source: 'ticketmaster',
+        type: 'show',
+        title: 'Iron Maiden: Future Past World Tour',
+        description: 'A lenda do Heavy Metal traz o espetáculo com faixas de Senjutsu e Somewhere in Time.',
+        banner_url: 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?auto=format&fit=crop&w=1200&q=80',
+        category: 'Show Heavy Metal'
       }
     ];
+
+    let filtered = fullList.filter((item) => item.source === source || source === 'all');
+    if (query) {
+      filtered = filtered.filter((item) => item.title.toLowerCase().includes(query.toLowerCase()));
+    }
+
+    return filtered;
   }
 };

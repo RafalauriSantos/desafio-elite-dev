@@ -44,7 +44,7 @@ export const Catalog: React.FC<CatalogProps> = ({ onSelectEvent }) => {
 
         <button
           onClick={() => setIsOrganizerOpen(true)}
-          className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-[13px] font-medium text-zinc-300 bg-zinc-800/80 hover:bg-zinc-700/80 border border-zinc-700/50 transition-colors"
+          className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-[13px] font-medium text-zinc-200 bg-zinc-900 hover:bg-zinc-800 border border-zinc-700/80 transition-colors shadow-sm"
         >
           <Plus className="w-3.5 h-3.5" />
           Publicar evento
@@ -98,7 +98,7 @@ export const Catalog: React.FC<CatalogProps> = ({ onSelectEvent }) => {
 
               {/* Info */}
               <div className="p-4 flex-1 flex flex-col justify-between gap-3">
-                <h3 className="text-[15px] font-semibold text-white leading-snug group-hover:text-emerald-400 transition-colors">
+                <h3 className="text-[15px] font-semibold text-white leading-snug group-hover:text-white transition-colors">
                   {event.title}
                 </h3>
 
