@@ -1,0 +1,11 @@
+# Knowledge graph scope: keep product code, docs, database and tests.
+# Exclude agent/tooling internals so the project architecture remains searchable.
+.agents/
+graphify-out/
+node_modules/
+client/dist/
+.wrangler/
+client/.wrangler/
+server/.wrangler/
+.git/
+tests/screenshots/
