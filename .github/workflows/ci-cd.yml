@@ -26,7 +26,6 @@ jobs:
 
       - name: Gitleaks Secret Scanner
         uses: gitleaks/gitleaks-action@v2
-        continue-on-error: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -43,9 +42,8 @@ jobs:
 
       - name: Run NPM Security Audit
         run: |
-          npm audit --prefix client --audit-level=critical || true
-          npm audit --prefix server --audit-level=critical || true
-        continue-on-error: true
+          npm audit --prefix client --audit-level=high || true
+          npm audit --prefix server --audit-level=high || true
 
   # ----------------------------------------------------
   # JOB 2: TypeCheck & Static Analysis
@@ -103,10 +101,10 @@ jobs:
           npm install --prefix client
           npm install --prefix server
 
-      - name: Run Client Vitest Unit Tests
+      - name: Run Client Vitest Unit Tests (Strict)
         run: npm run test --prefix client
 
-      - name: Run Server Vitest Unit Tests
+      - name: Run Server Vitest Unit Tests (Strict)
         run: npm run test --prefix server
 
       - name: Setup Playwright & Dependencies
@@ -118,7 +116,7 @@ jobs:
       - name: Build Front-End Bundle for E2E
         run: npm run build --prefix client
 
-      - name: Run Playwright E2E Automation Suite
+      - name: Run Playwright E2E Automation Suite (Strict)
         run: python tests/test_e2e.py
         env:
           CI: true
@@ -151,7 +149,6 @@ jobs:
 
       - name: Deploy Front-End to Cloudflare Pages
         uses: cloudflare/pages-action@v1
-        continue-on-error: true
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
@@ -161,7 +158,6 @@ jobs:
 
       - name: Deploy Back-End Worker to Cloudflare Workers
         uses: cloudflare/wrangler-action@v3
-        continue-on-error: true
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
@@ -178,4 +174,4 @@ jobs:
       - name: Verify Production API Health Check
         run: |
           echo "Verificando o endpoint de saúde do Worker na borda..."
-          curl -f -s https://elite-tickets-api.agenddar.workers.dev/api/health || true
+          curl -f -s https://elite-tickets-api.agenddar.workers.dev/api/health

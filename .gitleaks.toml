@@ -1,0 +1,14 @@
+# Gitleaks configuration file for Elite Tickets
+title = "Elite Tickets Gitleaks Config"
+
+[allowlist]
+description = "Whitelist placeholder keys and sample development secrets"
+regexes = [
+  '''super-secret-hmac-key-elite-dev-2026''',
+  '''your-supabase-anon-key''',
+  '''https://your-supabase-project\.supabase\.co'''
+]
+paths = [
+  '''server/wrangler\.toml''',
+  '''tests/.*'''
+]
