@@ -88,6 +88,30 @@ function isSupabaseConfigured(c: any): boolean {
   return !!url && !url.includes('your-supabase-project.supabase.co');
 }
 
+type AppRole = 'organizer' | 'client' | 'gatekeeper';
+
+async function requireRole(c: any, roles: AppRole[]) {
+  if (!isSupabaseConfigured(c)) return null; // local demo mode remains available
+
+  const authorization = c.req.header('Authorization') || '';
+  const token = authorization.startsWith('Bearer ') ? authorization.slice(7) : '';
+  if (!token) return c.json({ success: false, error: 'Autenticação obrigatória.' }, 401);
+
+  const supabase = getSupabaseClient(c);
+  const { data: authData, error: authError } = await supabase.auth.getUser(token);
+  if (authError || !authData.user) return c.json({ success: false, error: 'Sessão inválida ou expirada.' }, 401);
+
+  const { data: profile, error: profileError } = await supabase
+    .from('profiles')
+    .select('id,email,name,role')
+    .eq('id', authData.user.id)
+    .maybeSingle();
+  if (profileError || !profile || !roles.includes(profile.role as AppRole)) {
+    return c.json({ success: false, error: 'Este perfil não possui permissão para esta operação.' }, 403);
+  }
+  return { user: authData.user, profile };
+}
+
 // Helper secret key
 function getHmacSecret(c: any): string {
   return c.env?.HMAC_SECRET || 'super-secret-hmac-key-elite-dev-2026';
@@ -337,9 +361,13 @@ app.get('/api/external-catalog', async (c) => {
 // 2.3.1 - GET /api/events (Retorna eventos locais e permite integração/importação TMDb/Ticketmaster)
 app.get('/api/events', async (c) => {
   try {
-    const importSource = c.req.query('importSource');
+      const importSource = c.req.query('importSource');
 
-    if (isSupabaseConfigured(c)) {
+      if (isSupabaseConfigured(c)) {
+      if (importSource === 'tmdb' || importSource === 'ticketmaster') {
+        const authorization = await requireRole(c, ['organizer']);
+        if (authorization instanceof Response) return authorization;
+      }
       const supabase = getSupabaseClient(c);
 
       if (importSource === 'tmdb' || importSource === 'ticketmaster') {
@@ -510,6 +538,9 @@ app.post('/api/reserve-batch', reserveBatchHandler);
 // POST /api/events/bulk-import (Importação de múltiplos eventos em uma única transação)
 app.post('/api/events/bulk-import', async (c) => {
   try {
+    const authorization = await requireRole(c, ['organizer']);
+    if (authorization instanceof Response) return authorization;
+
     const body = await c.req.json();
     const items: any[] = body.items || [];
 
