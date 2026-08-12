@@ -1,0 +1,16 @@
+{
+  "name": "desafio-elite-dev",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Plataforma de Ingressos e Eventos — Desafio Elite Dev 2026",
+  "workspaces": [
+    "client",
+    "server"
+  ],
+  "scripts": {
+    "typecheck": "npm run typecheck --prefix client && npm run typecheck --prefix server",
+    "test": "npm run test --prefix client && npm run test --prefix server",
+    "test:e2e": "python tests/test_e2e.py",
+    "build": "npm run build --prefix client"
+  }
+}
