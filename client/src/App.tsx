@@ -35,6 +35,7 @@ export function App() {
       onTabChange={(tab) => setActiveTab(tab)}
       ticketCount={tickets.length}
       role={role}
+      isDemoMode={isDemoMode}
       userName={profile?.name}
       onSignOut={isDemoMode ? undefined : signOut}
     >

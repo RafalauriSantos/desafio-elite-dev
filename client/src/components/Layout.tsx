@@ -6,15 +6,16 @@ interface LayoutProps {
   onTabChange: (tab: 'catalog' | 'event-details' | 'my-tickets' | 'gatekeeper') => void;
   ticketCount: number;
   role: 'organizer' | 'client' | 'gatekeeper';
+  isDemoMode?: boolean;
   userName?: string;
   onSignOut?: () => Promise<void>;
 }
 
-export function Layout({ children, activeTab, onTabChange, ticketCount, role, userName, onSignOut }: LayoutProps) {
+export function Layout({ children, activeTab, onTabChange, ticketCount, role, isDemoMode = false, userName, onSignOut }: LayoutProps) {
   const tabs: Array<{ id: 'catalog' | 'my-tickets' | 'gatekeeper'; label: string }> = [
     { id: 'catalog', label: 'Eventos' },
     { id: 'my-tickets', label: 'Ingressos' },
-    ...(role === 'gatekeeper' ? [{ id: 'gatekeeper' as const, label: 'Portaria' }] : []),
+    ...(role === 'gatekeeper' || isDemoMode ? [{ id: 'gatekeeper' as const, label: 'Portaria' }] : []),
   ];
 
   return (

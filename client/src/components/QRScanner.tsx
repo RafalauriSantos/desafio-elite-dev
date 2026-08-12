@@ -157,6 +157,41 @@ export const QRScanner: React.FC<QRScannerProps> = ({ targetEventId, onResult })
     }
   };
 
+  const startMobileCamera = async () => {
+    await stopCamera();
+    try {
+      const html5QrCode = new Html5Qrcode('qr-reader-viewport');
+      html5QrCodeRef.current = html5QrCode;
+      await html5QrCode.start(
+        { facingMode: 'environment' },
+        { fps: 10, qrbox: { width: 220, height: 220 } },
+        async (decodedText) => {
+          if (scanInFlightRef.current || html5QrCodeRef.current !== html5QrCode) return;
+          scanInFlightRef.current = true;
+          try { await html5QrCode.pause(); } catch {}
+          try { await handleValidate(decodedText); } finally {
+            scanInFlightRef.current = false;
+            resumeTimerRef.current = window.setTimeout(() => {
+              if (html5QrCodeRef.current === html5QrCode && mountedRef.current) {
+                try { html5QrCode.resume(); } catch {}
+              }
+            }, 3000);
+          }
+        },
+        () => {},
+      );
+      if (mountedRef.current && html5QrCodeRef.current === html5QrCode) {
+        setIsScanning(true);
+        setCameraError(null);
+      }
+    } catch (err: any) {
+      if (mountedRef.current) {
+        setIsScanning(false);
+        setCameraError('Não foi possível acessar a câmera. Permita o uso da câmera e tente novamente.');
+      }
+    }
+  };
+
   const stopCamera = async () => {
     const scanner = html5QrCodeRef.current;
     html5QrCodeRef.current = null;
@@ -458,7 +493,7 @@ export const QRScanner: React.FC<QRScannerProps> = ({ targetEventId, onResult })
                 <AlertCircle className="w-8 h-8 text-amber-400 mx-auto" />
                 <p className="text-xs text-zinc-400 max-w-xs leading-relaxed">{cameraError}</p>
                 <button
-                  onClick={() => selectedCameraId && startCamera(selectedCameraId)}
+                  onClick={() => void startMobileCamera()}
                   className="px-3 py-1.5 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-white text-xs font-medium inline-flex items-center gap-1.5 transition-colors"
                 >
                   <RefreshCw className="w-3.5 h-3.5" /> Tentar novamente
