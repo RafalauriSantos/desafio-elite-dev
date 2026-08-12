@@ -30,6 +30,8 @@ export interface TicketItem {
   user_name: string;
   status: 'valid' | 'used' | 'cancelled';
   qr_signature: string;
+  issuedAt?: number;
+  clientId?: string;
   created_at: string;
   used_at?: string | null;
   events?: Partial<EventItem>;
@@ -267,6 +269,8 @@ export const api = {
         user_name: params.userName,
         status: 'valid' as const,
         qr_signature: signature,
+        issuedAt,
+        clientId: params.userEmail,
         created_at: new Date().toISOString(),
         events: event,
         seats: { row_name: row || 'A', seat_number: parseInt(num || '1') },

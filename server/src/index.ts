@@ -665,6 +665,8 @@ app.post('/api/checkout', async (c) => {
         seat_id: currentSeatId,
         user_email: userEmail,
         user_name: userName,
+        clientId: userEmail,
+        issuedAt,
         status: 'valid',
         qr_signature: signature,
         created_at: new Date().toISOString()

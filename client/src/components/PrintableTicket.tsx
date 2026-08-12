@@ -24,6 +24,8 @@ export const PrintableTicket: React.FC<PrintableTicketProps> = ({ ticket, qrData
     eventId: ticket?.event_id || '',
     seatId: ticket?.seat_id || '',
     userEmail: ticket?.user_email || '',
+    clientId: ticket?.clientId || ticket?.user_email || '',
+    issuedAt: ticket?.issuedAt || new Date(ticket?.created_at || Date.now()).getTime(),
     signature: safeSignature
   });
 

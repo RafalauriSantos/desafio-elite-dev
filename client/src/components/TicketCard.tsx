@@ -26,6 +26,8 @@ export const TicketCard: React.FC<TicketCardProps> = ({ ticket, qrData }) => {
     eventId: ticket.event_id,
     seatId: ticket.seat_id,
     userEmail: ticket.user_email,
+    clientId: ticket.clientId || ticket.user_email,
+    issuedAt: ticket.issuedAt || new Date(ticket.created_at).getTime(),
     signature: ticket.qr_signature
   });
 
