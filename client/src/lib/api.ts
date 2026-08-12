@@ -1,4 +1,13 @@
+import { supabase } from './supabase';
+
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://elite-tickets-api.agenddar.workers.dev';
+
+async function getAuthHeaders(): Promise<Record<string, string>> {
+  const { data } = await supabase.auth.getSession();
+  return data.session?.access_token
+    ? { Authorization: `Bearer ${data.session.access_token}` }
+    : {};
+}
 
 export interface EventItem {
   id: string;
@@ -196,7 +205,7 @@ export const api = {
     try {
       const res = await fetch(`${API_BASE_URL}/api/events/bulk-import`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...(await getAuthHeaders()) },
         body: JSON.stringify({ items })
       });
       return await res.json();

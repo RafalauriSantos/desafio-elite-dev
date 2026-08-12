@@ -169,6 +169,10 @@ jobs:
       - name: Build Front-End Client
         if: steps.check-secrets.outputs.has_secrets == 'true'
         run: npm run build --prefix client
+        env:
+          VITE_API_URL: https://elite-tickets-api.agenddar.workers.dev
+          VITE_SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
 
       - name: Deploy Front-End to Cloudflare Pages
         if: steps.check-secrets.outputs.has_secrets == 'true'

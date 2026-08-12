@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Plus, X, Film, Music, Calendar, MapPin, ArrowRight, CheckCircle2, CheckSquare, Square } from 'lucide-react';
+import { Plus, X, Film, Music, Calendar, MapPin, ArrowRight, CheckCircle2, CheckSquare, Square, AlertCircle } from 'lucide-react';
 import { api, EventItem } from '../lib/api';
 
 interface OrganizerModalProps {
@@ -26,6 +26,7 @@ export const OrganizerModal: React.FC<OrganizerModalProps> = ({
   const [bannerUrl, setBannerUrl] = useState('');
 
   const [loading, setLoading] = useState(false);
+  const [actionError, setActionError] = useState<string | null>(null);
 
   useEffect(() => {
     if (isOpen) {
@@ -71,6 +72,7 @@ export const OrganizerModal: React.FC<OrganizerModalProps> = ({
   const handleBulkImport = async () => {
     if (selectedExternalItems.length === 0) return;
     setLoading(true);
+    setActionError(null);
 
     const res = await api.bulkImportEvents(selectedExternalItems);
     setLoading(false);
@@ -78,6 +80,8 @@ export const OrganizerModal: React.FC<OrganizerModalProps> = ({
     if (res.success && res.events && res.events.length > 0) {
       res.events.forEach((evt) => onEventCreated(evt));
       onClose();
+    } else {
+      setActionError(res.message || 'Não foi possível importar os eventos. Verifique sua sessão de organizador.');
     }
   };
 
@@ -143,6 +147,12 @@ export const OrganizerModal: React.FC<OrganizerModalProps> = ({
 
         {/* Body */}
         <div className="p-5 overflow-y-auto flex-1 space-y-4">
+          {actionError && (
+            <div role="alert" className="flex items-start gap-2 rounded-lg border border-red-900/50 bg-red-950/30 p-3 text-xs text-red-300">
+              <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+              <span>{actionError}</span>
+            </div>
+          )}
           {step === 'select' ? (
             <>
               {/* Source tabs */}
