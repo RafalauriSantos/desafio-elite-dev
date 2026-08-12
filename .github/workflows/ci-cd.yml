@@ -185,15 +185,9 @@ jobs:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           workingDirectory: 'server'
-          command: deploy
-          secrets: |
-            SUPABASE_URL
-            SUPABASE_ANON_KEY
-            HMAC_SECRET
-        env:
-          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
-          HMAC_SECRET: ${{ secrets.HMAC_SECRET }}
+          # Production already owns these bindings. Re-uploading them on every
+          # run makes Wrangler reject existing names with error 10053.
+          command: deploy --keep-vars
 
       - name: Deploy Skipped Notice
         if: steps.check-secrets.outputs.has_secrets != 'true'
