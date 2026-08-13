@@ -22,6 +22,11 @@ graphify-out/
 *.log
 npm-debug.log*
 
+# Arquivos Temporários Supabase
+.temp/
+supabase/.temp/
+server/supabase/
+
 # Arquivos de IDE e SO
 .DS_Store
 Thumbs.db
