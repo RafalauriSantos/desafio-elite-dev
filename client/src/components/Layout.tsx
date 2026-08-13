@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ChevronDown, User, Shield, Sparkles, LogIn, LogOut, Ticket } from 'lucide-react';
+import { ChevronDown, Sparkles, LogIn, LogOut, Calendar, Ticket, ShieldCheck, Plus } from 'lucide-react';
 import { UserRole } from '../auth/AuthContext';
 
 export interface Persona {
@@ -47,44 +47,44 @@ export function Layout({
 }: LayoutProps) {
   const [personaMenuOpen, setPersonaMenuOpen] = useState(false);
 
-  const tabs: Array<{ id: 'catalog' | 'my-tickets' | 'gatekeeper'; label: string; icon?: React.ReactNode }> = [
-    { id: 'catalog', label: 'Eventos' },
-    { id: 'my-tickets', label: 'Meus Ingressos' },
-    { id: 'gatekeeper', label: 'Portaria' },
+  const navItems = [
+    { id: 'catalog' as const, label: 'Eventos', icon: Calendar },
+    { id: 'my-tickets' as const, label: 'Meus Ingressos', icon: Ticket, badge: ticketCount },
+    { id: 'gatekeeper' as const, label: 'Portaria', icon: ShieldCheck },
   ];
 
   return (
     <div className="min-h-[100dvh] flex flex-col flex-1 bg-[#09090b] text-zinc-100 antialiased overflow-x-hidden">
       {/* Header Fixo/Sticky */}
       <header className="w-full border-b border-zinc-800/80 bg-[#09090b]/90 backdrop-blur-md sticky top-0 z-40">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between gap-2">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between gap-3">
           {/* Logo */}
           <button
             onClick={() => onTabChange('catalog')}
             className="flex items-center gap-2 text-[15px] font-semibold tracking-tight text-white hover:opacity-80 transition-opacity shrink-0"
           >
             <span className="w-6 h-6 rounded-md bg-white text-zinc-950 flex items-center justify-center font-bold text-xs">E</span>
-            <span>Elite Tickets</span>
+            <span className="tracking-tight">Elite Tickets</span>
           </button>
 
-          {/* Navegação Principal */}
-          <nav className="flex items-center gap-1">
-            {tabs.map((tab) => (
+          {/* Navegação Desktop (escondida no mobile para evitar overflow) */}
+          <nav className="hidden md:flex items-center gap-1">
+            {navItems.map((item) => (
               <button
-                key={tab.id}
-                onClick={() => onTabChange(tab.id)}
+                key={item.id}
+                onClick={() => onTabChange(item.id)}
                 className={`px-3 py-1.5 rounded-lg text-[13px] font-medium transition-colors relative flex items-center gap-1.5 ${
-                  activeTab === tab.id
+                  activeTab === item.id
                     ? 'text-white bg-zinc-800'
                     : 'text-zinc-400 hover:text-zinc-200'
                 }`}
               >
-                <span>{tab.label}</span>
-                {tab.id === 'my-tickets' && ticketCount > 0 && (
+                <span>{item.label}</span>
+                {item.badge ? (
                   <span className="w-4 h-4 bg-emerald-500 text-[10px] font-semibold text-white rounded-full flex items-center justify-center">
-                    {ticketCount}
+                    {item.badge}
                   </span>
-                )}
+                ) : null}
               </button>
             ))}
           </nav>
@@ -99,7 +99,7 @@ export function Layout({
                 title="Alternar Papel de Demonstração"
               >
                 <span className="text-sm">{activePersona.badge}</span>
-                <span className="hidden sm:inline font-mono">{activePersona.label}</span>
+                <span className="font-mono text-[11px] sm:text-xs">{activePersona.label}</span>
                 <ChevronDown className="w-3 h-3 text-zinc-500" />
               </button>
 
@@ -148,7 +148,7 @@ export function Layout({
                 title={`Logado como: ${userName}`}
               >
                 <LogOut className="w-3.5 h-3.5" />
-                <span className="hidden md:inline">Sair</span>
+                <span className="hidden sm:inline">Sair</span>
               </button>
             ) : onOpenLogin ? (
               <button
@@ -163,19 +163,49 @@ export function Layout({
         </div>
       </header>
 
-      {/* Conteúdo Principal */}
-      <main className="flex-1 w-full max-w-6xl mx-auto px-4 sm:px-6 py-8 flex flex-col">
+      {/* Conteúdo Principal (espaçamento inferior no mobile para compensar a bottom bar) */}
+      <main className="flex-1 w-full max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-8 flex flex-col pb-24 md:pb-8">
         {children}
       </main>
 
       {/* Rodapé fixado */}
-      <footer className="w-full border-t border-zinc-800/60 py-6 text-center text-xs font-mono text-zinc-500 bg-[#09090b] mt-auto">
+      <footer className="w-full border-t border-zinc-800/60 py-6 text-center text-xs font-mono text-zinc-500 bg-[#09090b] mt-auto mb-16 md:mb-0">
         <div className="max-w-6xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2">
           <span>© 2026 Elite Tickets · Desafio Elite Dev (Verzel)</span>
           <span className="text-zinc-600">Postgres FOR UPDATE · HMAC-SHA256 · Cloudflare Workers</span>
         </div>
       </footer>
+
+      {/* Bottom Navigation Bar para Mobile (estilo Instagram / Airbnb / Ticketmaster) */}
+      <div className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-[#09090b]/95 backdrop-blur-xl border-t border-zinc-800/80 px-4 py-2 pb-[max(0.5rem,env(safe-area-inset-bottom))]">
+        <div className="flex items-center justify-around">
+          {navItems.map((item) => {
+            const Icon = item.icon;
+            const isActive = activeTab === item.id;
+            return (
+              <button
+                key={item.id}
+                onClick={() => onTabChange(item.id)}
+                className={`flex flex-col items-center gap-1 py-1 px-3 rounded-xl transition-all relative ${
+                  isActive ? 'text-white font-semibold' : 'text-zinc-500 hover:text-zinc-300'
+                }`}
+              >
+                <div className="relative">
+                  <Icon className={`w-5 h-5 ${isActive ? 'text-emerald-400' : 'text-zinc-400'}`} />
+                  {item.badge ? (
+                    <span className="absolute -top-1.5 -right-2.5 w-4 h-4 bg-emerald-500 text-[10px] font-bold text-white rounded-full flex items-center justify-center">
+                      {item.badge}
+                    </span>
+                  ) : null}
+                </div>
+                <span className="text-[10px] tracking-tight">{item.label}</span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
     </div>
   );
 }
+
 

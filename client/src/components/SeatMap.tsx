@@ -17,29 +17,29 @@ export const SeatMap: React.FC<SeatMapProps> = ({
   const rows = Array.from(new Set(seats.map((s) => s.row_name))).sort();
 
   return (
-    <div className="w-full bg-[#111113] p-6 sm:p-8 rounded-2xl border border-zinc-800/60 space-y-6">
+    <div className="w-full bg-[#111113] p-4 sm:p-8 rounded-2xl border border-zinc-800/60 space-y-6">
       {/* Stage indicator */}
       <div className="text-center">
-        <div className="mx-auto max-w-md py-2 rounded-b-2xl bg-zinc-800/50 border-b-2 border-emerald-500/40">
-          <span className="text-[11px] uppercase tracking-widest font-semibold text-zinc-400">PALCO / TELA PRINCIPAL</span>
+        <div className="mx-auto max-w-md py-1.5 sm:py-2 rounded-b-2xl bg-zinc-800/50 border-b-2 border-emerald-500/40">
+          <span className="text-[10px] sm:text-[11px] uppercase tracking-widest font-semibold text-zinc-400">PALCO / TELA PRINCIPAL</span>
         </div>
       </div>
 
       {/* Seat grid */}
-      <div className="flex flex-col gap-3 items-center pt-4 overflow-x-auto pb-2">
+      <div className="flex flex-col gap-2 sm:gap-3 items-center pt-2 sm:pt-4 overflow-x-auto pb-2 w-full">
         {rows.map((rowName) => {
           const rowSeats = seats
             .filter((s) => s.row_name === rowName)
             .sort((a, b) => a.seat_number - b.seat_number);
 
           return (
-            <div key={rowName} className="flex items-center gap-3">
+            <div key={rowName} className="flex items-center gap-1.5 sm:gap-3">
               {/* Highlighted Row Label on Left Margin */}
-              <span className="w-6 text-center text-xs text-zinc-400 font-mono font-bold uppercase tracking-wider bg-zinc-900/80 py-1 rounded border border-zinc-800 shrink-0">
+              <span className="w-5 sm:w-6 text-center text-[10px] sm:text-xs text-zinc-400 font-mono font-bold uppercase tracking-wider bg-zinc-900/80 py-1 rounded border border-zinc-800 shrink-0">
                 {rowName}
               </span>
 
-              <div className="flex gap-2">
+              <div className="flex gap-1 sm:gap-2">
                 {rowSeats.map((seat) => {
                   const isSelected = selectedSeatIds.includes(seat.id);
                   const isAvailable = seat.status === 'available';
@@ -53,7 +53,7 @@ export const SeatMap: React.FC<SeatMapProps> = ({
                   } else if (isLocked) {
                     style = 'bg-amber-950/30 text-amber-600 border-amber-900/40 cursor-not-allowed';
                   } else if (isSelected) {
-                    style = 'bg-emerald-500 text-zinc-950 border-emerald-400 ring-2 ring-emerald-500/30 scale-110 z-10 font-bold shadow-lg';
+                    style = 'bg-emerald-500 text-zinc-950 border-emerald-400 ring-2 ring-emerald-500/30 scale-105 sm:scale-110 z-10 font-bold shadow-lg';
                   } else if (seat.category === 'VIP') {
                     style = 'bg-emerald-950/40 text-emerald-400 border-emerald-800/40 hover:bg-emerald-900/50 hover:border-emerald-600/50';
                   } else if (seat.category === 'Premium') {
@@ -68,7 +68,7 @@ export const SeatMap: React.FC<SeatMapProps> = ({
                       disabled={!isAvailable || isReserving}
                       onClick={() => onToggleSeat(seat)}
                       title={`${seat.row_name}${seat.seat_number} · ${seat.category} · R$ ${seat.price.toFixed(2)}`}
-                      className={`w-9 h-9 sm:w-10 sm:h-10 rounded-lg border font-mono text-xs transition-all duration-150 ${style}`}
+                      className={`w-7 h-7 sm:w-10 sm:h-10 rounded-md sm:rounded-lg border font-mono text-[10px] sm:text-xs transition-all duration-150 flex items-center justify-center ${style}`}
                     >
                       {seat.seat_number}
                     </button>
