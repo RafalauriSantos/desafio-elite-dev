@@ -34,7 +34,7 @@ export const TicketCard: React.FC<TicketCardProps> = ({ ticket, qrData }) => {
   const isUsed = ticket.status === 'used';
 
   const handleCopyLink = () => {
-    const link = `${window.location.origin}/#ticket-${ticket.id}`;
+    const link = `${window.location.origin}/?ticket=${ticket.id}`;
     navigator.clipboard.writeText(link);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);

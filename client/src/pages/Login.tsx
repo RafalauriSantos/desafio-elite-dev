@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import {
+  ArrowLeft,
   ArrowRight,
   Eye,
   EyeOff,
@@ -8,10 +9,16 @@ import {
   ShieldCheck,
   Ticket,
   UserPlus,
+  Sparkles,
 } from 'lucide-react';
 import { useAuth } from '../auth/AuthContext';
 
-export function Login() {
+interface LoginProps {
+  onBack?: () => void;
+  onSuccess?: () => void;
+}
+
+export function Login({ onBack, onSuccess }: LoginProps) {
   const { signIn, signUp, resetPassword } = useAuth();
   const [isSignUp, setIsSignUp] = useState(false);
   const [name, setName] = useState('');
@@ -22,6 +29,12 @@ export function Login() {
   const [submitting, setSubmitting] = useState(false);
   const [resetSent, setResetSent] = useState(false);
   const [confirmationSent, setConfirmationSent] = useState(false);
+
+  const fillQuickSeed = (seedEmail: string, seedName?: string) => {
+    setEmail(seedEmail);
+    if (seedName && isSignUp) setName(seedName);
+    setError('');
+  };
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -46,6 +59,8 @@ export function Login() {
       );
     } else if (isSignUp && 'needsConfirmation' in result && result.needsConfirmation) {
       setConfirmationSent(true);
+    } else {
+      onSuccess?.();
     }
     setSubmitting(false);
   };
@@ -76,6 +91,19 @@ export function Login() {
     <main className="relative min-h-[100dvh] overflow-hidden bg-[#12110f] text-[#f7f2e9]">
       <div className="pointer-events-none absolute -right-40 -top-40 h-[28rem] w-[28rem] rounded-full bg-[#d7ff63]/10 blur-3xl" />
       <div className="pointer-events-none absolute -bottom-48 -left-32 h-[24rem] w-[24rem] rounded-full bg-[#ff795b]/10 blur-3xl" />
+
+      {/* Top bar with back button */}
+      {onBack && (
+        <div className="absolute top-4 left-4 z-50">
+          <button
+            onClick={onBack}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-medium text-zinc-300 hover:text-white transition-colors"
+          >
+            <ArrowLeft className="w-3.5 h-3.5" />
+            <span>Voltar para o catálogo</span>
+          </button>
+        </div>
+      )}
 
       <div className="relative mx-auto grid min-h-[100dvh] max-w-6xl items-center gap-10 px-5 py-8 sm:px-8 lg:grid-cols-[1fr_0.86fr] lg:gap-20 lg:px-12">
         <section className="hidden lg:block" aria-label="Sobre a plataforma">
@@ -112,19 +140,49 @@ export function Login() {
           </div>
 
           <div className="rounded-[2rem] border border-white/10 bg-[#f7f2e9] p-6 text-[#191714] shadow-[0_28px_80px_rgba(0,0,0,0.35)] sm:p-9">
-            <div className="mb-8 flex items-start justify-between gap-4">
+            <div className="mb-6 flex items-start justify-between gap-4">
               <div>
-                <p className="mb-3 font-mono text-[11px] uppercase tracking-[0.2em] text-[#e75d43]">
+                <p className="mb-2 font-mono text-[11px] uppercase tracking-[0.2em] text-[#e75d43]">
                   Acesso seguro
                 </p>
-                <h2 className="font-serif text-4xl leading-none tracking-[-0.04em]">
+                <h2 className="font-serif text-3xl leading-none tracking-[-0.04em]">
                   {isSignUp ? 'Crie seu acesso' : 'Bem-vindo de volta'}
                 </h2>
-                <p className="mt-3 text-sm leading-6 text-[#716b63]">
-                  {isSignUp ? 'Cadastre-se como cliente e acompanhe seus ingressos.' : 'Entre para continuar sua jornada.'}
+                <p className="mt-2 text-xs leading-5 text-[#716b63]">
+                  {isSignUp ? 'Cadastre-se como cliente.' : 'Entre com sua conta Supabase Auth.'}
                 </p>
               </div>
               <KeyRound className="mt-1 h-5 w-5 shrink-0 text-[#e75d43]" aria-hidden="true" />
+            </div>
+
+            {/* Quick Fill Seed Personas for Evaluator */}
+            <div className="mb-5 p-3 rounded-xl bg-zinc-100/90 border border-zinc-200 text-xs">
+              <span className="font-mono text-[10px] uppercase tracking-wider text-zinc-500 font-semibold block mb-2">
+                Preenchimento Rápido (Contas Seed)
+              </span>
+              <div className="flex flex-wrap gap-1.5">
+                <button
+                  type="button"
+                  onClick={() => fillQuickSeed('ana.cliente@verzel.com', 'Ana Cliente')}
+                  className="px-2 py-1 rounded bg-white hover:bg-zinc-50 border border-zinc-300 text-[11px] font-medium text-zinc-700 transition-colors"
+                >
+                  🎟️ Ana (Cliente)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => fillQuickSeed('organizador@verzel.com', 'Carlos Organizador')}
+                  className="px-2 py-1 rounded bg-white hover:bg-zinc-50 border border-zinc-300 text-[11px] font-medium text-zinc-700 transition-colors"
+                >
+                  🎪 Carlos (Organizador)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => fillQuickSeed('portaria@verzel.com', 'Roberto Portaria')}
+                  className="px-2 py-1 rounded bg-white hover:bg-zinc-50 border border-zinc-300 text-[11px] font-medium text-zinc-700 transition-colors"
+                >
+                  🛡️ Roberto (Portaria)
+                </button>
+              </div>
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-5">

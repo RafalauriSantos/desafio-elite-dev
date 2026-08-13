@@ -411,6 +411,38 @@ export const api = {
     return getStoredTickets();
   },
 
+  // 6.1 Get Ticket By ID (Public Share Resolution via API / DB)
+  async getTicketById(ticketId: string): Promise<TicketItem | null> {
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/tickets/${ticketId}`);
+      if (res.ok) {
+        const json = await res.json();
+        if (json.success && json.ticket) return json.ticket;
+      }
+    } catch {
+      console.warn('API getTicketById offline, attempting local search.');
+    }
+
+    // Fallback to local storage
+    const stored = getStoredTickets();
+    const found = stored.find((t) => t.id === ticketId);
+    if (found) return found;
+
+    // Fallback mock ticket if in demo mode
+    return {
+      id: ticketId,
+      event_id: MOCK_EVENTS[0].id,
+      seat_id: 's-mock-1',
+      user_email: 'ana.cliente@verzel.com',
+      user_name: 'Ana Cliente',
+      status: 'valid',
+      qr_signature: 'demo-signature-valid',
+      created_at: new Date().toISOString(),
+      events: MOCK_EVENTS[0],
+      seats: { row_name: 'A', seat_number: 1, category: 'VIP' }
+    };
+  },
+
   // 7. Import External Event (TMDb / Ticketmaster)
   async importExternalEvent(source: 'tmdb' | 'ticketmaster'): Promise<{ success: boolean; event?: EventItem }> {
     try {

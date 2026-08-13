@@ -75,7 +75,7 @@ export const EmailPreviewModal: React.FC<EmailPreviewModalProps> = ({
         <div className="p-6 overflow-y-auto space-y-5 text-sm text-zinc-300">
           <div className="flex items-center gap-2 text-emerald-400 text-xs font-semibold no-print">
             <CheckCircle2 className="w-4 h-4" />
-            <span>Pagamento Confirmado & Bilhete Assinado Criptograficamente</span>
+            <span>Pagamento Confirmado {'&'} Bilhete Assinado Criptograficamente</span>
           </div>
 
           <p className="no-print">Olá, <strong className="text-white">{ticket.user_name || 'Cliente'}</strong>!</p>

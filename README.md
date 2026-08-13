@@ -12,6 +12,28 @@ Aplicação Full-Stack de Alta Performance desenvolvida para o **Desafio Elite D
 
 ---
 
+## ⚡ Roteiro de Avaliação Rápida para a Banca (3 Minutos)
+
+Para testar todo o fluxo do edital sem barreiras de autenticação, utilize o **Persona Switcher** no canto superior direito:
+
+1. **🎟️ Jornada do Cliente (Ana):**
+   - Acesse o catálogo de eventos e clique em **"Ver assentos"**.
+   - Selecione 2 poltronas no mapa interativo (Linhas A–D) e clique em **"Ir para Pagamento"**.
+   - No modal de checkout, selecione **"Aprovado"** e confirme para emitir os bilhetes digitais em formato **Apple Wallet Pass** com QR Code criptografado (HMAC-SHA256).
+   - *(Opcional: Teste a opção "Recusado" para verificar a devolução atômica dos assentos ao estoque).*
+2. **🛡️ Jornada da Portaria (Roberto):**
+   - Clique na aba **"Portaria"** no menu principal.
+   - Utilize a câmera do dispositivo para ler o QR Code emitido (ou use os botões rápidos do edital para testar `VALID`, `ALREADY_USED`, `INVALID` e `WRONG_EVENT`).
+   - Observe a validação atômica em tempo real e o retorno háptico (vibração).
+3. **🎪 Jornada do Organizador (Carlos):**
+   - No topo direito, alterne a persona para **"Carlos (Organizador)"**.
+   - Na página de eventos, clique em **"Publicar evento"** e utilize o painel de **Importação em Lote** sincronizado com as APIs do **TMDb** e **Ticketmaster**.
+4. **🔐 Autenticação Real Supabase Auth (Opcional):**
+   - Clique em **"Entrar"** no cabeçalho para testar o fluxo de login com senha, recuperação ou cadastro direto de novos clientes.
+
+
+---
+
 ## 🏗️ Arquitetura do Sistema
 
 ```text

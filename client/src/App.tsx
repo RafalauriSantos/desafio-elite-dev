@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
-import { Layout } from './components/Layout';
+import { Layout, SEED_PERSONAS, Persona } from './components/Layout';
 import { Catalog } from './pages/Catalog';
 import { EventDetails } from './pages/EventDetails';
 import { MyTickets } from './pages/MyTickets';
 import { Gatekeeper } from './pages/Gatekeeper';
-import { TicketItem } from './lib/api';
+import { api, TicketItem } from './lib/api';
 import { useAuth } from './auth/AuthContext';
 import { Login } from './pages/Login';
 import { PasswordRecovery } from './pages/PasswordRecovery';
@@ -16,6 +16,21 @@ export function App() {
   const [activeTab, setActiveTab] = useState<Tab>('catalog');
   const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
   const [tickets, setTickets] = useState<TicketItem[]>([]);
+  const [showLoginModal, setShowLoginModal] = useState(false);
+  const [activePersona, setActivePersona] = useState<Persona>(SEED_PERSONAS[0]); // Default: Ana Cliente
+
+  React.useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const sharedTicketId = params.get('ticket') || (window.location.hash.startsWith('#ticket-') ? window.location.hash.replace('#ticket-', '') : null);
+    if (sharedTicketId) {
+      void api.getTicketById(sharedTicketId).then((ticket: TicketItem | null) => {
+        if (ticket) {
+          setTickets((prev) => (prev.some((t) => t.id === ticket.id) ? prev : [ticket, ...prev]));
+          setActiveTab('my-tickets');
+        }
+      });
+    }
+  }, []);
 
   const handleSelectEvent = (eventId: string) => {
     setSelectedEventId(eventId);
@@ -27,22 +42,47 @@ export function App() {
     setActiveTab('my-tickets');
   };
 
-  if (loading) return <div className="min-h-[100dvh] bg-[#09090b] text-zinc-500 grid place-items-center">Carregando sessão...</div>;
-  if (recoveryMode) return <PasswordRecovery />;
-  if (!isDemoMode && (!session || !profile)) return <Login />;
-  const role = profile?.role ?? 'client';
+  if (loading) {
+    return (
+      <div className="min-h-[100dvh] bg-[#09090b] text-zinc-500 grid place-items-center font-mono text-sm">
+        Carregando Elite Tickets...
+      </div>
+    );
+  }
+
+  if (recoveryMode) {
+    return <PasswordRecovery />;
+  }
+
+  // If user explicitly opened login
+  if (showLoginModal) {
+    return (
+      <Login
+        onBack={() => setShowLoginModal(false)}
+        onSuccess={() => setShowLoginModal(false)}
+      />
+    );
+  }
+
+  const effectiveRole = profile?.role ?? activePersona.role;
+  const effectiveName = profile?.name ?? activePersona.name;
+
   return (
     <Layout
       activeTab={activeTab}
       onTabChange={(tab) => setActiveTab(tab)}
       ticketCount={tickets.length}
-      role={role}
+      role={effectiveRole}
+      activePersona={activePersona}
+      onSelectPersona={(persona) => setActivePersona(persona)}
       isDemoMode={isDemoMode}
-      userName={profile?.name}
+      isAuthenticated={!!session}
+      userName={effectiveName}
+      onOpenLogin={() => setShowLoginModal(true)}
       onSignOut={isDemoMode ? undefined : signOut}
     >
       {activeTab === 'catalog' && (
-        <Catalog onSelectEvent={handleSelectEvent} />
+        <Catalog onSelectEvent={handleSelectEvent} role={effectiveRole} />
       )}
 
       {activeTab === 'event-details' && selectedEventId && (
@@ -60,7 +100,8 @@ export function App() {
         />
       )}
 
-      {activeTab === 'gatekeeper' && (role === 'gatekeeper' || isDemoMode) && <Gatekeeper />}
+      {activeTab === 'gatekeeper' && <Gatekeeper />}
     </Layout>
   );
 }
+

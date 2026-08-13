@@ -727,6 +727,50 @@ app.post('/api/checkout', async (c) => {
   }
 });
 
+// GET /api/tickets/:id (Consulta pública para ingressos compartilhados)
+app.get('/api/tickets/:id', async (c) => {
+  try {
+    const ticketId = c.req.param('id');
+    if (!ticketId) {
+      return c.json({ success: false, error: 'ID do ingresso é obrigatório.' }, 400);
+    }
+
+    if (isSupabaseConfigured(c)) {
+      const supabase = getSupabaseClient(c);
+      const { data: ticket, error } = await supabase
+        .from('tickets')
+        .select('*, events(*), seats(*)')
+        .eq('id', ticketId)
+        .maybeSingle();
+
+      if (error || !ticket) {
+        return c.json({ success: false, error: 'Ingresso não encontrado no sistema.' }, 404);
+      }
+      return c.json({ success: true, ticket });
+    }
+
+    // Demo Mode Ticket
+    const demoEvent = DEMO_EVENTS[0];
+    const demoSeat = generateDemoSeats(demoEvent.id)[0];
+    const demoTicket = {
+      id: ticketId,
+      event_id: demoEvent.id,
+      seat_id: demoSeat.id,
+      user_email: 'ana.cliente@verzel.com',
+      user_name: 'Ana Cliente',
+      status: 'valid',
+      qr_signature: 'demo-signature-valid',
+      created_at: new Date().toISOString(),
+      events: demoEvent,
+      seats: demoSeat,
+    };
+
+    return c.json({ success: true, ticket: demoTicket });
+  } catch (err: any) {
+    return c.json({ success: false, error: err.message }, 500);
+  }
+});
+
 // 2.3.3 - POST /api/gatekeeper/validate (MÁQUINA DE ESTADOS: VALID, ALREADY_USED, INVALID, WRONG_EVENT)
 const validateHandler = async (c: any) => {
   try {

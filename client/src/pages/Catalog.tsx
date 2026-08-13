@@ -6,14 +6,16 @@ import { useAuth } from '../auth/AuthContext';
 
 interface CatalogProps {
   onSelectEvent: (eventId: string) => void;
+  role?: string;
 }
 
-export const Catalog: React.FC<CatalogProps> = ({ onSelectEvent }) => {
+export const Catalog: React.FC<CatalogProps> = ({ onSelectEvent, role }) => {
   const { profile, isDemoMode } = useAuth();
   const [events, setEvents] = useState<EventItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [isOrganizerOpen, setIsOrganizerOpen] = useState(false);
+  const effectiveRole = role || profile?.role;
 
   useEffect(() => {
     loadEvents();
@@ -44,13 +46,15 @@ export const Catalog: React.FC<CatalogProps> = ({ onSelectEvent }) => {
           <p className="text-sm text-zinc-500 mt-1">Escolha um evento e selecione seu assento.</p>
         </div>
 
-        {(isDemoMode || profile?.role === 'organizer') && <button
-          onClick={() => setIsOrganizerOpen(true)}
-          className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-[13px] font-medium text-zinc-200 bg-zinc-900 hover:bg-zinc-800 border border-zinc-700/80 transition-colors shadow-sm"
-        >
-          <Plus className="w-3.5 h-3.5" />
-          Publicar evento
-        </button>}
+        {(isDemoMode || effectiveRole === 'organizer') && (
+          <button
+            onClick={() => setIsOrganizerOpen(true)}
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-[13px] font-medium text-zinc-200 bg-zinc-900 hover:bg-zinc-800 border border-zinc-700/80 transition-colors shadow-sm"
+          >
+            <Plus className="w-3.5 h-3.5" />
+            Publicar evento
+          </button>
+        )}
       </div>
 
       {/* Search */}
