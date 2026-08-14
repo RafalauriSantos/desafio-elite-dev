@@ -12,5 +12,9 @@
     "test": "npm run test --prefix client && npm run test --prefix server",
     "test:e2e": "python tests/test_e2e.py",
     "build": "npm run build --prefix client"
+  },
+  "devDependencies": {
+    "@types/pg": "^8.21.0",
+    "pg": "^8.23.0"
   }
 }

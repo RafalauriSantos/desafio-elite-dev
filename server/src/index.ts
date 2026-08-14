@@ -112,8 +112,8 @@ const usedTicketIdsCache = new Set<string>();
 
 // Helper to initialize Supabase client
 function getSupabaseClient(c: any) {
-  const url = c.env?.SUPABASE_URL || 'https://extkyeckajhcozjervyr.supabase.co';
-  const key = c.env?.SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV4dGt5ZWNrYWpoY296amVydnlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjcxMjYyOTAsImV4cCI6MjA4MjcwMjI5MH0.IRkROuklqfjRwWOP4AzETFjNlGa0rD1ifYRKiIg1Wfc';
+  const url = c.env?.SUPABASE_URL || 'https://zgbhmduzypqfgfuncnhl.supabase.co';
+  const key = c.env?.SUPABASE_ANON_KEY || 'sb_publishable_hrXl9QKQoXC6C3ImupVfMw_wkaazz5g';
   return createClient(url, key);
 }
 
