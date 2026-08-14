@@ -17,6 +17,7 @@ export const OrganizerModal: React.FC<OrganizerModalProps> = ({
   const [source, setSource] = useState<'tmdb' | 'ticketmaster'>('tmdb');
   const [externalResults, setExternalResults] = useState<any[]>([]);
   const [selectedExternalItems, setSelectedExternalItems] = useState<any[]>([]);
+  const [existingEventTitles, setExistingEventTitles] = useState<string[]>([]);
 
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -41,12 +42,24 @@ export const OrganizerModal: React.FC<OrganizerModalProps> = ({
 
   const loadCatalog = async () => {
     setLoading(true);
-    const results = await api.fetchExternalCatalog(source, '');
-    setExternalResults(results);
-    setLoading(false);
+    try {
+      const [results, liveEvents] = await Promise.all([
+        api.fetchExternalCatalog(source, ''),
+        api.getEvents()
+      ]);
+      setExternalResults(results);
+      setExistingEventTitles(liveEvents.map((e) => e.title.toLowerCase().trim()));
+    } catch {
+      const results = await api.fetchExternalCatalog(source, '');
+      setExternalResults(results);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleToggleExternalItem = (item: any) => {
+    if (existingEventTitles.includes(item.title.toLowerCase().trim())) return;
+
     setSelectedExternalItems((prev) => {
       const exists = prev.some((i) => i.externalId === item.externalId);
       if (exists) {
@@ -218,19 +231,29 @@ export const OrganizerModal: React.FC<OrganizerModalProps> = ({
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                 {externalResults.map((item) => {
                   const isSelected = selectedExternalItems.some((i) => i.externalId === item.externalId);
+                  const isAlreadyImported = existingEventTitles.includes(item.title.toLowerCase().trim());
+
                   return (
                     <div
                       key={item.externalId}
-                      onClick={() => handleToggleExternalItem(item)}
-                      className={`p-3 rounded-xl border text-left transition-colors cursor-pointer ${
-                        isSelected
-                          ? 'bg-emerald-950/20 border-emerald-700/50'
-                          : 'bg-zinc-900/40 border-zinc-800/40 hover:border-zinc-700'
+                      onClick={() => !isAlreadyImported && handleToggleExternalItem(item)}
+                      className={`p-3 rounded-xl border text-left transition-all ${
+                        isAlreadyImported
+                          ? 'bg-zinc-900/20 border-zinc-800/30 opacity-60 cursor-not-allowed'
+                          : isSelected
+                          ? 'bg-emerald-950/20 border-emerald-700/50 cursor-pointer'
+                          : 'bg-zinc-900/40 border-zinc-800/40 hover:border-zinc-700 cursor-pointer'
                       }`}
                     >
                       <div className="flex gap-2.5 items-start">
                         <div className="shrink-0 pt-0.5 text-emerald-400">
-                          {isSelected ? <CheckSquare className="w-4 h-4" /> : <Square className="w-4 h-4 text-zinc-600" />}
+                          {isAlreadyImported ? (
+                            <CheckCircle2 className="w-4 h-4 text-zinc-500" />
+                          ) : isSelected ? (
+                            <CheckSquare className="w-4 h-4 text-emerald-400" />
+                          ) : (
+                            <Square className="w-4 h-4 text-zinc-600" />
+                          )}
                         </div>
                         <img
                           src={item.banner_url}
@@ -238,15 +261,19 @@ export const OrganizerModal: React.FC<OrganizerModalProps> = ({
                           className="w-12 h-12 rounded-lg object-cover shrink-0"
                         />
                         <div className="min-w-0 flex-1">
-                          <p className="text-xs font-medium text-white truncate">{item.title}</p>
-                          <p className="text-[11px] text-zinc-500 line-clamp-2 mt-0.5 leading-tight">
+                          <p className="text-xs font-semibold text-white truncate">{item.title}</p>
+                          <p className="text-[11px] text-zinc-400 line-clamp-2 mt-0.5 leading-tight">
                             {item.description}
                           </p>
                         </div>
                       </div>
                       <div className="mt-2 pt-2 border-t border-zinc-800/30 flex items-center justify-between text-[11px]">
-                        <span className="text-zinc-600">{item.source.toUpperCase()}</span>
-                        {isSelected ? (
+                        <span className="text-zinc-500 font-mono text-[10px]">{item.source.toUpperCase()}</span>
+                        {isAlreadyImported ? (
+                          <span className="text-zinc-400 font-mono text-[10px] bg-zinc-800 px-2 py-0.5 rounded border border-zinc-700">
+                            ✓ Já no Catálogo
+                          </span>
+                        ) : isSelected ? (
                           <span className="text-emerald-400 font-medium flex items-center gap-1">
                             <CheckCircle2 className="w-3 h-3" /> Selecionado
                           </span>

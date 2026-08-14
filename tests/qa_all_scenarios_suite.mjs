@@ -58,6 +58,8 @@ async function runExhaustiveTests() {
   console.log('🚀 INICIANDO AUDITORIA EXTREMA DE QA - 18 CENÁRIOS PREVISÍVEIS & LIMÍTROFES');
   console.log('='.repeat(75));
 
+  try {
+
   const timestamp = Date.now();
   let testEventId = null;
   let testSeats = [];
@@ -382,11 +384,12 @@ async function runExhaustiveTests() {
 
   check(globalVal.code === 'VALID', 'Modo Portão Geral ("all") validou ingresso com sucesso', 'Falha no modo portaria global');
 
-  // -------------------------------------------------------------------------
-  // LIMPEZA FINAL
-  // -------------------------------------------------------------------------
-  await supabase.from('seats').delete().eq('event_id', testEventId);
-  await supabase.from('events').delete().eq('id', testEventId);
+  } finally {
+    // -------------------------------------------------------------------------
+    // LIMPEZA FINAL AUTOMÁTICA (Zero Poluição de Banco)
+    // -------------------------------------------------------------------------
+    await supabase.rpc('cleanup_test_events');
+  }
 
   console.log('\n' + '='.repeat(75));
   console.log(`📊 SUMÁRIO FINAL DE AUDITORIA EXTREMA:`);
