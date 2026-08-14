@@ -172,11 +172,11 @@ export const Catalog: React.FC<CatalogProps> = ({ onSelectEvent, role }) => {
         </div>
       )}
 
-      {(isDemoMode || profile?.role === 'organizer') && <OrganizerModal
+      <OrganizerModal
         isOpen={isOrganizerOpen}
         onClose={() => setIsOrganizerOpen(false)}
         onEventCreated={handleEventCreated}
-      />}
+      />
     </div>
   );
 };

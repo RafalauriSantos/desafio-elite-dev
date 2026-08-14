@@ -5,7 +5,7 @@ import { api, EventItem } from '../lib/api';
 interface OrganizerModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onEventCreated: (newEvent: EventItem) => void;
+  onEventCreated: (newEvent: EventItem | EventItem[]) => void;
 }
 
 export const OrganizerModal: React.FC<OrganizerModalProps> = ({
@@ -78,7 +78,7 @@ export const OrganizerModal: React.FC<OrganizerModalProps> = ({
     setLoading(false);
 
     if (res.success && res.events && res.events.length > 0) {
-      res.events.forEach((evt) => onEventCreated(evt));
+      onEventCreated(res.events);
       onClose();
     } else {
       setActionError(res.message || 'Não foi possível importar os eventos. Verifique sua sessão de organizador.');
