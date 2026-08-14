@@ -128,8 +128,11 @@ async function requireRole(c: any, roles: AppRole[]) {
   if (!isSupabaseConfigured(c)) return null; // local demo mode remains available
 
   const appRoleHeader = c.req.header('x-app-role') || '';
-  if (roles.includes(appRoleHeader as AppRole)) {
-    return { user: { id: 'demo-organizer', email: 'organizador@verzel.com' }, profile: { role: appRoleHeader } };
+  if (appRoleHeader) {
+    if (!roles.includes(appRoleHeader as AppRole)) {
+      return c.json({ success: false, error: 'Este perfil não possui permissão para esta operação.' }, 403);
+    }
+    return { user: { id: `demo-${appRoleHeader}`, email: `${appRoleHeader}@verzel.com` }, profile: { role: appRoleHeader } };
   }
 
   const authorization = c.req.header('Authorization') || '';
@@ -799,15 +802,15 @@ app.post('/api/checkout', async (c) => {
 
     if (isSupabaseConfigured(c) && areAllUuids) {
       const supabase = getSupabaseClient(c);
-      const { error } = await supabase.rpc('complete_checkout_batch_atomic', {
+      const { data: rpcResult, error } = await supabase.rpc('complete_checkout_batch_atomic', {
         p_seat_ids: seatIds,
         p_event_id: eventId,
         p_user_email: userEmail,
         p_ticket_rows: ticketRows
       });
 
-      if (error) {
-        return c.json({ success: false, error: error.message || 'A reserva expirou ou não pertence a este comprador.' }, 409);
+      if (error || (rpcResult && !rpcResult.success)) {
+        return c.json({ success: false, error: rpcResult?.message || error?.message || 'A reserva expirou ou não pertence a este comprador.' }, 409);
       }
 
       // Fetch event & seats details to return fully hydrated tickets to the client
