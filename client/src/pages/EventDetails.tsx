@@ -194,6 +194,27 @@ export const EventDetails: React.FC<EventDetailsProps> = ({
         />
       )}
 
+      {/* Mobile Floating Action Bar for Instant Booking */}
+      {selectedSeats.length > 0 && (
+        <div className="lg:hidden fixed bottom-[calc(4.5rem+env(safe-area-inset-bottom))] left-4 right-4 z-40 bg-[#111113]/95 backdrop-blur-xl p-3.5 rounded-2xl border border-emerald-500/30 shadow-2xl flex items-center justify-between animate-in slide-in-from-bottom duration-200">
+          <div>
+            <p className="text-[11px] uppercase tracking-wider text-zinc-400 font-medium font-mono">
+              {selectedSeats.length} {selectedSeats.length === 1 ? 'assento' : 'assentos'}
+            </p>
+            <p className="text-lg font-bold text-emerald-400 font-mono leading-none mt-0.5">
+              R$ {totalPrice.toFixed(2)}
+            </p>
+          </div>
+          <button
+            onClick={handleProceedToCheckout}
+            disabled={isReserving}
+            className="px-5 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-bold text-sm transition-colors shadow-lg shadow-emerald-950/40"
+          >
+            Reservar agora
+          </button>
+        </div>
+      )}
+
       {/* Email Confirmation Preview Modal */}
       <EmailPreviewModal
         isOpen={isEmailModalOpen}
