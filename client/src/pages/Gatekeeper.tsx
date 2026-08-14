@@ -5,7 +5,7 @@ import { api, EventItem } from '../lib/api';
 
 export const Gatekeeper: React.FC = () => {
   const [events, setEvents] = useState<EventItem[]>([]);
-  const [selectedTargetEventId, setSelectedTargetEventId] = useState<string>('e1111111-1111-1111-1111-111111111111');
+  const [selectedTargetEventId, setSelectedTargetEventId] = useState<string>('all');
   const [scanResult, setScanResult] = useState<{
     success: boolean;
     valid: boolean;

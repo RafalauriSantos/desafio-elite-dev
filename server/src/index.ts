@@ -80,17 +80,19 @@ const DEMO_EVENTS = [
 ];
 
 const generateDemoSeats = (eventId: string) => {
-  const rows = ['A', 'B', 'C', 'D'];
+  const rows = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
   const seats: any[] = [];
 
   rows.forEach((row) => {
-    for (let num = 1; num <= 8; num++) {
+    for (let num = 1; num <= 10; num++) {
       const seatId = `s-${eventId}-${row}-${num}`;
-      const isVip = row === 'A';
-      const isPremium = row === 'B';
+      const isVip = row === 'A' || row === 'B';
+      const isPremium = row === 'C' || row === 'D';
       let initialStatus: 'available' | 'locked' | 'sold' = 'available';
-      if (row === 'A' && num === 3) initialStatus = 'sold';
-      if (row === 'B' && num === 5) initialStatus = 'locked';
+      if (row === 'A' && num === 4) initialStatus = 'sold';
+      if (row === 'B' && num === 7) initialStatus = 'sold';
+      if (row === 'C' && num === 8) initialStatus = 'locked';
+      if (row === 'D' && num === 3) initialStatus = 'sold';
 
       seats.push({
         id: seatId,
@@ -98,7 +100,7 @@ const generateDemoSeats = (eventId: string) => {
         row_name: row,
         seat_number: num,
         category: isVip ? 'VIP' : isPremium ? 'Premium' : 'Standard',
-        price: isVip ? 499.90 : isPremium ? 399.90 : 299.90,
+        price: isVip ? 499.90 : isPremium ? 349.90 : 199.90,
         status: initialStatus
       });
     }
@@ -108,8 +110,8 @@ const generateDemoSeats = (eventId: string) => {
 
 // Helper to initialize Supabase client
 function getSupabaseClient(c: any) {
-  const url = c.env?.SUPABASE_URL || 'https://your-supabase-project.supabase.co';
-  const key = c.env?.SUPABASE_ANON_KEY || 'your-supabase-anon-key';
+  const url = c.env?.SUPABASE_URL || 'https://extkyeckajhcozjervyr.supabase.co';
+  const key = c.env?.SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV4dGt5ZWNrYWpoY296amVydnlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjcxMjYyOTAsImV4cCI6MjA4MjcwMjI5MH0.IRkROuklqfjRwWOP4AzETFjNlGa0rD1ifYRKiIg1Wfc';
   return createClient(url, key);
 }
 
@@ -737,7 +739,10 @@ app.post('/api/checkout', async (c) => {
       qrCodes.push(JSON.stringify({ ...payload, signature }));
     }
 
-    if (isSupabaseConfigured(c)) {
+    const isUuid = (str?: string) => !!str && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str);
+    const areAllUuids = seatIds.every((id: string) => isUuid(id)) && isUuid(eventId);
+
+    if (isSupabaseConfigured(c) && areAllUuids) {
       const supabase = getSupabaseClient(c);
       const { error } = await supabase.rpc('complete_checkout_batch_atomic', {
         p_seat_ids: seatIds,
@@ -1005,12 +1010,14 @@ const validateHandler = async (c: any) => {
       }, 401);
     }
 
-    if (isSupabaseConfigured(c)) {
+    const isUuid = (str?: string) => !!str && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str);
+
+    if (isSupabaseConfigured(c) && isUuid(ticketId)) {
       const supabase = getSupabaseClient(c);
       const { data: dbResult, error: dbErr } = await supabase.rpc('validate_ticket_gatekeeper', {
         p_ticket_id: ticketId,
         p_qr_signature: signature,
-        p_target_event_id: (targetEventId && targetEventId !== 'all') ? targetEventId : null
+        p_target_event_id: (targetEventId && targetEventId !== 'all' && isUuid(targetEventId)) ? targetEventId : null
       });
 
       if (!dbErr && dbResult) {

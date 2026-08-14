@@ -6,4 +6,4 @@ compatibility_flags = ["nodejs_compat"]
 # The deployed Worker keeps SUPABASE_ANON_KEY and HMAC_SECRET as existing
 # Cloudflare bindings. Use `wrangler deploy --keep-vars` for subsequent deploys.
 [vars]
-SUPABASE_URL = "https://zgbhmduzypqfgfuncnhl.supabase.co"
+SUPABASE_URL = "https://extkyeckajhcozjervyr.supabase.co"
