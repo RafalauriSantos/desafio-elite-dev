@@ -330,7 +330,30 @@ export const api = {
       });
       const contentType = res.headers.get('content-type') || '';
       if (contentType.includes('application/json')) {
-        return await res.json();
+        const jsonResult = await res.json();
+        try {
+          let parsedId: string | null = null;
+          if (qrData.includes('ticket=')) parsedId = qrData.split('ticket=')[1].split('&')[0].split('#')[0];
+          else if (qrData.includes('#ticket-')) parsedId = qrData.split('#ticket-')[1];
+          else {
+            try {
+              const p = JSON.parse(qrData);
+              parsedId = p.ticketId || p.id;
+            } catch {
+              parsedId = qrData.trim();
+            }
+          }
+          if (parsedId && jsonResult.valid) {
+            const stored = getStoredTickets();
+            const idx = stored.findIndex((t) => t.id === parsedId || t.qr_signature === parsedId);
+            if (idx !== -1) {
+              stored[idx].status = 'used';
+              stored[idx].used_at = new Date().toISOString();
+              localStorage.setItem('elite_tickets_demo', JSON.stringify(stored));
+            }
+          }
+        } catch {}
+        return jsonResult;
       }
     } catch {
       console.warn('API server offline. Validating demo ticket locally.');

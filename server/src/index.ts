@@ -108,6 +108,8 @@ const generateDemoSeats = (eventId: string) => {
   return seats;
 };
 
+const usedTicketIdsCache = new Set<string>();
+
 // Helper to initialize Supabase client
 function getSupabaseClient(c: any) {
   const url = c.env?.SUPABASE_URL || 'https://extkyeckajhcozjervyr.supabase.co';
@@ -991,7 +993,11 @@ const validateHandler = async (c: any) => {
     }
 
     // 1. Verificação de Estado ALREADY_USED (Ingresso previamente escaneado)
-    if (ticketId.includes('used') || (signature && signature.includes('used'))) {
+    if (
+      (ticketId && usedTicketIdsCache.has(ticketId)) ||
+      (ticketId && ticketId.includes('used')) ||
+      (signature && signature.includes('used'))
+    ) {
       return c.json({
         success: false,
         valid: false,
@@ -1051,11 +1057,20 @@ const validateHandler = async (c: any) => {
       });
 
       if (!dbErr && dbResult) {
-        if (dbResult.code === 'ALREADY_USED') return c.json(dbResult, 409);
+        if (dbResult.code === 'ALREADY_USED') {
+          usedTicketIdsCache.add(ticketId);
+          return c.json(dbResult, 409);
+        }
         if (dbResult.code === 'WRONG_EVENT') return c.json(dbResult, 422);
         if (dbResult.code === 'INVALID') return c.json(dbResult, 400);
+
+        usedTicketIdsCache.add(ticketId);
         return c.json(dbResult, 200);
       }
+    }
+
+    if (ticketId) {
+      usedTicketIdsCache.add(ticketId);
     }
 
     return c.json({
