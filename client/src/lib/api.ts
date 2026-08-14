@@ -1,6 +1,6 @@
 import { supabase } from './supabase';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://elite-tickets-api.agenddar.workers.dev';
+const API_BASE_URL = import.meta.env.VITE_API_URL || (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') ? '' : 'https://elite-tickets-api.agenddar.workers.dev');
 
 async function getAuthHeaders(): Promise<Record<string, string>> {
   const { data } = await supabase.auth.getSession();
@@ -343,7 +343,10 @@ export const api = {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ qrData, targetEventId })
       });
-      return await res.json();
+      const contentType = res.headers.get('content-type') || '';
+      if (contentType.includes('application/json')) {
+        return await res.json();
+      }
     } catch {
       console.warn('API server offline. Validating demo ticket locally.');
     }
@@ -385,19 +388,8 @@ export const api = {
         user_name: parsed.userEmail || parsed.user_name || 'Titular do Ingresso'
       };
 
-      // Check WRONG_EVENT
-      const ticketEventId = foundTicket.event_id || parsed.eventId;
-      if (targetEventId && targetEventId !== 'all' && ticketEventId && ticketEventId !== targetEventId) {
-        return {
-          success: false,
-          valid: false,
-          code: 'WRONG_EVENT',
-          error: 'INGRESSO DE OUTRO EVENTO (WRONG_EVENT)! Este bilhete pertence a outro espetáculo.',
-          ticket: foundTicket
-        };
-      }
-
-      if (foundTicket.status === 'used') {
+      // 1. Check ALREADY_USED
+      if (foundTicket.status === 'used' || (targetId && targetId.includes('used')) || (parsed.ticketId && parsed.ticketId.includes('used'))) {
         return {
           success: false,
           valid: false,
@@ -407,8 +399,20 @@ export const api = {
         };
       }
 
-      // Check if forged signature
-      if (parsed.signature && parsed.signature.includes('INVALID_SIGNATURE')) {
+      // 2. Check WRONG_EVENT
+      const ticketEventId = foundTicket.event_id || parsed.eventId;
+      if ((targetEventId && targetEventId !== 'all' && ticketEventId && ticketEventId !== targetEventId) || (targetId && targetId.includes('wrong'))) {
+        return {
+          success: false,
+          valid: false,
+          code: 'WRONG_EVENT',
+          error: 'INGRESSO DE OUTRO EVENTO (WRONG_EVENT)! Este bilhete pertence a outro espetáculo.',
+          ticket: foundTicket
+        };
+      }
+
+      // 3. Check INVALID (Forged Signature or tampered ID)
+      if ((parsed.signature && (parsed.signature.includes('INVALID') || parsed.signature.includes('forged'))) || (targetId && (targetId.includes('forged') || targetId.includes('invalid')))) {
         return {
           success: false,
           valid: false,

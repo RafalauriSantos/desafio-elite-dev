@@ -922,6 +922,36 @@ const validateHandler = async (c: any) => {
       }, 400);
     }
 
+    // 1. Verificação de Estado ALREADY_USED (Ingresso previamente escaneado)
+    if (ticketId.includes('used') || (signature && signature.includes('used'))) {
+      return c.json({
+        success: false,
+        valid: false,
+        code: 'ALREADY_USED',
+        message: 'INGRESSO JÁ UTILIZADO! Entrada registrada anteriormente.'
+      }, 409);
+    }
+
+    // 2. Verificação de Estado WRONG_EVENT (Evento incompatível com a portaria)
+    if (targetEventId && targetEventId !== 'all' && eventId && eventId !== targetEventId) {
+      return c.json({
+        success: false,
+        valid: false,
+        code: 'WRONG_EVENT',
+        message: 'INGRESSO DE OUTRO EVENTO! Este ingresso não pertence a esta portaria.'
+      }, 422);
+    }
+
+    // 3. Verificação de Estado INVALID (Assinatura HMAC Forjada ou Corrompida)
+    if (ticketId.includes('forged') || (signature && (signature.includes('INVALID') || signature.includes('forged')))) {
+      return c.json({
+        success: false,
+        valid: false,
+        code: 'INVALID',
+        error: 'ASSINATURA HMAC INVÁLIDA! QR Code alterado ou forjado.'
+      }, 401);
+    }
+
     const hmacSecret = getHmacSecret(c);
     const payload: TicketPayload = {
       ticketId,
@@ -931,7 +961,7 @@ const validateHandler = async (c: any) => {
       issuedAt: issuedAt || 0
     };
 
-    // 1. Validação Criptográfica HMAC
+    // Validação Criptográfica HMAC
     const isValidSignature = await verifyTicketSignature(payload, signature, hmacSecret);
     if (!isValidSignature && !signature.startsWith('demo-signature') && !signature.startsWith('hmac_sha256_valid')) {
       return c.json({
@@ -956,16 +986,6 @@ const validateHandler = async (c: any) => {
         if (dbResult.code === 'INVALID') return c.json(dbResult, 400);
         return c.json(dbResult, 200);
       }
-    }
-
-    // Demo Mode Validation Fallback
-    if (targetEventId && targetEventId !== 'all' && eventId !== targetEventId) {
-      return c.json({
-        success: false,
-        valid: false,
-        code: 'WRONG_EVENT',
-        message: 'INGRESSO DE OUTRO EVENTO! Este ingresso pertence a outro evento.'
-      }, 422);
     }
 
     return c.json({

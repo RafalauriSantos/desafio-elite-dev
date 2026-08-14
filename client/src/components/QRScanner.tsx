@@ -219,16 +219,20 @@ export const QRScanner: React.FC<QRScannerProps> = ({ targetEventId, onResult })
 
       // Audio & Haptic Feedback
       playBeep(res.valid);
-      if (res.valid) {
-        navigator.vibrate?.([80]);
-      } else {
-        navigator.vibrate?.([100, 50, 100]);
+      try {
+        if (res.valid) {
+          navigator.vibrate?.([80]);
+        } else {
+          navigator.vibrate?.([100, 50, 100]);
+        }
+      } catch {
+        // Ignore vibration restrictions
       }
 
       const overlayState = {
         valid: res.valid,
         code: res.code || (res.valid ? 'VALID' : 'INVALID'),
-        message: res.valid ? (res.message || 'ENTRADA LIBERADA!') : (res.error || 'ACESSO NEGADO'),
+        message: res.valid ? (res.message || 'ENTRADA LIBERADA!') : (res.error || res.message || 'ACESSO NEGADO'),
         ticket: res.ticket
       };
 
@@ -241,7 +245,9 @@ export const QRScanner: React.FC<QRScannerProps> = ({ targetEventId, onResult })
       }, 4000);
     } catch (err: any) {
       playBeep(false);
-      navigator.vibrate?.([100, 50, 100]);
+      try {
+        navigator.vibrate?.([100, 50, 100]);
+      } catch {}
       setActiveOverlay({
         valid: false,
         code: 'INVALID',
