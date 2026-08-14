@@ -54,9 +54,9 @@ export function Layout({
   ];
 
   return (
-    <div className="flex flex-col flex-1 w-full min-h-[100dvh] bg-transparent text-zinc-100 antialiased">
+    <div className="flex flex-col flex-1 w-full h-[100dvh] md:min-h-[100dvh] md:h-auto overflow-hidden md:overflow-visible bg-transparent text-zinc-100 antialiased">
       {/* Header Fixo/Sticky */}
-      <header className="w-full border-b border-zinc-800/80 bg-[#09090b]/90 backdrop-blur-md sticky top-0 z-40">
+      <header className="shrink-0 w-full border-b border-zinc-800/80 bg-[#09090b]/90 backdrop-blur-md sticky top-0 z-40">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between gap-3">
           {/* Logo */}
           <button
@@ -163,13 +163,13 @@ export function Layout({
         </div>
       </header>
 
-      {/* Conteúdo Principal (padding inferior para respiro da barra móvel) */}
-      <main className="flex-1 w-full max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-8 flex flex-col pb-20 md:pb-8">
+      {/* Conteúdo Principal (scroll suave interno no mobile) */}
+      <main className="flex-1 w-full max-w-6xl mx-auto px-4 sm:px-6 py-4 sm:py-8 flex flex-col overflow-y-auto md:overflow-visible overscroll-contain">
         {children}
       </main>
 
       {/* Rodapé institucional minimalista — Exclusivo Desktop */}
-      <footer className="hidden md:block w-full border-t border-zinc-800/60 py-6 text-xs text-zinc-500 mt-auto bg-[#09090b]/40">
+      <footer className="hidden md:block shrink-0 w-full border-t border-zinc-800/60 py-6 text-xs text-zinc-500 mt-auto bg-[#09090b]/40">
         <div className="max-w-6xl mx-auto px-6 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
             <span className="font-medium text-zinc-400">Elite Tickets</span>
@@ -187,7 +187,7 @@ export function Layout({
       {/* Bottom Navigation Bar para Mobile (True Viewport Fixed Anchoring) */}
       <nav
         aria-label="Navegação móvel"
-        className="md:hidden fixed bottom-0 inset-x-0 z-30 bg-[#09090b]/95 backdrop-blur-xl border-t border-zinc-800/80 px-4 py-2 pb-[max(0.5rem,env(safe-area-inset-bottom))]"
+        className="md:hidden shrink-0 z-30 bg-[#09090b]/95 backdrop-blur-xl border-t border-zinc-800/80 px-4 py-2 pb-[max(0.5rem,env(safe-area-inset-bottom))]"
       >
         <div className="flex items-center justify-around max-w-md mx-auto">
           {navItems.map((item) => {
