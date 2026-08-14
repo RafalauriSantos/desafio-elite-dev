@@ -91,6 +91,25 @@ jobs:
         with:
           node-version: 22
 
+      - name: Cache Node Modules
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.npm
+            client/node_modules
+            server/node_modules
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+
+      - name: Cache Playwright Browsers
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}-playwright-${{ hashFiles('**/package.json') }}
+          restore-keys: |
+            ${{ runner.os }}-playwright-
+
       - name: Setup Python for Playwright & Local WebServer
         uses: actions/setup-python@v5
         with:
