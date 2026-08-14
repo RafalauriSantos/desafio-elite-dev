@@ -25,6 +25,7 @@ Você é um Engenheiro Full-Stack Sênior atuando como copiloto no desenvolvimen
 3. **Validação de Portaria:** A função `validate_ticket_gatekeeper` no Supabase deve tratar atomicamente os 4 estados: `VALID`, `ALREADY_USED`, `INVALID` e `WRONG_EVENT`.
 4. **Evite AI Slop:** Crie interfaces intencionais, com hierarquia visual clara, estados de carregamento (*skeletons*), mensagens de erro explicativas e modais de resposta na portaria.
 5. **Git Commits:** Seguir o padrão *Conventional Commits* (`feat:`, `fix:`, `docs:`, `chore:`).
+6. **Esteira CI/CD Obrigatória:** Toda e qualquer alteração de código deve ser validada localmente, comitada com Conventional Commits e enviada automaticamente via `git push origin master` para execução completa da esteira no GitHub Actions e deploy automático na Cloudflare.
 
 ---
 

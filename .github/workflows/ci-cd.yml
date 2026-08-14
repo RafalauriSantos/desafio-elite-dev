@@ -107,6 +107,9 @@ jobs:
       - name: Run Server Vitest Unit Tests (Strict)
         run: npm run test --prefix server
 
+      - name: Run 18-Scenario Live QA & Chaos Suite
+        run: node tests/qa_all_scenarios_suite.mjs
+
       - name: Setup Playwright & Dependencies
         run: |
           python -m pip install --upgrade pip
