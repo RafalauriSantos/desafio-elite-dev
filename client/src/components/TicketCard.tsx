@@ -10,7 +10,7 @@ interface TicketCardProps {
 }
 
 export const TicketCard: React.FC<TicketCardProps> = ({ ticket, qrData }) => {
-  const [copied, setCopied] = useState(false);
+  const [copiedType, setCopiedType] = useState<'link' | 'qr' | null>(null);
 
   const event = ticket.events || {
     title: 'Evento',
@@ -36,8 +36,14 @@ export const TicketCard: React.FC<TicketCardProps> = ({ ticket, qrData }) => {
   const handleCopyLink = () => {
     const link = `${window.location.origin}/?ticket=${ticket.id}`;
     navigator.clipboard.writeText(link);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    setCopiedType('link');
+    setTimeout(() => setCopiedType(null), 2000);
+  };
+
+  const handleCopyQr = () => {
+    navigator.clipboard.writeText(finalQrString);
+    setCopiedType('qr');
+    setTimeout(() => setCopiedType(null), 2000);
   };
 
   const handlePrint = () => {
@@ -128,8 +134,8 @@ export const TicketCard: React.FC<TicketCardProps> = ({ ticket, qrData }) => {
             )}
           </div>
 
-          {/* Actions bar: Calendar & Print & Copy */}
-          <div className="pt-2 border-t border-zinc-800/40 flex items-center justify-between text-xs text-zinc-400">
+          {/* Actions bar: Calendar & Print & Copy QR & Copy Link */}
+          <div className="pt-2 border-t border-zinc-800/40 flex items-center justify-between text-xs text-zinc-400 gap-2">
             <button
               type="button"
               onClick={handleAddToCalendar}
@@ -147,18 +153,38 @@ export const TicketCard: React.FC<TicketCardProps> = ({ ticket, qrData }) => {
               title="Baixar PDF / Imprimir"
             >
               <Printer className="w-3.5 h-3.5 text-zinc-300" />
-              <span>Imprimir / PDF</span>
+              <span>PDF</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={handleCopyQr}
+              className="flex items-center gap-1 hover:text-white transition-colors"
+              title="Copiar Payload Criptográfico QR"
+            >
+              {copiedType === 'qr' ? (
+                <>
+                  <Check className="w-3.5 h-3.5 text-emerald-400" />
+                  <span className="text-emerald-400 font-medium">QR Copiado</span>
+                </>
+              ) : (
+                <>
+                  <Copy className="w-3.5 h-3.5 text-emerald-400" />
+                  <span>Copiar QR</span>
+                </>
+              )}
             </button>
 
             <button
               type="button"
               onClick={handleCopyLink}
               className="flex items-center gap-1 hover:text-white transition-colors"
+              title="Copiar Link Compartilhável"
             >
-              {copied ? (
+              {copiedType === 'link' ? (
                 <>
-                  <Check className="w-3.5 h-3.5 text-emerald-400" />
-                  <span className="text-emerald-400">Copiado</span>
+                  <Check className="w-3.5 h-3.5 text-cyan-400" />
+                  <span className="text-cyan-400 font-medium">Link OK</span>
                 </>
               ) : (
                 <>

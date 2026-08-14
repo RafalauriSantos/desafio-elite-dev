@@ -352,8 +352,11 @@ export const api = {
       let parsed: any;
       let rawString = qrData.trim();
 
-      // Check if user pasted a link like http://localhost:5173/#ticket-t-123
-      if (rawString.includes('#ticket-')) {
+      // Check if user pasted a link like http://.../?ticket=UUID or #ticket-UUID
+      if (rawString.includes('ticket=')) {
+        const idFromUrl = rawString.split('ticket=')[1].split('&')[0].split('#')[0];
+        parsed = { ticketId: idFromUrl };
+      } else if (rawString.includes('#ticket-')) {
         const idFromUrl = rawString.split('#ticket-')[1];
         parsed = { ticketId: idFromUrl };
       } else {
