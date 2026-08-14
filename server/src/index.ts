@@ -602,40 +602,17 @@ app.post('/api/events/bulk-import', async (c) => {
       const supabase = getSupabaseClient(c);
 
       for (const item of items) {
-        const newEvent = {
-          title: item.title,
-          description: item.description || 'Evento importado em lote.',
-          venue: item.venue || 'Arena Cultural - SP',
-          date: item.date || new Date(Date.now() + 86400000 * 30).toISOString(),
-          price: parseFloat(item.price) || 200.00,
-          banner_url: item.banner_url || 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&w=1200&q=80'
-        };
+        const { data: rpcResult, error } = await supabase.rpc('create_event_with_seats_atomic', {
+          p_title: item.title,
+          p_description: item.description || 'Evento importado em lote.',
+          p_venue: item.venue || 'Arena Cultural - SP',
+          p_date: item.date || new Date(Date.now() + 86400000 * 30).toISOString(),
+          p_price: parseFloat(item.price) || 200.00,
+          p_banner_url: item.banner_url || 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&w=1200&q=80'
+        });
 
-        const { data: created, error } = await supabase
-          .from('events')
-          .insert(newEvent)
-          .select()
-          .single();
-
-        if (!error && created) {
-          createdEvents.push(created);
-
-          // Seed 80 seats for the newly imported event
-          const seatInserts: any[] = [];
-          const rows = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
-          rows.forEach((r) => {
-            for (let n = 1; n <= 10; n++) {
-              seatInserts.push({
-                event_id: created.id,
-                row_name: r,
-                seat_number: n,
-                category: (r === 'A' || r === 'B') ? 'VIP' : (r === 'C' || r === 'D') ? 'Premium' : 'Standard',
-                price: (r === 'A' || r === 'B') ? 499.90 : (r === 'C' || r === 'D') ? 349.90 : 199.90,
-                status: 'available'
-              });
-            }
-          });
-          await supabase.from('seats').insert(seatInserts);
+        if (!error && rpcResult?.success && rpcResult?.event) {
+          createdEvents.push(rpcResult.event);
         }
       }
 
@@ -661,6 +638,59 @@ app.post('/api/events/bulk-import', async (c) => {
       success: true,
       message: `${demoCreated.length} eventos importados em lote no modo demonstração.`,
       events: demoCreated
+    });
+  } catch (err: any) {
+    return c.json({ success: false, error: err.message }, 500);
+  }
+});
+
+// POST /api/events (Criação de evento individual pelo Organizador)
+app.post('/api/events', async (c) => {
+  try {
+    const authorization = await requireRole(c, ['organizer']);
+    if (authorization instanceof Response) return authorization;
+
+    const body = await c.req.json();
+    const { title, description, venue, date, price, banner_url } = body;
+
+    if (!title || !venue || !date) {
+      return c.json({ success: false, error: 'Título, local e data são obrigatórios.' }, 400);
+    }
+
+    if (isSupabaseConfigured(c)) {
+      const supabase = getSupabaseClient(c);
+      const { data: rpcResult, error } = await supabase.rpc('create_event_with_seats_atomic', {
+        p_title: title,
+        p_description: description || 'Evento publicado pelo organizador.',
+        p_venue: venue,
+        p_date: new Date(date).toISOString(),
+        p_price: parseFloat(price) || 200.00,
+        p_banner_url: banner_url || 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&w=1200&q=80'
+      });
+
+      if (!error && rpcResult?.success && rpcResult?.event) {
+        return c.json({
+          success: true,
+          message: 'Evento publicado com sucesso com 80 poltronas geradas!',
+          event: rpcResult.event
+        });
+      }
+    }
+
+    const demoEvent = {
+      id: `e-org-${Date.now()}`,
+      title,
+      description: description || 'Evento publicado pelo organizador.',
+      venue,
+      date: new Date(date).toISOString(),
+      price: parseFloat(price) || 200.00,
+      banner_url: banner_url || 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&w=1200&q=80'
+    };
+
+    return c.json({
+      success: true,
+      message: 'Evento publicado com sucesso no modo demonstração!',
+      event: demoEvent
     });
   } catch (err: any) {
     return c.json({ success: false, error: err.message }, 500);

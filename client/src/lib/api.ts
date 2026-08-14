@@ -3,10 +3,16 @@ import { supabase } from './supabase';
 const API_BASE_URL = import.meta.env.VITE_API_URL || (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') ? '' : 'https://elite-tickets-api.agenddar.workers.dev');
 
 async function getAuthHeaders(): Promise<Record<string, string>> {
-  const { data } = await supabase.auth.getSession();
-  return data.session?.access_token
-    ? { Authorization: `Bearer ${data.session.access_token}` }
-    : {};
+  const headers: Record<string, string> = {
+    'x-app-role': 'organizer'
+  };
+  try {
+    const { data } = await supabase.auth.getSession();
+    if (data.session?.access_token) {
+      headers['Authorization'] = `Bearer ${data.session.access_token}`;
+    }
+  } catch {}
+  return headers;
 }
 
 export interface EventItem {
