@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Html5Qrcode } from 'html5-qrcode';
-import { Camera, CheckCircle2, QrCode, ChevronDown, ChevronUp, ShieldAlert, RefreshCw, AlertCircle } from 'lucide-react';
+import { Camera, CheckCircle2, QrCode, ChevronDown, ChevronUp, ShieldAlert, RefreshCw, AlertCircle, Upload } from 'lucide-react';
 import { api } from '../lib/api';
 
 interface QRScannerProps {
@@ -111,24 +111,30 @@ export const QRScanner: React.FC<QRScannerProps> = ({ targetEventId, onResult })
   }, [selectedCameraId, mode]);
 
   const startCamera = async (cameraId: string) => {
-    if (!cameraId || !document.getElementById('qr-reader-viewport')) return;
+    if (!document.getElementById('qr-reader-viewport')) return;
     await stopCamera();
     try {
       const html5QrCode = new Html5Qrcode('qr-reader-viewport');
       html5QrCodeRef.current = html5QrCode;
 
+      const cameraConfig = cameraId
+        ? cameraId
+        : { facingMode: 'environment' };
+
       await html5QrCode.start(
-        cameraId,
+        cameraConfig,
         {
           fps: 10,
-          qrbox: { width: 220, height: 220 }
+          qrbox: (viewfinderWidth, viewfinderHeight) => {
+            const minEdge = Math.min(viewfinderWidth, viewfinderHeight);
+            const edgeSize = Math.max(180, Math.floor(minEdge * 0.72));
+            return { width: edgeSize, height: edgeSize };
+          },
+          aspectRatio: 1.0
         },
         async (decodedText) => {
-          // html5-qrcode can report the same frame several times before the
-          // async validation finishes. Only one ticket may be processed at a time.
           if (scanInFlightRef.current || html5QrCodeRef.current !== html5QrCode) return;
           scanInFlightRef.current = true;
-          // Pause camera during validation processing
           try {
             await html5QrCode.pause();
           } catch {}
@@ -136,11 +142,10 @@ export const QRScanner: React.FC<QRScannerProps> = ({ targetEventId, onResult })
             await handleValidate(decodedText);
           } finally {
             scanInFlightRef.current = false;
-            // Give the operator time to see the result before accepting another scan.
             resumeTimerRef.current = window.setTimeout(() => {
               if (html5QrCodeRef.current !== html5QrCode || !mountedRef.current) return;
               try { html5QrCode.resume(); } catch {}
-            }, 3000);
+            }, 3500);
           }
         },
         () => {}
@@ -158,37 +163,32 @@ export const QRScanner: React.FC<QRScannerProps> = ({ targetEventId, onResult })
   };
 
   const startMobileCamera = async () => {
-    await stopCamera();
+    await startCamera('');
+  };
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setLoading(true);
+    setCameraError(null);
     try {
-      const html5QrCode = new Html5Qrcode('qr-reader-viewport');
-      html5QrCodeRef.current = html5QrCode;
-      await html5QrCode.start(
-        { facingMode: 'environment' },
-        { fps: 10, qrbox: { width: 220, height: 220 } },
-        async (decodedText) => {
-          if (scanInFlightRef.current || html5QrCodeRef.current !== html5QrCode) return;
-          scanInFlightRef.current = true;
-          try { await html5QrCode.pause(); } catch {}
-          try { await handleValidate(decodedText); } finally {
-            scanInFlightRef.current = false;
-            resumeTimerRef.current = window.setTimeout(() => {
-              if (html5QrCodeRef.current === html5QrCode && mountedRef.current) {
-                try { html5QrCode.resume(); } catch {}
-              }
-            }, 3000);
-          }
-        },
-        () => {},
-      );
-      if (mountedRef.current && html5QrCodeRef.current === html5QrCode) {
-        setIsScanning(true);
-        setCameraError(null);
+      const tempElementId = 'qr-reader-file-temp';
+      let tempEl = document.getElementById(tempElementId);
+      if (!tempEl) {
+        tempEl = document.createElement('div');
+        tempEl.id = tempElementId;
+        tempEl.style.display = 'none';
+        document.body.appendChild(tempEl);
       }
+      const html5QrCode = new Html5Qrcode(tempElementId);
+      const decodedText = await html5QrCode.scanFile(file, true);
+      await html5QrCode.clear();
+      await handleValidate(decodedText);
     } catch (err: any) {
-      if (mountedRef.current) {
-        setIsScanning(false);
-        setCameraError('Não foi possível acessar a câmera. Permita o uso da câmera e tente novamente.');
-      }
+      setCameraError('Não foi possível identificar o QR Code na imagem fornecida.');
+    } finally {
+      setLoading(false);
+      e.target.value = '';
     }
   };
 
@@ -508,9 +508,16 @@ export const QRScanner: React.FC<QRScannerProps> = ({ targetEventId, onResult })
             )}
           </div>
 
-          <p className="text-xs text-zinc-500 text-center font-mono">
-            Aproxime o QR Code do ingresso da lente da câmera.
-          </p>
+          <div className="flex items-center gap-2 pt-1">
+            <p className="text-xs text-zinc-500 text-center font-mono flex-1">
+              Aproxime o QR Code do ingresso da lente da câmera.
+            </p>
+            <label className="cursor-pointer px-2.5 py-1.5 rounded-lg bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-zinc-300 text-xs font-medium flex items-center gap-1.5 transition-colors shrink-0 shadow-sm">
+              <Upload className="w-3.5 h-3.5 text-emerald-400" />
+              <span>Ler foto</span>
+              <input type="file" accept="image/*" onChange={handleFileUpload} className="hidden" />
+            </label>
+          </div>
         </div>
       ) : (
         <div className="space-y-3 pt-1">
@@ -522,20 +529,28 @@ export const QRScanner: React.FC<QRScannerProps> = ({ targetEventId, onResult })
             className="w-full bg-zinc-900/60 border border-zinc-800 rounded-lg p-3 text-xs text-zinc-200 font-mono placeholder-zinc-700 outline-none focus:border-zinc-600 transition-colors resize-none"
           />
 
-          <button
-            onClick={() => handleValidate(manualInput)}
-            disabled={loading || !manualInput.trim()}
-            className="w-full py-2.5 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-semibold text-sm transition-colors disabled:opacity-40 flex items-center justify-center gap-2 shadow-lg shadow-emerald-950/20"
-          >
-            {loading ? (
-              <div className="w-4 h-4 border-2 border-zinc-950/30 border-t-zinc-950 rounded-full animate-spin" />
-            ) : (
-              <>
-                <CheckCircle2 className="w-4 h-4" />
-                Validar entrada de portaria
-              </>
-            )}
-          </button>
+          <div className="flex gap-2 items-center">
+            <button
+              onClick={() => handleValidate(manualInput)}
+              disabled={loading || !manualInput.trim()}
+              className="flex-1 py-2.5 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-semibold text-sm transition-colors disabled:opacity-40 flex items-center justify-center gap-2 shadow-lg shadow-emerald-950/20"
+            >
+              {loading ? (
+                <div className="w-4 h-4 border-2 border-zinc-950/30 border-t-zinc-950 rounded-full animate-spin" />
+              ) : (
+                <>
+                  <CheckCircle2 className="w-4 h-4" />
+                  Validar entrada de portaria
+                </>
+              )}
+            </button>
+
+            <label className="cursor-pointer px-3 py-2.5 rounded-lg bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-zinc-300 text-xs font-medium flex items-center gap-1.5 transition-colors shrink-0">
+              <Upload className="w-4 h-4 text-emerald-400" />
+              <span>Arquivo</span>
+              <input type="file" accept="image/*" onChange={handleFileUpload} className="hidden" />
+            </label>
+          </div>
         </div>
       )}
     </div>
