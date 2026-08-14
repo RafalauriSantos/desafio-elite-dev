@@ -115,14 +115,15 @@ export const TicketCard: React.FC<TicketCardProps> = ({ ticket, qrData }) => {
           </div>
 
           {/* QR Code */}
-          <div className="flex flex-col items-center p-4 bg-white rounded-xl relative">
+          <div className="flex flex-col items-center p-3 bg-white rounded-xl relative shadow-md">
             <QRCodeSVG
               value={finalQrString}
-              size={150}
-              level="H"
-              includeMargin={false}
+              size={185}
+              level="M"
+              includeMargin={true}
+              className="w-full max-w-[185px] h-auto"
             />
-            <p className="text-[10px] text-zinc-600 font-mono font-bold mt-2">
+            <p className="text-[10px] text-zinc-600 font-mono font-bold mt-1">
               REF: #${(ticket?.id || 'TICK0000').slice(0, 4).toUpperCase()}-${(ticket?.id || 'TICK0000').slice(4, 8).toUpperCase()}
             </p>
 

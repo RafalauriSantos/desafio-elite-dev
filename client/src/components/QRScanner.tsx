@@ -114,7 +114,10 @@ export const QRScanner: React.FC<QRScannerProps> = ({ targetEventId, onResult })
     if (!document.getElementById('qr-reader-viewport')) return;
     await stopCamera();
     try {
-      const html5QrCode = new Html5Qrcode('qr-reader-viewport');
+      const html5QrCode = new Html5Qrcode('qr-reader-viewport', {
+        experimentalFeatures: { useBarCodeDetectorIfSupported: true },
+        verbose: false
+      });
       html5QrCodeRef.current = html5QrCode;
 
       const cameraConfig = cameraId
@@ -127,10 +130,11 @@ export const QRScanner: React.FC<QRScannerProps> = ({ targetEventId, onResult })
           fps: 10,
           qrbox: (viewfinderWidth, viewfinderHeight) => {
             const minEdge = Math.min(viewfinderWidth, viewfinderHeight);
-            const edgeSize = Math.max(180, Math.floor(minEdge * 0.72));
+            const edgeSize = Math.max(160, Math.floor(minEdge * 0.92));
             return { width: edgeSize, height: edgeSize };
           },
-          aspectRatio: 1.0
+          aspectRatio: 1.0,
+          disableFlip: false
         },
         async (decodedText) => {
           if (scanInFlightRef.current || html5QrCodeRef.current !== html5QrCode) return;
@@ -145,7 +149,7 @@ export const QRScanner: React.FC<QRScannerProps> = ({ targetEventId, onResult })
             resumeTimerRef.current = window.setTimeout(() => {
               if (html5QrCodeRef.current !== html5QrCode || !mountedRef.current) return;
               try { html5QrCode.resume(); } catch {}
-            }, 3500);
+            }, 3000);
           }
         },
         () => {}
@@ -180,7 +184,10 @@ export const QRScanner: React.FC<QRScannerProps> = ({ targetEventId, onResult })
         tempEl.style.display = 'none';
         document.body.appendChild(tempEl);
       }
-      const html5QrCode = new Html5Qrcode(tempElementId);
+      const html5QrCode = new Html5Qrcode(tempElementId, {
+        experimentalFeatures: { useBarCodeDetectorIfSupported: true },
+        verbose: false
+      });
       const decodedText = await html5QrCode.scanFile(file, true);
       await html5QrCode.clear();
       await handleValidate(decodedText);
