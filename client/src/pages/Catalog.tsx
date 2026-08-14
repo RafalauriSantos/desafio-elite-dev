@@ -14,8 +14,16 @@ export const Catalog: React.FC<CatalogProps> = ({ onSelectEvent, role }) => {
   const [events, setEvents] = useState<EventItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [isOrganizerOpen, setIsOrganizerOpen] = useState(false);
   const effectiveRole = role || profile?.role;
+
+  const categories = [
+    { id: 'all', label: 'Todos' },
+    { id: 'tech', label: 'Tech & Inovação' },
+    { id: 'music', label: 'Shows & Música' },
+    { id: 'culture', label: 'Cinema & Artes' },
+  ];
 
   useEffect(() => {
     loadEvents();
@@ -32,24 +40,37 @@ export const Catalog: React.FC<CatalogProps> = ({ onSelectEvent, role }) => {
     setEvents((prev) => [newEvent, ...prev]);
   };
 
-  const filteredEvents = events.filter((e) =>
-    e.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    e.venue.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredEvents = events.filter((e) => {
+    const matchesSearch =
+      e.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      e.venue.toLowerCase().includes(searchQuery.toLowerCase());
+
+    if (!matchesSearch) return false;
+    if (selectedCategory === 'all') return true;
+    if (selectedCategory === 'tech') return e.title.includes('Tech') || e.title.includes('Cyber') || e.title.includes('Cloud');
+    if (selectedCategory === 'music') return e.title.includes('Pulse') || e.title.includes('Music');
+    if (selectedCategory === 'culture') return e.title.includes('Sinfonia') || e.title.includes('Comedy');
+    return true;
+  });
 
   return (
-    <div className="space-y-8">
-      {/* Page header — direct, no hero */}
+    <div className="space-y-6 sm:space-y-8">
+      {/* Page header */}
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-semibold text-white tracking-tight">Eventos</h1>
-          <p className="text-sm text-zinc-500 mt-1">Escolha um evento e selecione seu assento.</p>
+          <div className="flex items-center gap-2">
+            <h1 className="text-2xl sm:text-3xl font-semibold text-white tracking-tight">Eventos</h1>
+            <span className="text-[11px] font-mono font-medium px-2 py-0.5 rounded-full bg-emerald-950/60 border border-emerald-800/40 text-emerald-400">
+              Ao Vivo
+            </span>
+          </div>
+          <p className="text-sm text-zinc-400 mt-1">Explore as principais atrações e reserve assentos em tempo real.</p>
         </div>
 
         {(isDemoMode || effectiveRole === 'organizer') && (
           <button
             onClick={() => setIsOrganizerOpen(true)}
-            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-[13px] font-medium text-zinc-200 bg-zinc-900 hover:bg-zinc-800 border border-zinc-700/80 transition-colors shadow-sm"
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-[13px] font-medium text-zinc-200 bg-zinc-900 hover:bg-zinc-800 border border-zinc-700/80 transition-colors shadow-sm w-fit"
           >
             <Plus className="w-3.5 h-3.5" />
             Publicar evento
@@ -57,16 +78,35 @@ export const Catalog: React.FC<CatalogProps> = ({ onSelectEvent, role }) => {
         )}
       </div>
 
-      {/* Search */}
-      <div className="relative max-w-md">
-        <Search className="w-4 h-4 text-zinc-500 absolute left-3 top-1/2 -translate-y-1/2" />
-        <input
-          type="text"
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          placeholder="Buscar eventos..."
-          className="w-full bg-zinc-900/60 border border-zinc-800 rounded-lg pl-9 pr-3 py-2.5 text-sm text-white placeholder-zinc-600 outline-none focus:border-zinc-600 transition-colors"
-        />
+      {/* Search & Category Pills */}
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+        <div className="relative w-full sm:max-w-xs">
+          <Search className="w-4 h-4 text-zinc-500 absolute left-3 top-1/2 -translate-y-1/2" />
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Buscar evento ou local..."
+            className="w-full bg-zinc-900/70 border border-zinc-800 rounded-xl pl-9 pr-3 py-2 text-sm text-white placeholder-zinc-500 outline-none focus:border-zinc-700 transition-colors"
+          />
+        </div>
+
+        {/* Category Pills */}
+        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0 scrollbar-none">
+          {categories.map((cat) => (
+            <button
+              key={cat.id}
+              onClick={() => setSelectedCategory(cat.id)}
+              className={`px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-all ${
+                selectedCategory === cat.id
+                  ? 'bg-zinc-800 text-white border border-zinc-700 shadow-sm'
+                  : 'bg-zinc-900/40 text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900/80 border border-transparent'
+              }`}
+            >
+              {cat.label}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Event grid */}
