@@ -184,12 +184,17 @@ export const EventDetails: React.FC<EventDetailsProps> = ({
           event={event}
           seats={selectedSeats}
           onClose={() => setIsModalOpen(false)}
-          onSuccess={(tickets, qrData) => {
+          onSuccess={(rawTickets, qrData) => {
             setIsModalOpen(false);
-            setPurchasedTicket(tickets[0]);
+            const hydrated = rawTickets.map((t, idx) => ({
+              ...t,
+              events: t.events || event,
+              seats: t.seats || selectedSeats[idx] || selectedSeats[0]
+            }));
+            setPurchasedTicket(hydrated[0]);
             setPurchasedQrData(qrData[0]);
             setIsEmailModalOpen(true);
-            onTicketPurchased(tickets, qrData);
+            onTicketPurchased(hydrated, qrData);
           }}
         />
       )}

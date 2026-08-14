@@ -9,15 +9,16 @@ interface PrintableTicketProps {
 
 export const PrintableTicket: React.FC<PrintableTicketProps> = ({ ticket, qrData }) => {
   const event = ticket?.events || {
-    title: 'Evento Selecionado',
+    title: 'Evento Oficial Elite Tickets',
     venue: 'Local do Evento',
     date: new Date().toISOString(),
     banner_url: ''
   };
 
-  const seat = ticket?.seats || { row_name: 'A', seat_number: 1 };
-  const safeTicketId = ticket?.id || 'TICK-0000';
+  const seat = ticket?.seats || { row_name: 'A', seat_number: 1, category: 'VIP' };
+  const safeTicketId = ticket?.id || 'TICK-00000000';
   const safeSignature = ticket?.qr_signature || '';
+  const isUsed = ticket?.status === 'used';
 
   const finalQrString = qrData || JSON.stringify({
     ticketId: safeTicketId,
@@ -30,7 +31,7 @@ export const PrintableTicket: React.FC<PrintableTicketProps> = ({ ticket, qrData
   });
 
   return (
-    <div className="printable-ticket-area bg-white text-zinc-900 border-2 border-zinc-900 rounded-3xl p-6 shadow-none max-w-sm mx-auto space-y-5">
+    <div className="printable-ticket-area bg-white text-zinc-900 border-2 border-zinc-900 rounded-3xl p-6 shadow-none max-w-sm mx-auto space-y-4 relative overflow-hidden">
       {/* Official Apple Wallet Style Header */}
       <div className="bg-zinc-950 text-white p-4 -mx-6 -mt-6 rounded-t-2xl flex items-center justify-between border-b-2 border-emerald-500">
         <div>
@@ -41,16 +42,23 @@ export const PrintableTicket: React.FC<PrintableTicketProps> = ({ ticket, qrData
             PASSE DIGITAL DE ENTRADA
           </h1>
         </div>
-        <span className="text-[10px] font-mono font-bold text-zinc-400 bg-zinc-800 px-2 py-1 rounded">
+        <span className="text-[10px] font-mono font-bold text-zinc-100 bg-zinc-800/90 border border-zinc-700 px-2 py-1 rounded shadow-sm">
           REF: #{safeTicketId.slice(0, 4).toUpperCase()}-{safeTicketId.slice(4, 8).toUpperCase()}
         </span>
       </div>
 
+      {/* Used Status Banner (if ticket has been validated) */}
+      {isUsed && (
+        <div className="bg-amber-100 border border-amber-300 text-amber-900 px-3 py-1.5 rounded-lg text-center font-mono text-[11px] font-bold">
+          ⚠️ INGRESSO JÁ UTILIZADO NA PORTARIA
+        </div>
+      )}
+
       {/* Event Title & Date */}
-      <div className="space-y-1 text-center pt-2">
+      <div className="space-y-1 text-center pt-1">
         <h2 className="text-base font-bold text-zinc-900 leading-snug">{event.title}</h2>
         <p className="text-xs text-zinc-600 font-medium">{event.venue}</p>
-        <p className="text-xs text-zinc-500 font-mono font-semibold pt-1">
+        <p className="text-xs text-zinc-700 font-mono font-semibold pt-0.5">
           {new Date(event.date || Date.now()).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
         </p>
       </div>
@@ -69,15 +77,27 @@ export const PrintableTicket: React.FC<PrintableTicketProps> = ({ ticket, qrData
         </div>
       </div>
 
+      {/* Picote Visual Divider */}
+      <div className="relative py-1">
+        <div className="border-t-2 border-dashed border-zinc-300" />
+      </div>
+
       {/* Vertical Scannable Stub at Bottom (Apple Wallet Format) */}
-      <div className="flex flex-col items-center justify-center p-4 bg-white border-2 border-zinc-900 rounded-2xl space-y-2">
+      <div className="flex flex-col items-center justify-center p-4 bg-white border-2 border-zinc-900 rounded-2xl space-y-2 relative">
         <QRCodeSVG value={finalQrString} size={165} level="H" includeMargin={false} />
-        <span className="text-[10px] font-mono font-bold text-zinc-700 block pt-1">
+        <span className="text-[10px] font-mono font-bold text-zinc-800 block pt-1">
           ID: {safeTicketId}
         </span>
         <span className="text-[9px] font-mono font-bold text-emerald-800 uppercase tracking-wider">
           ✓ ASSINATURA HMAC-SHA256 VERIFICADA
         </span>
+
+        {isUsed && (
+          <div className="absolute inset-0 bg-white/95 rounded-xl flex flex-col items-center justify-center p-3 text-center border-2 border-amber-500">
+            <span className="text-sm font-bold text-amber-700 uppercase">Utilizado</span>
+            <span className="text-[10px] font-mono text-zinc-600 mt-1">Entrada confirmada na portaria</span>
+          </div>
+        )}
       </div>
 
       {/* Footer Instructions */}

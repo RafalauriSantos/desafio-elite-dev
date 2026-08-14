@@ -11,7 +11,7 @@ export const MyTickets: React.FC<MyTicketsProps> = ({ tickets, onBrowseEvents })
   const userTickets = tickets.length > 0 ? tickets : api.getTickets();
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 pb-28 sm:pb-12">
       <div className="flex items-end justify-between gap-4">
         <div>
           <h1 className="text-2xl font-semibold text-white tracking-tight">Meus ingressos</h1>
@@ -19,21 +19,23 @@ export const MyTickets: React.FC<MyTicketsProps> = ({ tickets, onBrowseEvents })
         </div>
 
         <button
+          type="button"
           onClick={onBrowseEvents}
-          className="px-3 py-2 rounded-lg text-[13px] font-medium text-zinc-300 bg-zinc-800/80 hover:bg-zinc-700/80 border border-zinc-700/50 transition-colors shrink-0"
+          className="px-3.5 py-2 rounded-lg text-[13px] font-medium text-zinc-300 bg-zinc-800/80 hover:bg-zinc-700/80 border border-zinc-700/50 transition-colors shrink-0 touch-manipulation"
         >
           Comprar mais
         </button>
       </div>
 
       {userTickets.length === 0 ? (
-        <div className="text-center py-16">
-          <p className="text-sm text-zinc-500 mb-4">Você ainda não tem ingressos.</p>
+        <div className="text-center py-16 bg-[#111113]/60 rounded-2xl border border-zinc-800/40 p-8">
+          <p className="text-sm text-zinc-500 mb-4">Você ainda não possui ingressos emitidos.</p>
           <button
+            type="button"
             onClick={onBrowseEvents}
-            className="px-4 py-2.5 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-semibold text-sm transition-colors"
+            className="px-5 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-bold text-sm transition-colors shadow-lg shadow-emerald-950/20 touch-manipulation"
           >
-            Explorar eventos
+            Explorar catálogo
           </button>
         </div>
       ) : (

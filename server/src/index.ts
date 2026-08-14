@@ -774,6 +774,9 @@ app.post('/api/checkout', async (c) => {
     const isUuid = (str?: string) => !!str && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str);
     const areAllUuids = seatIds.every((id: string) => isUuid(id)) && isUuid(eventId);
 
+    let eventData: any = DEMO_EVENTS.find((e) => e.id === eventId) || DEMO_EVENTS[0];
+    const seatsMap: Record<string, any> = {};
+
     if (isSupabaseConfigured(c) && areAllUuids) {
       const supabase = getSupabaseClient(c);
       const { error } = await supabase.rpc('complete_checkout_batch_atomic', {
@@ -786,14 +789,32 @@ app.post('/api/checkout', async (c) => {
       if (error) {
         return c.json({ success: false, error: error.message || 'A reserva expirou ou não pertence a este comprador.' }, 409);
       }
+
+      // Fetch event & seats details to return fully hydrated tickets to the client
+      const { data: dbEvent } = await supabase.from('events').select('*').eq('id', eventId).maybeSingle();
+      if (dbEvent) eventData = dbEvent;
+
+      const { data: dbSeats } = await supabase.from('seats').select('*').in('id', seatIds);
+      if (dbSeats) {
+        dbSeats.forEach((s: any) => { seatsMap[s.id] = s; });
+      }
     }
 
-    const ticket = ticketRows[0];
+    const hydratedTickets = ticketRows.map((row) => {
+      const seatObj = seatsMap[row.seat_id] || { row_name: 'A', seat_number: 1, category: 'VIP' };
+      return {
+        ...row,
+        events: eventData,
+        seats: seatObj
+      };
+    });
+
+    const ticket = hydratedTickets[0];
 
     const response = c.json({
       success: true,
       ticket,
-      tickets: ticketRows,
+      tickets: hydratedTickets,
       qrCodeData: qrCodes[0],
       qrCodes,
       signatures: ticketRows.map((row) => row.qr_signature),
@@ -804,7 +825,8 @@ app.post('/api/checkout', async (c) => {
     try { executionCtx = c.executionCtx; } catch { executionCtx = undefined; }
     const waitUntil = executionCtx?.waitUntil;
     if (typeof waitUntil === 'function') {
-      ticketRows.forEach((row, index) => {
+      hydratedTickets.forEach((row, index) => {
+        const seatLabel = row.seats ? `${row.seats.row_name}${row.seats.seat_number} (${row.seats.category || 'Padrão'})` : row.seat_id;
         waitUntil.call(executionCtx,
           sendTicketEmail(c.env || {}, {
             to: row.user_email,
@@ -812,7 +834,11 @@ app.post('/api/checkout', async (c) => {
             eventId: row.event_id,
             ticketId: row.id,
             seatId: row.seat_id,
-            qrCodeData: qrCodes[index]
+            qrCodeData: qrCodes[index],
+            eventTitle: eventData?.title,
+            eventVenue: eventData?.venue,
+            eventDate: eventData?.date,
+            seatName: seatLabel
           }).catch((error) => console.warn('Ticket email delivery failed:', error.message))
         );
       });

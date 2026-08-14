@@ -255,8 +255,23 @@ export const api = {
       });
       const json = await res.json();
       if (json.success && (json.tickets?.length || json.ticket)) {
-        const tickets = json.tickets?.length ? json.tickets : [json.ticket];
-        const qrCodes = json.qrCodes?.length ? json.qrCodes : json.qrCodeData ? [json.qrCodeData] : [];
+        const rawTickets: TicketItem[] = json.tickets?.length ? json.tickets : [json.ticket];
+        const qrCodes: string[] = json.qrCodes?.length ? json.qrCodes : json.qrCodeData ? [json.qrCodeData] : [];
+        const fallbackEvent = MOCK_EVENTS.find((e) => e.id === params.eventId);
+        const tickets = rawTickets.map((t, idx) => {
+          const seatId = t.seat_id || seatIds[idx] || seatIds[0];
+          const [row, num] = (seatId || '').split('-').slice(-2);
+          return {
+            ...t,
+            events: t.events || fallbackEvent || {
+              title: 'Evento Selecionado',
+              venue: 'Local do Evento',
+              date: new Date().toISOString(),
+              banner_url: ''
+            },
+            seats: t.seats || { row_name: row || 'A', seat_number: parseInt(num || '1') }
+          };
+        });
         tickets.forEach(saveStoredTicket);
         clearLocalReservations(seatIds);
         return { ...json, ticket: tickets[0], tickets, qrCodes };
