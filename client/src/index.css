@@ -3,10 +3,12 @@
 @tailwind utilities;
 
 @layer base {
-  html, body, #root {
-    min-height: 100dvh;
+  html, body {
     margin: 0;
     padding: 0;
+    width: 100%;
+    min-height: 100dvh;
+    overflow-x: hidden;
     background-color: #09090b;
     background-image: 
       radial-gradient(ellipse 80% 50% at 50% -20%, rgba(16, 185, 129, 0.08), transparent 70%),
@@ -21,13 +23,13 @@
   body {
     display: flex;
     flex-direction: column;
-    min-height: 100dvh;
   }
 
   #root {
     display: flex;
     flex-direction: column;
     flex: 1;
+    width: 100%;
     min-height: 100dvh;
   }
 

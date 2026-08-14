@@ -54,7 +54,7 @@ export function Layout({
   ];
 
   return (
-    <div className="min-h-[100dvh] flex flex-col flex-1 bg-[#09090b] text-zinc-100 antialiased overflow-x-hidden">
+    <div className="flex flex-col flex-1 w-full min-h-[100dvh] bg-transparent text-zinc-100 antialiased">
       {/* Header Fixo/Sticky */}
       <header className="w-full border-b border-zinc-800/80 bg-[#09090b]/90 backdrop-blur-md sticky top-0 z-40">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between gap-3">
@@ -163,22 +163,25 @@ export function Layout({
         </div>
       </header>
 
-      {/* Conteúdo Principal (espaçamento inferior no mobile para compensar a bottom bar) */}
-      <main className="flex-1 w-full max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-8 flex flex-col pb-24 md:pb-8">
+      {/* Conteúdo Principal */}
+      <main className="flex-1 w-full max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-8 flex flex-col">
         {children}
       </main>
 
-      {/* Rodapé fixado */}
-      <footer className="w-full border-t border-zinc-800/60 py-6 text-center text-xs font-mono text-zinc-500 bg-[#09090b] mt-auto mb-16 md:mb-0">
+      {/* Rodapé fixado com padding inferior seguro para o mobile */}
+      <footer className="w-full border-t border-zinc-800/60 pt-6 pb-20 md:pb-6 text-center text-xs font-mono text-zinc-500 bg-[#09090b]/50 mt-auto">
         <div className="max-w-6xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2">
           <span>© 2026 Elite Tickets · Desafio Elite Dev (Verzel)</span>
           <span className="text-zinc-600">Postgres FOR UPDATE · HMAC-SHA256 · Cloudflare Workers</span>
         </div>
       </footer>
 
-      {/* Bottom Navigation Bar para Mobile (estilo Instagram / Airbnb / Ticketmaster) */}
-      <div className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-[#09090b]/95 backdrop-blur-xl border-t border-zinc-800/80 px-4 py-2 pb-[max(0.5rem,env(safe-area-inset-bottom))]">
-        <div className="flex items-center justify-around">
+      {/* Bottom Navigation Bar para Mobile (True Viewport Fixed Anchoring) */}
+      <nav
+        aria-label="Navegação móvel"
+        className="md:hidden fixed bottom-0 inset-x-0 z-30 bg-[#09090b]/95 backdrop-blur-xl border-t border-zinc-800/80 px-4 py-2 pb-[max(0.5rem,env(safe-area-inset-bottom))]"
+      >
+        <div className="flex items-center justify-around max-w-md mx-auto">
           {navItems.map((item) => {
             const Icon = item.icon;
             const isActive = activeTab === item.id;
@@ -203,7 +206,7 @@ export function Layout({
             );
           })}
         </div>
-      </div>
+      </nav>
     </div>
   );
 }
