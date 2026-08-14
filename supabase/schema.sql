@@ -379,8 +379,68 @@ BEGIN
 END;
 $$;
 
+-- Procedure 4: create_event_with_seats_atomic (Organizador - Criação Atômica com 80 Assentos)
+CREATE OR REPLACE FUNCTION public.create_event_with_seats_atomic(
+    p_title TEXT,
+    p_description TEXT,
+    p_venue TEXT,
+    p_date TIMESTAMPTZ,
+    p_price NUMERIC,
+    p_banner_url TEXT
+)
+RETURNS JSONB
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+    v_event RECORD;
+    v_row TEXT;
+    v_num INT;
+    v_cat TEXT;
+    v_seat_price NUMERIC(10,2);
+    v_status TEXT;
+BEGIN
+    INSERT INTO public.events (title, description, venue, date, price, banner_url)
+    VALUES (p_title, p_description, p_venue, p_date, p_price, p_banner_url)
+    RETURNING * INTO v_event;
+
+    FOREACH v_row IN ARRAY ARRAY['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'] LOOP
+      FOR v_num IN 1..10 LOOP
+        IF v_row IN ('A', 'B') THEN
+          v_cat := 'VIP';
+          v_seat_price := 499.90;
+        ELSIF v_row IN ('C', 'D') THEN
+          v_cat := 'Premium';
+          v_seat_price := 349.90;
+        ELSE
+          v_cat := 'Standard';
+          v_seat_price := 199.90;
+        END IF;
+
+        IF (v_row = 'A' AND v_num = 4) OR (v_row = 'B' AND v_num = 7) OR (v_row = 'D' AND v_num = 3) THEN
+          v_status := 'sold';
+        ELSIF (v_row = 'C' AND v_num = 8) THEN
+          v_status := 'locked';
+        ELSE
+          v_status := 'available';
+        END IF;
+
+        INSERT INTO public.seats (event_id, row_name, seat_number, category, price, status)
+        VALUES (v_event.id, v_row, v_num, v_cat, v_seat_price, v_status);
+      END LOOP;
+    END LOOP;
+
+    RETURN jsonb_build_object(
+        'success', true,
+        'event', row_to_json(v_event)
+    );
+EXCEPTION WHEN OTHERS THEN
+    RETURN jsonb_build_object('success', false, 'error', SQLERRM);
+END;
+$$;
+
 -- --------------------------------------------------------
--- 5. SEED DATA (Verzel Test Accounts)
+-- 5. SEED DATA (Verzel Test Accounts, 4 Events & 80 Seats Each)
 -- --------------------------------------------------------
 
 -- Profiles
@@ -389,46 +449,53 @@ INSERT INTO public.profiles (id, email, name, role) VALUES
     ('22222222-2222-2222-2222-222222222222', 'ana.cliente@verzel.com', 'Ana Cliente', 'client'),
     ('33333333-3333-3333-3333-333333333333', 'bruno.cliente@verzel.com', 'Bruno Cliente', 'client'),
     ('44444444-4444-4444-4444-444444444444', 'portaria@verzel.com', 'Roberto Portaria', 'gatekeeper')
-ON CONFLICT (email) DO NOTHING;
+ON CONFLICT (id) DO NOTHING;
 
--- 1 Demo Event
-INSERT INTO public.events (id, organizer_id, title, description, venue, date, price, banner_url)
-VALUES (
-    'e1111111-1111-1111-1111-111111111111',
-    '11111111-1111-1111-1111-111111111111',
-    'Tech Summit Elite 2026',
-    'O maior evento de engenharia de software e inteligência artificial da América Latina.',
-    'Arena Innovation Hub - São Paulo',
-    '2026-11-20 19:00:00+00',
-    299.90,
-    'https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&w=1200&q=80'
-) ON CONFLICT (id) DO NOTHING;
+-- 4 Rich Events
+INSERT INTO public.events (id, organizer_id, title, description, venue, date, price, banner_url) VALUES
+    ('e1111111-1111-1111-1111-111111111111', '11111111-1111-1111-1111-111111111111', 'Tech Summit Elite 2026', 'O maior evento de engenharia de software e inteligência artificial da América Latina.', 'Arena Innovation Hub - São Paulo', '2026-11-20 19:00:00+00', 299.90, 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&w=1200&q=80'),
+    ('e2222222-2222-2222-2222-222222222222', '11111111-1111-1111-1111-111111111111', 'CyberSecurity World Expo', 'Encontro global de cibersegurança, criptografia pós-quântica e defesa de infraestrutura.', 'Expo Center Norte - São Paulo, SP', '2026-12-05 14:00:00+00', 349.00, 'https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&w=1200&q=80'),
+    ('e3333333-3333-3333-3333-333333333333', '11111111-1111-1111-1111-111111111111', 'Neon Pulse Music & Visuals', 'Festival audiovisual imersivo com sintetizadores analógicos e projeção 360 graus.', 'Allianz Parque - São Paulo, SP', '2026-12-31 21:00:00+00', 190.00, 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?auto=format&fit=crop&w=1200&q=80'),
+    ('e4444444-4444-4444-4444-444444444444', '11111111-1111-1111-1111-111111111111', 'Sinfonia Cinema & Games 2026', 'Orquestra filarmônica executando as trilhas sonoras mais épicas do cinema e dos videogames.', 'Sala São Paulo - São Paulo, SP', '2026-10-18 20:00:00+00', 180.00, 'https://images.unsplash.com/photo-1465847899084-d164df4dedc6?auto=format&fit=crop&w=1200&q=80')
+ON CONFLICT (id) DO NOTHING;
 
--- Seats (Rows A, B, C, D)
+-- Seed 80 Seats (A1..H10) for ALL 4 events
 DO $$
 DECLARE
-    row_char TEXT;
-    seat_num INT;
-    price_val NUMERIC;
-    cat_val TEXT;
+    v_evt RECORD;
+    v_row TEXT;
+    v_num INT;
+    v_cat TEXT;
+    v_price NUMERIC(10,2);
+    v_status TEXT;
 BEGIN
-    FOR row_idx IN 65..68 LOOP -- Rows A to D
-        row_char := chr(row_idx);
-        FOR seat_num IN 1..8 LOOP
-            IF row_char = 'A' THEN
-                price_val := 499.90;
-                cat_val := 'VIP';
-            ELSIF row_char = 'B' THEN
-                price_val := 399.90;
-                cat_val := 'Premium';
-            ELSE
-                price_val := 299.90;
-                cat_val := 'Standard';
-            END IF;
+    FOR v_evt IN SELECT id FROM public.events LOOP
+        FOREACH v_row IN ARRAY ARRAY['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'] LOOP
+            FOR v_num IN 1..10 LOOP
+                IF v_row IN ('A', 'B') THEN
+                    v_cat := 'VIP';
+                    v_price := 499.90;
+                ELSIF v_row IN ('C', 'D') THEN
+                    v_cat := 'Premium';
+                    v_price := 349.90;
+                ELSE
+                    v_cat := 'Standard';
+                    v_price := 199.90;
+                END IF;
 
-            INSERT INTO public.seats (event_id, row_name, seat_number, category, price, status)
-            VALUES ('e1111111-1111-1111-1111-111111111111', row_char, seat_num, cat_val, price_val, 'available')
-            ON CONFLICT DO NOTHING;
+                -- Scatter ~5% sold/locked seats for realistic stadium feel
+                IF (v_row = 'A' AND v_num = 4) OR (v_row = 'B' AND v_num = 7) OR (v_row = 'D' AND v_num = 3) THEN
+                    v_status := 'sold';
+                ELSIF (v_row = 'C' AND v_num = 8) THEN
+                    v_status := 'locked';
+                ELSE
+                    v_status := 'available';
+                END IF;
+
+                INSERT INTO public.seats (event_id, row_name, seat_number, category, price, status)
+                VALUES (v_evt.id, v_row, v_num, v_cat, v_price, v_status)
+                ON CONFLICT (event_id, row_name, seat_number) DO NOTHING;
+            END LOOP;
         END LOOP;
     END LOOP;
 END $$;
