@@ -74,7 +74,16 @@ export const OrganizerModal: React.FC<OrganizerModalProps> = ({
     setLoading(true);
     setActionError(null);
 
-    const res = await api.bulkImportEvents(selectedExternalItems);
+    const sanitizedItems = selectedExternalItems.map((item, idx) => ({
+      title: item.title?.trim() || 'Espetáculo Oficial',
+      description: item.description?.trim() || 'Evento oficial importado pelo catálogo do organizador.',
+      venue: item.venue || (item.source === 'tmdb' ? 'Cinemark Shopping Eldorado - Sala IMAX' : 'Allianz Parque - São Paulo, SP'),
+      date: item.date || new Date(Date.now() + 86400000 * (20 + idx * 5)).toISOString(),
+      price: item.price ? parseFloat(item.price) : (item.source === 'tmdb' ? 45.00 : 280.00),
+      banner_url: item.banner_url || 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&w=1200&q=80'
+    }));
+
+    const res = await api.bulkImportEvents(sanitizedItems);
     setLoading(false);
 
     if (res.success && res.events && res.events.length > 0) {

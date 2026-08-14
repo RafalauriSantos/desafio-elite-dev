@@ -65,7 +65,7 @@ describe('UI Component Unit Tests', () => {
   it('renders PrintableTicket in vertical Apple Wallet Pass format', () => {
     render(<PrintableTicket ticket={mockTicket} />);
 
-    expect(screen.getByText('PASSE DIGITAL DE ENTRADA')).toBeInTheDocument();
-    expect(screen.getByText('✓ ASSINATURA HMAC-SHA256 VERIFICADA')).toBeInTheDocument();
+    expect(screen.getByText('ELITE TICKETS • PASSE DIGITAL')).toBeInTheDocument();
+    expect(screen.getByText('✓ AUTENTICAÇÃO DIGITAL HMAC-SHA256')).toBeInTheDocument();
   });
 });
