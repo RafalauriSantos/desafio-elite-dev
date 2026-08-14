@@ -163,16 +163,24 @@ export function Layout({
         </div>
       </header>
 
-      {/* Conteúdo Principal */}
-      <main className="flex-1 w-full max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-8 flex flex-col">
+      {/* Conteúdo Principal (padding inferior para respiro da barra móvel) */}
+      <main className="flex-1 w-full max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-8 flex flex-col pb-20 md:pb-8">
         {children}
       </main>
 
-      {/* Rodapé fixado com padding inferior seguro para o mobile */}
-      <footer className="w-full border-t border-zinc-800/60 pt-6 pb-20 md:pb-6 text-center text-xs font-mono text-zinc-500 bg-[#09090b]/50 mt-auto">
-        <div className="max-w-6xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2">
-          <span>© 2026 Elite Tickets · Desafio Elite Dev (Verzel)</span>
-          <span className="text-zinc-600">Postgres FOR UPDATE · HMAC-SHA256 · Cloudflare Workers</span>
+      {/* Rodapé institucional minimalista — Exclusivo Desktop */}
+      <footer className="hidden md:block w-full border-t border-zinc-800/60 py-6 text-xs text-zinc-500 mt-auto bg-[#09090b]/40">
+        <div className="max-w-6xl mx-auto px-6 flex items-center justify-between">
+          <div className="flex items-center gap-2.5">
+            <span className="font-medium text-zinc-400">Elite Tickets</span>
+            <span className="text-zinc-700">·</span>
+            <span>Plataforma Oficial de Ingressos & Eventos</span>
+          </div>
+          <div className="flex items-center gap-4 text-[11px] text-zinc-500 font-mono">
+            <span>Validação Criptográfica em Tempo Real</span>
+            <span className="text-zinc-700">·</span>
+            <span>© 2026</span>
+          </div>
         </div>
       </footer>
 
