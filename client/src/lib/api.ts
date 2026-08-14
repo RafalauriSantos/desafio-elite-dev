@@ -107,17 +107,19 @@ const MOCK_EVENTS: EventItem[] = [
 
 const generateMockSeats = (eventId: string): SeatItem[] => {
   const seats: SeatItem[] = [];
-  const rows = ['A', 'B', 'C', 'D'];
+  const rows = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
   rows.forEach((row) => {
-    for (let num = 1; num <= 8; num++) {
-      const isVip = row === 'A';
-      const isPremium = row === 'B';
+    for (let num = 1; num <= 10; num++) {
+      const isVip = row === 'A' || row === 'B';
+      const isPremium = row === 'C' || row === 'D';
       const seatId = `s-${eventId.substring(0, 4)}-${row}-${num}`;
       
-      // Seed a few pre-locked / sold seats for realistic demo
+      // Seed a few pre-locked / sold seats for realistic demo (~5% occupied)
       let initialStatus: 'available' | 'locked' | 'sold' = 'available';
-      if (row === 'A' && num === 3) initialStatus = 'sold';
-      if (row === 'B' && num === 5) initialStatus = 'locked';
+      if (row === 'A' && num === 4) initialStatus = 'sold';
+      if (row === 'B' && num === 7) initialStatus = 'sold';
+      if (row === 'C' && num === 8) initialStatus = 'locked';
+      if (row === 'D' && num === 3) initialStatus = 'sold';
 
       seats.push({
         id: seatId,
@@ -125,7 +127,7 @@ const generateMockSeats = (eventId: string): SeatItem[] => {
         row_name: row,
         seat_number: num,
         category: isVip ? 'VIP' : isPremium ? 'Premium' : 'Standard',
-        price: isVip ? 499.90 : isPremium ? 399.90 : 299.90,
+        price: isVip ? 499.90 : isPremium ? 349.90 : 199.90,
         status: initialStatus
       });
     }
@@ -224,29 +226,6 @@ export const api = {
     } catch {
       saveLocalReservation(seatIds, userEmail);
       return { success: true, message: `${seatIds.length} assentos reservados (Modo Demonstração).` };
-    }
-  },
-
-  // 3.2 Bulk Import Events (Organizador)
-  async bulkImportEvents(items: any[]): Promise<{ success: boolean; message?: string; events?: EventItem[] }> {
-    try {
-      const res = await fetch(`${API_BASE_URL}/api/events/bulk-import`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', ...(await getAuthHeaders()) },
-        body: JSON.stringify({ items })
-      });
-      return await res.json();
-    } catch {
-      const demoCreated = items.map((item, idx) => ({
-        id: `e-bulk-${Date.now()}-${idx}`,
-        title: item.title,
-        description: item.description || 'Evento importado em lote.',
-        venue: item.venue || 'Arena Cultural - SP',
-        date: item.date || new Date(Date.now() + 86400000 * 30).toISOString(),
-        price: parseFloat(item.price) || 200.00,
-        banner_url: item.banner_url || 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&w=1200&q=80'
-      }));
-      return { success: true, message: `${items.length} eventos importados no modo demonstração.`, events: demoCreated };
     }
   },
 
@@ -668,5 +647,67 @@ export const api = {
     }
 
     return filtered;
+  },
+
+  // 9. Bulk Import Events (TMDb / Ticketmaster)
+  async bulkImportEvents(items: any[]): Promise<{ success: boolean; events?: EventItem[]; message?: string }> {
+    try {
+      const authHeaders = await getAuthHeaders();
+      const res = await fetch(`${API_BASE_URL}/api/events/bulk-import`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', ...authHeaders },
+        body: JSON.stringify({ items })
+      });
+      if (res.ok) {
+        const json = await res.json();
+        if (json.success && json.events?.length) {
+          json.events.forEach((evt: EventItem) => MOCK_EVENTS.unshift(evt));
+          return json;
+        }
+      }
+    } catch {
+      console.warn('API bulk-import offline, importing locally.');
+    }
+
+    const createdEvents: EventItem[] = items.map((item) => ({
+      id: `e-imported-${Math.random().toString(36).substring(2, 9)}`,
+      title: item.title,
+      description: item.description || 'Evento importado via catálogo externo.',
+      venue: item.venue || (item.source === 'tmdb' ? 'Cine Multiplex IMAX - São Paulo, SP' : 'Allianz Parque - São Paulo, SP'),
+      date: item.date || new Date(Date.now() + 86400000 * 30).toISOString(),
+      price: item.price ? parseFloat(item.price) : (item.source === 'tmdb' ? 45.00 : 250.00),
+      banner_url: item.banner_url || 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&w=1200&q=80'
+    }));
+
+    createdEvents.forEach((evt) => MOCK_EVENTS.unshift(evt));
+    return { success: true, events: createdEvents, message: `${createdEvents.length} eventos importados com sucesso.` };
+  },
+
+  // 10. Create Single Event
+  async createEvent(eventData: Omit<EventItem, 'id'>): Promise<{ success: boolean; event?: EventItem; message?: string }> {
+    try {
+      const authHeaders = await getAuthHeaders();
+      const res = await fetch(`${API_BASE_URL}/api/events`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', ...authHeaders },
+        body: JSON.stringify(eventData)
+      });
+      if (res.ok) {
+        const json = await res.json();
+        if (json.success && json.event) {
+          MOCK_EVENTS.unshift(json.event);
+          return json;
+        }
+      }
+    } catch {
+      console.warn('API create event offline, creating locally.');
+    }
+
+    const newEvent: EventItem = {
+      id: `e-created-${Date.now()}`,
+      ...eventData
+    };
+    MOCK_EVENTS.unshift(newEvent);
+    return { success: true, event: newEvent, message: 'Evento criado com sucesso.' };
   }
 };

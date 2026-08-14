@@ -36,8 +36,11 @@ export const Catalog: React.FC<CatalogProps> = ({ onSelectEvent, role }) => {
     setLoading(false);
   };
 
-  const handleEventCreated = (newEvent: EventItem) => {
-    setEvents((prev) => [newEvent, ...prev]);
+  const handleEventCreated = (newEvent: EventItem | EventItem[]) => {
+    setSelectedCategory('all');
+    setSearchQuery('');
+    const newItems = Array.isArray(newEvent) ? newEvent : [newEvent];
+    setEvents((prev) => [...newItems, ...prev.filter((e) => !newItems.some((n) => n.id === e.id))]);
   };
 
   const filteredEvents = events.filter((e) => {

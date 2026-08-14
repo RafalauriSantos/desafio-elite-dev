@@ -85,12 +85,14 @@ export const OrganizerModal: React.FC<OrganizerModalProps> = ({
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!title || !venue || !date) return;
 
-    const newEvent: EventItem = {
-      id: `e-org-${Date.now()}`,
+    setLoading(true);
+    setActionError(null);
+
+    const eventData = {
       title,
       description: description || 'Evento publicado pelo organizador.',
       venue,
@@ -99,8 +101,15 @@ export const OrganizerModal: React.FC<OrganizerModalProps> = ({
       banner_url: bannerUrl || 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&w=1200&q=80'
     };
 
-    onEventCreated(newEvent);
-    onClose();
+    const res = await api.createEvent(eventData);
+    setLoading(false);
+
+    if (res.success && res.event) {
+      onEventCreated(res.event);
+      onClose();
+    } else {
+      setActionError(res.message || 'Erro ao publicar evento.');
+    }
   };
 
   if (!isOpen) return null;

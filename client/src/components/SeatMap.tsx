@@ -19,14 +19,15 @@ export const SeatMap: React.FC<SeatMapProps> = ({
   return (
     <div className="w-full bg-[#111113] p-4 sm:p-8 rounded-2xl border border-zinc-800/60 space-y-6">
       {/* Stage indicator */}
-      <div className="text-center">
+      <div className="text-center space-y-1">
         <div className="mx-auto max-w-md py-1.5 sm:py-2 rounded-b-2xl bg-zinc-800/50 border-b-2 border-emerald-500/40">
           <span className="text-[10px] sm:text-[11px] uppercase tracking-widest font-semibold text-zinc-400">PALCO / TELA PRINCIPAL</span>
         </div>
+        <p className="sm:hidden text-[10px] text-zinc-500 font-mono">Deslize lateralmente para ver todas as poltronas ↔</p>
       </div>
 
       {/* Seat grid */}
-      <div className="flex flex-col gap-2 sm:gap-3 items-center pt-2 sm:pt-4 overflow-x-auto pb-2 w-full">
+      <div className="flex flex-col gap-2 sm:gap-3 items-center pt-2 sm:pt-4 overflow-x-auto pb-3 w-full scrollbar-thin">
         {rows.map((rowName) => {
           const rowSeats = seats
             .filter((s) => s.row_name === rowName)
