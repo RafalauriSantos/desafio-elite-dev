@@ -487,36 +487,55 @@ app.get('/api/events/:id', async (c) => {
   return c.json({ success: true, event: demoEvent, seats: generateDemoSeats(eventId) });
 });
 
-// 2.3.2 - POST /api/tickets/reserve (Executa Stored Procedure `reserve_ticket_atomic` com SELECT ... FOR UPDATE)
+// 2.3.2 - POST /api/tickets/reserve & /api/reserve (Suporta individual e lote via Stored Procedures atômicas)
 const reserveHandler = async (c: any) => {
   try {
     const body = await c.req.json();
-    const seatId = body.seatId || body.seat_id;
+    const seatIds: string[] = body.seatIds || body.seat_ids || (body.seatId || body.seat_id ? [body.seatId || body.seat_id] : []);
     const userEmail = body.userEmail || body.user_email || body.clientId;
 
-    if (!seatId || !userEmail) {
-      return c.json({ success: false, error: 'seatId e userEmail são obrigatórios.' }, 400);
+    if (!seatIds.length || !userEmail) {
+      return c.json({ success: false, error: 'seatId/seatIds e userEmail são obrigatórios.' }, 400);
     }
 
     if (isSupabaseConfigured(c)) {
       const supabase = getSupabaseClient(c);
-      const { data, error } = await supabase.rpc('reserve_ticket_atomic', {
-        p_seat_id: seatId,
-        p_user_email: userEmail,
-        p_hold_minutes: 10
-      });
-
-      if (!error && data) {
-        if (!data.success) {
-          return c.json({ success: false, error: data.message }, 409);
-        }
-
-        return c.json({
-          success: true,
-          message: data.message,
-          seatId: data.seat_id,
-          lockedUntil: data.locked_until
+      if (seatIds.length === 1) {
+        const { data, error } = await supabase.rpc('reserve_ticket_atomic', {
+          p_seat_id: seatIds[0],
+          p_user_email: userEmail,
+          p_hold_minutes: 10
         });
+
+        if (!error && data) {
+          if (!data.success) {
+            return c.json({ success: false, error: data.message }, 409);
+          }
+          return c.json({
+            success: true,
+            message: data.message,
+            seatId: data.seat_id,
+            lockedUntil: data.locked_until
+          });
+        }
+      } else {
+        const { data, error } = await supabase.rpc('reserve_tickets_batch_atomic', {
+          p_seat_ids: seatIds,
+          p_user_email: userEmail,
+          p_hold_minutes: 10
+        });
+
+        if (!error && data) {
+          if (!data.success) {
+            return c.json({ success: false, error: data.message }, 409);
+          }
+          return c.json({
+            success: true,
+            message: data.message,
+            reservedCount: data.reserved_count,
+            lockedUntil: data.locked_until
+          });
+        }
       }
     }
 
@@ -525,7 +544,8 @@ const reserveHandler = async (c: any) => {
     return c.json({
       success: true,
       message: 'Assento reservado com sucesso (Trava Otimista 10 min).',
-      seatId,
+      seatId: seatIds[0],
+      seatIds,
       lockedUntil: lockUntil
     });
   } catch (err: any) {

@@ -38,3 +38,4 @@ Você é um Engenheiro Full-Stack Sênior atuando como copiloto no desenvolvimen
 7. **`cyber-security`** ([SKILL.md](file:///c:/Users/Rafael%20lauri/desafio-elite-dev/.agents/skills/cyber-security/SKILL.md)): Proteção de borda, defesa contra falsificação de QR Code e RLS no Postgres.
 8. **`webapp-testing`** ([SKILL.md](file:///c:/Users/Rafael%20lauri/desafio-elite-dev/.agents/skills/webapp-testing/SKILL.md)): Toolkit Playwright para automação, validação E2E e captura de testes de interface.
 9. **`ui-ux-pro-max`** ([SKILL.md](file:///c:/Users/Rafael%20lauri/desafio-elite-dev/.agents/skills/ui-ux-pro-max/SKILL.md)): Padrão visual PRO MAX, eliminação absoluta de AI Slop, tipografia de autoridade e arena 3D.
+10. **`spec-driven-development`** ([SKILL.md](file:///c:/Users/Rafael%20lauri/desafio-elite-dev/.agents/skills/spec-driven-development/SKILL.md)): Metodologia Spec-Driven Development (SDD), matriz de rastreabilidade de requisitos e checklists executáveis.
