@@ -498,6 +498,14 @@ export const api = {
     return getStoredTickets();
   },
 
+  // 6.0 Clear Stored Tickets
+  clearStoredTickets(): void {
+    try {
+      localStorage.removeItem('elite_tickets_demo');
+      localStorage.removeItem('elite_ticket_reservations');
+    } catch {}
+  },
+
   // 6.1 Get Ticket By ID (Public Share Resolution via API / DB)
   async getTicketById(ticketId: string): Promise<TicketItem | null> {
     try {
