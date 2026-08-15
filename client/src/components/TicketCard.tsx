@@ -160,7 +160,7 @@ export const TicketCard: React.FC<TicketCardProps> = ({ ticket, qrData }) => {
               value={finalQrString}
               size={175}
               level="M"
-              includeMargin={false}
+              includeMargin={true}
               className="w-full h-full object-contain mx-auto"
             />
 

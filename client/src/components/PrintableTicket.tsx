@@ -142,20 +142,20 @@ export const PrintableTicket: React.FC<PrintableTicketProps> = ({ ticket, qrData
       <div className="border-t border-dashed border-zinc-200 my-2" />
 
       {/* Centered QR Code Container */}
-      <div className="w-full flex flex-col items-center justify-center space-y-2">
-        <div className="w-full max-w-[210px] aspect-square bg-[#fafafa] border border-zinc-200/90 rounded-3xl p-3 flex items-center justify-center relative shadow-inner mx-auto">
+      <div className="w-full flex flex-col items-center justify-center space-y-2 py-1">
+        <div className="w-[200px] h-[200px] bg-white border border-zinc-200 rounded-2xl p-2.5 flex items-center justify-center relative mx-auto shadow-sm">
           <QRCodeSVG
             value={finalQrString}
-            size={180}
-            level="H"
-            includeMargin={false}
-            className="w-full h-full object-contain mx-auto"
+            size={175}
+            level="M"
+            includeMargin={true}
+            className="w-[175px] h-[175px] block mx-auto"
           />
 
           {/* Centered Circular Lock Badge if Used */}
           {isUsed && (
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-              <div className="w-20 h-20 rounded-full bg-white shadow-xl border border-zinc-200 flex flex-col items-center justify-center p-2 text-center">
+              <div className="w-18 h-18 rounded-full bg-white shadow-xl border border-zinc-300 flex flex-col items-center justify-center p-2 text-center">
                 <Lock className="w-5 h-5 text-zinc-900 mb-0.5 stroke-[2.5]" />
                 <span className="text-[8px] font-black text-zinc-900 uppercase tracking-wider">
                   UTILIZADO
