@@ -30,6 +30,19 @@ Para facilitar a sua avaliação sem a necessidade de criar contas do zero, crie
 
 ---
 
+## 👥 Usuários Semeados para Teste (Seed Data)
+
+Se você preferir testar via tela de login tradicional, os seguintes usuários já estão pré-configurados:
+
+| Papel | E-mail de Teste | Permissões |
+| :--- | :--- | :--- |
+| **Organizador** | `organizador@verzel.com` | Publicar eventos e importar do TMDb |
+| **Cliente 1** | `ana.cliente@verzel.com` | Navegar, reservar assentos e comprar |
+| **Cliente 2** | `bruno.cliente@verzel.com` | Navegar, reservar assentos e comprar |
+| **Portaria** | `portaria@verzel.com` | Validar ingressos na câmera/manual |
+
+---
+
 ## 🧠 Minhas Decisões Técnicas de Engenharia
 
 - **Por que escolhi Cloudflare Workers + Hono.js no Back-End?**  
@@ -46,6 +59,12 @@ Para facilitar a sua avaliação sem a necessidade de criar contas do zero, crie
 
 - **Envio Real de E-mails com Resend:**  
   Integrei o envio de e-mails em segundo plano no Worker (`c.executionCtx.waitUntil(sendTicketEmail(...))`). Dessa forma, o e-mail real com o bilhete é despachado sem travar nem acrescentar milissegundos à resposta do checkout na tela.
+
+---
+
+## 🗄️ Banco de Dados e Configuração
+
+O projeto utiliza **PostgreSQL** hospedado no Supabase. Toda a estrutura de tabelas, índices e Stored Procedures em PL/pgSQL está versionada no arquivo [`supabase/schema.sql`](supabase/schema.sql). 
 
 ---
 
