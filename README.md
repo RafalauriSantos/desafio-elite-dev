@@ -53,53 +53,48 @@ Toda a estrutura de tabelas, índices e Stored Procedures em PL/pgSQL está vers
 
 ```mermaid
 erDiagram
+    PROFILES ||--o{ EVENTS : "gerencia"
+    EVENTS ||--|{ SEATS : "possui matriz"
+    EVENTS ||--o{ TICKETS : "emite"
+    SEATS ||--o| TICKETS : "vincula"
+
     PROFILES {
         uuid id PK
         varchar email UK
-        varchar role "organizer | client | gatekeeper"
+        varchar role
         timestamptz created_at
     }
 
     EVENTS {
         uuid id PK
+        uuid organizer_id FK
         varchar title
-        text description
         varchar venue
         timestamptz date
-        numeric price "Preço base"
-        text banner_url
-        uuid organizer_id FK
-        timestamptz created_at
+        numeric price
     }
 
     SEATS {
         uuid id PK
         uuid event_id FK
-        varchar row_name "Fileira (A..H)"
-        integer seat_number "Número (1..10)"
-        varchar category "VIP | Premium | Standard"
-        numeric price "Preço do setor"
-        varchar status "available | locked | sold"
-        timestamptz locked_until "TTL de 10 min"
-        varchar locked_by "E-mail do comprador"
+        varchar row_name
+        integer seat_number
+        varchar category
+        numeric price
+        varchar status
+        timestamptz locked_until
     }
 
     TICKETS {
         uuid id PK
         uuid event_id FK
-        uuid seat_id FK "Índice Único Parcial (Anti-Overbooking)"
+        uuid seat_id FK
         varchar user_email
         varchar user_name
-        varchar status "valid | used | cancelled"
-        text qr_signature "HMAC-SHA256"
+        varchar status
+        text qr_signature
         timestamptz created_at
-        timestamptz used_at
     }
-
-    PROFILES ||--o{ EVENTS : "gerencia"
-    EVENTS ||--|{ SEATS : "possui matriz de 80"
-    EVENTS ||--o{ TICKETS : "emite"
-    SEATS ||--o| TICKETS : "reserva única"
 ```
 
 ---
