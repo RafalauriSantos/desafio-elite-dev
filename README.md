@@ -47,37 +47,36 @@ O seletor de personas no topo da tela permite testar todos os fluxos sem necessi
 
 ---
 
-## 🗄️ Modelo de Dados (PostgreSQL / Supabase)
+## 🏗️ Arquitetura do Sistema (Visão Geral)
 
-Toda a estrutura de tabelas, índices e Stored Procedures em PL/pgSQL está versionada em [`supabase/schema.sql`](supabase/schema.sql).
+Toda a infraestrutura do projeto opera em arquitetura desacoplada e distribuída na borda:
 
 ```mermaid
-erDiagram
-    PROFILES ||--o{ EVENTS : cria
-    EVENTS ||--|{ SEATS : contem
-    EVENTS ||--o{ TICKETS : emite
-    SEATS ||--o| TICKETS : reserva
+flowchart TB
+    subgraph CLIENT["🌐 FRONT-END (Cloudflare Pages)"]
+        direction LR
+        UI["🎨 React 18 + Tailwind<br/><b>Persona Switcher</b>"]
+        QR["📷 Scanner Portaria<br/><b>html5-qrcode</b>"]
+    end
 
-    PROFILES {
-        uuid id PK
-        varchar email
-        varchar role
-    }
-    EVENTS {
-        uuid id PK
-        varchar title
-        numeric price
-    }
-    SEATS {
-        uuid id PK
-        varchar category
-        varchar status
-    }
-    TICKETS {
-        uuid id PK
-        uuid seat_id FK
-        varchar status
-    }
+    subgraph WORKER["⚡ BACK-END EDGE (Cloudflare Workers)"]
+        direction LR
+        HONO["🚀 <b>Hono.js API</b><br/>Latência &lt; 50ms"]
+        HMAC["🛡️ <b>Web Crypto API</b><br/>HMAC-SHA256"]
+    end
+
+    subgraph DB["🗄️ BANCO DE DADOS (PostgreSQL / Supabase)"]
+        direction TB
+        RPC_LOCK["🔒 <b>reserve_ticket_atomic</b><br/>SELECT ... FOR UPDATE"]
+        RPC_GATE["🎟️ <b>validate_ticket_gatekeeper</b><br/>Máquina de 4 Estados"]
+        DDL_IDX["🛡️ <b>idx_unique_active_ticket_seat</b><br/>Índice Único Parcial (Zero Overbooking)"]
+    end
+
+    UI -->|"1. Reserva & Checkout"| HONO
+    HONO -->|"2. Pessimistic Lock"| RPC_LOCK
+    RPC_LOCK -->|"3. Trava no Disco"| DDL_IDX
+    HONO -->|"4. Assina Ingresso"| HMAC
+    QR -->|"5. Validação de QR"| RPC_GATE
 ```
 
 ---
