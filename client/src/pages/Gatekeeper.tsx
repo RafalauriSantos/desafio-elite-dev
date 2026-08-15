@@ -1,21 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { QRScanner } from '../components/QRScanner';
-import { CheckCircle2, XCircle, Clock, ShieldAlert, Sliders, Volume2, Activity } from 'lucide-react';
+import { CheckCircle2, Clock, ChevronDown, ChevronUp, Sliders, PlayCircle } from 'lucide-react';
 import { api, EventItem } from '../lib/api';
 
 export const Gatekeeper: React.FC = () => {
   const [events, setEvents] = useState<EventItem[]>([]);
   const [selectedTargetEventId, setSelectedTargetEventId] = useState<string>('all');
-  const [scanResult, setScanResult] = useState<{
-    success: boolean;
-    valid: boolean;
-    code?: string;
-    message?: string;
-    error?: string;
-    ticket?: any;
-  } | null>(null);
-
   const [history, setHistory] = useState<Array<{ timestamp: string; status: 'valid' | 'invalid'; details: string }>>([]);
+  const [showTestPresets, setShowTestPresets] = useState(false);
+  const [showHistory, setShowHistory] = useState(false);
 
   useEffect(() => {
     loadEvents();
@@ -27,7 +20,6 @@ export const Gatekeeper: React.FC = () => {
   };
 
   const handleResult = (result: any) => {
-    setScanResult(result);
     const newEntry = {
       timestamp: new Date().toLocaleTimeString('pt-BR'),
       status: result.valid ? ('valid' as const) : ('invalid' as const),
@@ -38,29 +30,101 @@ export const Gatekeeper: React.FC = () => {
 
   const validCount = history.filter((h) => h.status === 'valid').length;
   const blockedCount = history.filter((h) => h.status === 'invalid').length;
-  const totalScans = history.length;
-  const successRate = totalScans > 0 ? Math.round((validCount / totalScans) * 100) : 100;
+
+  const triggerPresetValidation = async (type: 'valid' | 'used' | 'invalid' | 'wrong_event') => {
+    const now = Date.now();
+    let payload = '';
+
+    if (type === 'valid') {
+      const tickets = api.getTickets();
+      const validTicket = tickets.find((t) => t.status !== 'used');
+      if (validTicket) {
+        payload = JSON.stringify({
+          ticketId: validTicket.id,
+          eventId: validTicket.event_id,
+          seatId: validTicket.seat_id,
+          userEmail: validTicket.user_email,
+          clientId: validTicket.clientId || validTicket.user_email,
+          issuedAt: validTicket.issuedAt || new Date(validTicket.created_at).getTime(),
+          signature: validTicket.qr_signature,
+        });
+      } else {
+        payload = JSON.stringify({
+          ticketId: 't-demo-001',
+          eventId: 'e1111111-1111-1111-1111-111111111111',
+          seatId: 's-demo-001',
+          userEmail: 'dev@verzel.com.br',
+          clientId: 'dev@verzel.com.br',
+          issuedAt: now,
+          signature: 'sig_demo_test_preset',
+        });
+      }
+    } else if (type === 'used') {
+      const tickets = api.getTickets();
+      const usedTicket = tickets.find((t) => t.status === 'used');
+      if (usedTicket) {
+        payload = JSON.stringify({
+          ticketId: usedTicket.id,
+          eventId: usedTicket.event_id,
+          seatId: usedTicket.seat_id,
+          userEmail: usedTicket.user_email,
+          clientId: usedTicket.clientId || usedTicket.user_email,
+          issuedAt: usedTicket.issuedAt || new Date(usedTicket.created_at).getTime(),
+          signature: usedTicket.qr_signature,
+        });
+      } else {
+        payload = JSON.stringify({
+          ticketId: 't-used-sample',
+          eventId: 'e1111111-1111-1111-1111-111111111111',
+          seatId: 's-used-001',
+          userEmail: 'cliente.antigo@exemplo.com',
+          clientId: 'cliente.antigo@exemplo.com',
+          issuedAt: now - 3600000,
+          signature: 'sig_already_used_sample',
+        });
+      }
+    } else if (type === 'invalid') {
+      payload = JSON.stringify({
+        ticketId: 't-fake-hacker',
+        eventId: 'e1111111-1111-1111-1111-111111111111',
+        seatId: 's-fake-999',
+        userEmail: 'hacker@malicious.com',
+        signature: 'invalid_tampered_hmac_hash_sample',
+      });
+    } else if (type === 'wrong_event') {
+      payload = JSON.stringify({
+        ticketId: 't-wrong-event-001',
+        eventId: 'e-other-non-matching-event-id',
+        seatId: 's-wrong-001',
+        userEmail: 'visitante@outroshow.com',
+        signature: 'sig_wrong_event_valid_hash',
+      });
+    }
+
+    try {
+      const res = await api.validateTicket(payload, selectedTargetEventId);
+      handleResult(res);
+    } catch (err: any) {
+      handleResult({ valid: false, error: err.message || 'Falha na validação' });
+    }
+  };
 
   return (
-    <div className="space-y-6 pb-28 sm:pb-12">
-      {/* Header & Target Event Selector */}
-      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-zinc-800 pb-4">
-        <div>
-          <h1 className="text-2xl font-bold text-white tracking-tight">Controle de acesso / Portaria</h1>
-          <p className="text-xs text-zinc-400 mt-1">Validação instantânea com áudio sintetizado e verificação atômica de 4 estados.</p>
-        </div>
-
-        {/* Active Event Selector */}
-        <div className="flex items-center gap-2.5 bg-[#111113] p-2.5 rounded-2xl border border-zinc-800 shadow-sm">
-          <Sliders className="w-4 h-4 text-emerald-400 shrink-0" />
-          <div className="text-left">
-            <span className="text-[10px] font-mono text-zinc-500 uppercase tracking-wider block">Portaria Ativa do Evento:</span>
+    <div className="max-w-2xl mx-auto space-y-5 pb-28 sm:pb-12">
+      {/* Top Header & Compact Scoreboard */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-[#111113] p-4 rounded-3xl border border-zinc-800 shadow-md">
+        <div className="flex items-center gap-2.5 min-w-0">
+          <div className="w-8 h-8 rounded-xl bg-emerald-950/60 border border-emerald-800/50 flex items-center justify-center text-emerald-400 shrink-0">
+            <Sliders className="w-4 h-4" />
+          </div>
+          <div className="min-w-0">
+            <span className="text-[10px] font-mono text-zinc-500 uppercase tracking-wider block">Portaria Ativa:</span>
             <select
               value={selectedTargetEventId}
               onChange={(e) => setSelectedTargetEventId(e.target.value)}
-              className="bg-transparent text-xs font-semibold text-white outline-none cursor-pointer pr-2"
+              className="bg-transparent text-xs sm:text-sm font-bold text-white outline-none cursor-pointer truncate max-w-[200px] sm:max-w-xs"
             >
-              <option value="all" className="bg-zinc-900 text-white">Todos os Eventos (Validação Geral)</option>
+              <option value="all" className="bg-zinc-900 text-white">Todos os Eventos (Portão Geral)</option>
               {events.map((evt) => (
                 <option key={evt.id} value={evt.id} className="bg-zinc-900 text-white">
                   {evt.title}
@@ -69,123 +133,101 @@ export const Gatekeeper: React.FC = () => {
             </select>
           </div>
         </div>
-      </div>
 
-      {/* Live Check-in Stats Bar */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <div className="bg-[#111113] p-3.5 rounded-2xl border border-zinc-800 flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-emerald-950/60 border border-emerald-800/50 flex items-center justify-center text-emerald-400 shrink-0">
-            <CheckCircle2 className="w-5 h-5" />
-          </div>
-          <div>
-            <span className="text-[10px] font-mono text-zinc-500 uppercase">Liberados</span>
-            <p className="text-lg font-mono font-bold text-emerald-400 leading-none mt-0.5">{validCount}</p>
-          </div>
-        </div>
-
-        <div className="bg-[#111113] p-3.5 rounded-2xl border border-zinc-800 flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-red-950/60 border border-red-800/50 flex items-center justify-center text-red-400 shrink-0">
-            <XCircle className="w-5 h-5" />
-          </div>
-          <div>
-            <span className="text-[10px] font-mono text-zinc-500 uppercase">Bloqueados</span>
-            <p className="text-lg font-mono font-bold text-red-400 leading-none mt-0.5">{blockedCount}</p>
-          </div>
-        </div>
-
-        <div className="bg-[#111113] p-3.5 rounded-2xl border border-zinc-800 flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-cyan-950/60 border border-cyan-800/50 flex items-center justify-center text-cyan-400 shrink-0">
-            <Activity className="w-5 h-5" />
-          </div>
-          <div>
-            <span className="text-[10px] font-mono text-zinc-500 uppercase">Eficácia</span>
-            <p className="text-lg font-mono font-bold text-cyan-400 leading-none mt-0.5">{successRate}%</p>
-          </div>
-        </div>
-
-        <div className="bg-[#111113] p-3.5 rounded-2xl border border-zinc-800 flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-purple-950/60 border border-purple-800/50 flex items-center justify-center text-purple-400 shrink-0">
-            <Volume2 className="w-5 h-5" />
-          </div>
-          <div>
-            <span className="text-[10px] font-mono text-zinc-500 uppercase">Áudio Web</span>
-            <p className="text-xs font-semibold text-zinc-300 leading-none mt-1">Bip Ativo</p>
-          </div>
+        {/* Compact Live Scoreboard */}
+        <div className="flex items-center gap-2 font-mono text-xs shrink-0 self-end sm:self-center">
+          <span className="px-3 py-1 rounded-xl bg-emerald-950/50 border border-emerald-800/50 text-emerald-400 font-bold">
+            🟢 {validCount} Válidos
+          </span>
+          <span className="px-3 py-1 rounded-xl bg-red-950/50 border border-red-800/50 text-red-400 font-bold">
+            🔴 {blockedCount} Barrados
+          </span>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-        <div className="lg:col-span-7">
-          <QRScanner targetEventId={selectedTargetEventId} onResult={handleResult} />
-        </div>
+      {/* Main Focus: The Scanner */}
+      <QRScanner targetEventId={selectedTargetEventId} onResult={handleResult} />
 
-        <div className="lg:col-span-5 space-y-4">
-          {/* Result Alert Box */}
-          {scanResult && (
-            <div
-              className={`p-4 rounded-2xl border transition-all shadow-xl ${
-                scanResult.valid
-                  ? 'bg-emerald-950/40 border-emerald-700/60 text-emerald-300'
-                  : scanResult.code === 'WRONG_EVENT'
-                  ? 'bg-blue-950/40 border-blue-700/60 text-blue-300'
-                  : scanResult.code === 'ALREADY_USED'
-                  ? 'bg-amber-950/40 border-amber-700/60 text-amber-300'
-                  : 'bg-red-950/40 border-red-700/60 text-red-300'
-              }`}
+      {/* Accordion: Simulador de 4 Estados do Edital (Verzel QA) */}
+      <div className="bg-[#111113] rounded-2xl border border-zinc-800/80 overflow-hidden shadow-sm">
+        <button
+          type="button"
+          onClick={() => setShowTestPresets(!showTestPresets)}
+          className="w-full px-4 py-3 text-xs font-semibold text-zinc-300 hover:text-white flex items-center justify-between transition-colors"
+        >
+          <div className="flex items-center gap-2">
+            <PlayCircle className="w-4 h-4 text-cyan-400" />
+            <span>Simulador de Cenários do Edital (4 Estados)</span>
+          </div>
+          {showTestPresets ? <ChevronUp className="w-4 h-4 text-zinc-500" /> : <ChevronDown className="w-4 h-4 text-zinc-500" />}
+        </button>
+
+        {showTestPresets && (
+          <div className="p-4 border-t border-zinc-800/60 bg-zinc-950/40 grid grid-cols-2 sm:grid-cols-4 gap-2">
+            <button
+              type="button"
+              onClick={() => triggerPresetValidation('valid')}
+              className="p-2.5 bg-emerald-950/40 hover:bg-emerald-900/60 border border-emerald-800/50 rounded-xl text-xs font-bold text-emerald-300 text-center transition-all active:scale-95"
             >
-              <div className="flex items-start gap-3">
-                {scanResult.valid ? (
-                  <CheckCircle2 className="w-6 h-6 text-emerald-400 shrink-0 mt-0.5" />
-                ) : (
-                  <ShieldAlert className="w-6 h-6 text-amber-400 shrink-0 mt-0.5" />
-                )}
-                <div>
-                  <div className="flex items-center gap-2">
-                    <p className="text-sm font-bold uppercase font-mono">
-                      {scanResult.valid
-                        ? 'ENTRADA LIBERADA'
-                        : scanResult.code
-                        ? scanResult.code
-                        : 'ACESSO NEGADO'}
-                    </p>
-                  </div>
-                  <p className="text-xs opacity-90 mt-1 leading-relaxed">
-                    {scanResult.valid ? scanResult.message : scanResult.error}
-                  </p>
-                  {scanResult.ticket && (
-                    <div className="mt-3 pt-2.5 border-t border-white/10 text-xs font-mono space-y-0.5">
-                      <div><span className="opacity-60">Titular:</span> {scanResult.ticket.user_name || scanResult.ticket.user_email}</div>
-                      <div><span className="opacity-60">REF:</span> #{scanResult.ticket.id?.slice(0, 8)}</div>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-          )}
+              🟢 1. VÁLIDO
+            </button>
+            <button
+              type="button"
+              onClick={() => triggerPresetValidation('used')}
+              className="p-2.5 bg-amber-950/40 hover:bg-amber-900/60 border border-amber-800/50 rounded-xl text-xs font-bold text-amber-300 text-center transition-all active:scale-95"
+            >
+              🟡 2. JÁ USADO
+            </button>
+            <button
+              type="button"
+              onClick={() => triggerPresetValidation('invalid')}
+              className="p-2.5 bg-red-950/40 hover:bg-red-900/60 border border-red-800/50 rounded-xl text-xs font-bold text-red-300 text-center transition-all active:scale-95"
+            >
+              🔴 3. FORJADO
+            </button>
+            <button
+              type="button"
+              onClick={() => triggerPresetValidation('wrong_event')}
+              className="p-2.5 bg-blue-950/40 hover:bg-blue-900/60 border border-blue-800/50 rounded-xl text-xs font-bold text-blue-300 text-center transition-all active:scale-95"
+            >
+              🔵 4. SHOW ERRADO
+            </button>
+          </div>
+        )}
+      </div>
 
-          {/* History */}
-          <div className="bg-[#111113] p-5 rounded-2xl border border-zinc-800 shadow-xl">
-            <h4 className="text-xs font-bold text-zinc-300 mb-3.5 flex items-center gap-2">
-              <Clock className="w-4 h-4 text-zinc-400" />
-              Histórico recente de acessos na portaria
-            </h4>
+      {/* Accordion: Histórico de Acessos Recentes */}
+      <div className="bg-[#111113] rounded-2xl border border-zinc-800/80 overflow-hidden shadow-sm">
+        <button
+          type="button"
+          onClick={() => setShowHistory(!showHistory)}
+          className="w-full px-4 py-3 text-xs font-semibold text-zinc-300 hover:text-white flex items-center justify-between transition-colors"
+        >
+          <div className="flex items-center gap-2">
+            <Clock className="w-4 h-4 text-zinc-400" />
+            <span>Histórico de Leituras ({history.length})</span>
+          </div>
+          {showHistory ? <ChevronUp className="w-4 h-4 text-zinc-500" /> : <ChevronDown className="w-4 h-4 text-zinc-500" />}
+        </button>
 
+        {showHistory && (
+          <div className="p-4 border-t border-zinc-800/60 bg-zinc-950/40">
             {history.length === 0 ? (
-              <p className="text-xs text-zinc-500 py-2">Nenhuma leitura nesta sessão ainda.</p>
+              <p className="text-xs text-zinc-500 py-1 text-center">Nenhuma leitura registrada nesta sessão.</p>
             ) : (
-              <div className="space-y-2 max-h-64 overflow-y-auto pr-1">
+              <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
                 {history.map((h, idx) => (
                   <div
                     key={idx}
-                    className="flex items-center justify-between gap-2 py-2 text-xs border-b border-zinc-800/50 last:border-0"
+                    className="flex items-center justify-between gap-2 py-1.5 text-xs border-b border-zinc-800/40 last:border-0"
                   >
-                    <div className="flex items-center gap-2.5 truncate">
+                    <div className="flex items-center gap-2 truncate">
                       <span
                         className={`w-2 h-2 rounded-full shrink-0 ${
                           h.status === 'valid' ? 'bg-emerald-400' : 'bg-red-400'
                         }`}
                       />
-                      <span className="text-zinc-300 truncate font-medium">{h.details}</span>
+                      <span className="text-zinc-300 truncate">{h.details}</span>
                     </div>
                     <span className="text-zinc-500 font-mono shrink-0 text-[10px]">{h.timestamp}</span>
                   </div>
@@ -193,7 +235,7 @@ export const Gatekeeper: React.FC = () => {
               </div>
             )}
           </div>
-        </div>
+        )}
       </div>
     </div>
   );
