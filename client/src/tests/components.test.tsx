@@ -62,10 +62,12 @@ describe('UI Component Unit Tests', () => {
     expect(screen.getByText('VIP (R$ 499.90)')).toBeInTheDocument();
   });
 
-  it('renders PrintableTicket in vertical Apple Wallet Pass format', () => {
+  it('renders PrintableTicket with exact spec photo layout and metadata', () => {
     render(<PrintableTicket ticket={mockTicket} />);
 
-    expect(screen.getByText('ELITE TICKETS • PASSE DIGITAL')).toBeInTheDocument();
-    expect(screen.getByText('✓ AUTENTICAÇÃO DIGITAL HMAC-SHA256')).toBeInTheDocument();
+    expect(screen.getByText('ELITE TICKETS')).toBeInTheDocument();
+    expect(screen.getByText('TITULAR')).toBeInTheDocument();
+    expect(screen.getByText('CATEGORIA / ASSENTO')).toBeInTheDocument();
+    expect(screen.getByText('Apresente este ingresso na portaria.')).toBeInTheDocument();
   });
 });
