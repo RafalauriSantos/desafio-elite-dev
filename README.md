@@ -1,6 +1,6 @@
 # 🎟️ Elite Tickets — Plataforma de Eventos e Ingressos
 
-Aplicação desenvolvida para o **Desafio Elite Dev (Verzel)**. Permite a publicação de eventos por organizadores (integrado a catálogos externos), seleção de assentos em tempo real com bloqueio de concorrência, checkout simulado, emissão de bilhetes digitais com QR Code criptografado (HMAC-SHA256) e validação na portaria.
+Olá! Desenvolvi este projeto para o **Desafio Elite Dev da Verzel**. O objetivo foi construir uma plataforma completa de ponta a ponta: publicação de eventos pelo organizador (integrado a catálogos externos), seleção de assentos em tempo real com bloqueio concorrente no banco de dados, checkout simulado, emissão de bilhetes digitais com QR Code criptografado (HMAC-SHA256) e validação atômica na portaria.
 
 ---
 
@@ -12,40 +12,44 @@ Aplicação desenvolvida para o **Desafio Elite Dev (Verzel)**. Permite a public
 
 ---
 
-## ⚡ Como Avaliar em 2 Minutos
+## ⚡ Como Avaliar a Aplicação em 2 Minutos
 
-Para facilitar a correção sem necessidade de login manual, use o **seletor de personas** no topo da tela:
+Para facilitar a sua avaliação sem a necessidade de criar contas do zero, criei um **seletor de personas** no topo da tela:
 
-1. **🎟️ Como Cliente:**
+1. **🎟️ Como Cliente (Comprar e Gerar Ingresso):**
    - Escolha qualquer evento no catálogo e clique em **"Ver assentos"**.
-   - Selecione poltronas no mapa e clique em **"Ir para Pagamento"**.
-   - No modal de checkout, escolha **"Aprovado"** para gerar o ingresso com QR Code (ou **"Recusado"** para ver o assento voltar ao estoque imediatamente).
-2. **🛡️ Como Portaria:**
+   - Selecione as poltronas no mapa e avance para o pagamento.
+   - No modal de checkout, escolha **"Aprovado"** para emitir o ingresso com QR Code (ou teste a opção **"Recusado"** para ver o assento voltar ao estoque no mesmo instante).
+2. **🛡️ Como Portaria (Validar Entrada):**
    - Acesse a aba **"Portaria"**.
    - Aponte a câmera para o QR Code emitido (ou use a digitação manual).
-   - O sistema valida na hora: `Válido`, `Já Utilizado`, `Inválido` ou `Evento Errado`, com retorno de vibração no smartphone.
-3. **🎪 Como Organizador:**
-   - Alterne a persona para **"Organizador"**.
-   - Clique em **"Publicar evento"** e importe atrações direto da API do **TMDb** ou catálogo curado.
+   - O sistema valida na hora: `Válido`, `Já Utilizado`, `Inválido` ou `Evento Errado`, com retorno tátil de vibração no celular.
+3. **🎪 Como Organizador (Publicar e Importar):**
+   - Mude a persona para **"Organizador"**.
+   - Clique em **"Publicar evento"** para cadastrar manualmente ou importar atrações direto da API do **TMDb** / catálogo curado.
 
 ---
 
-## 🧠 Decisões Técnicas de Engenharia
+## 🧠 Minhas Decisões Técnicas de Engenharia
 
-- **Por que Cloudflare Workers + Hono.js no Back-End?**
-  Optamos por uma arquitetura Edge Serverless para garantir resposta sub-50ms e deploy global sem custos de infraestrutura ociosa.
-- **Por que `SELECT ... FOR UPDATE` no Postgres?**
-  Para resolver a concorrência na raiz. A reserva é processada via Stored Procedure atômica com ordenação de IDs (`ORDER BY id ASC`), impedindo dupla venda e deadlocks mesmo sob requisições simultâneas.
-- **Por que HMAC-SHA256 no QR Code?**
-  O QR Code não guarda apenas um ID simples; ele carrega uma assinatura criptográfica gerada no servidor via Web Crypto API, impedindo forja ou adulteração de dados.
-- **Por que Design Minimalista (Swiss Design)?**
-  Fugimos de interfaces genéricas com excesso de gradientes e efeitos desnecessários (*AI Slop*). O bilhete foi desenhado no padrão Apple Wallet / editorial suíço, focado na clareza para leitura rápida na portaria e com impressão perfeita em PDF A4.
-- **Envio Real de E-mails:**
-  Integração em segundo plano com a API do **Resend** para entrega assíncrona da confirmação sem travar o tempo de resposta do checkout.
+- **Por que escolhi Cloudflare Workers + Hono.js no Back-End?**  
+  Busquei uma arquitetura Serverless executando direto na borda (*Edge*), com latência inferior a 50ms e deploy global sem custos de infraestrutura ociosa. O Hono.js me deu velocidade, tipagem estrita e compatibilidade nativa com Web Standards.
+
+- **Como resolvi a Concorrência no Banco de Dados?**  
+  Em vez de tentar controlar concorrência na memória do servidor (o que falha em ambientes distribuídos e serverless), preferi resolver na raiz: criei uma Stored Procedure no PostgreSQL com `SELECT ... FOR UPDATE ORDER BY id ASC`. Isso garante que, mesmo com requisições simultâneas concorrendo pelo mesmo assento, apenas uma vença e as outras sejam rejeitadas sem risco de deadlocks.
+
+- **Por que usei HMAC-SHA256 no QR Code?**  
+  Para que o ingresso seja infalsificável. O QR Code não guarda apenas um ID de texto puro; ele carrega uma assinatura criptográfica gerada na borda com uma chave secreta do servidor, impedindo que qualquer pessoa forje ingressos apenas clonando o payload JSON.
+
+- **Por que optei pelo Design Minimalista Suíço (Swiss Design)?**  
+  Fugi conscientemente de interfaces poluídas com excesso de sombras e gradientes roxos genéricos (*AI Slop*). Desenhei um passe digital limpo, no padrão Apple Wallet, focado no que realmente importa na hora do evento: contraste alto para leitura rápida na portaria e um layout rigorosamente alinhado para impressão e download em PDF A4.
+
+- **Envio Real de E-mails com Resend:**  
+  Integrei o envio de e-mails em segundo plano no Worker (`c.executionCtx.waitUntil(sendTicketEmail(...))`). Dessa forma, o e-mail real com o bilhete é despachado sem travar nem acrescentar milissegundos à resposta do checkout na tela.
 
 ---
 
-## 🛠️ Stack Tecnológica
+## 🛠️ Stack que Utilizei
 
 - **Front-End:** React, Vite, TypeScript, Tailwind CSS, Lucide Icons, `qrcode.react`, `html5-qrcode`.
 - **Back-End:** TypeScript, Hono.js, Cloudflare Workers Runtime, Web Crypto API.
@@ -56,7 +60,7 @@ Para facilitar a correção sem necessidade de login manual, use o **seletor de 
 
 ## 🚀 Como Executar Localmente
 
-### 1. Clonar e Instalar Dependências
+### 1. Clonar e Instalar
 ```bash
 git clone https://github.com/RafalauriSantos/desafio-elite-dev.git
 cd desafio-elite-dev
@@ -72,11 +76,11 @@ cd client && npm run dev
 cd server && npm run dev
 ```
 
-### 3. Rodar os Testes
+### 3. Rodar a Suíte de Testes
 ```bash
 npm run typecheck    # Verificação estrita de TypeScript
 npm run test         # Testes unitários (Client + Server)
-npm run test:e2e     # Testes E2E com Playwright
+npm run test:e2e     # Testes de integração E2E com Playwright
 ```
 
 ---
