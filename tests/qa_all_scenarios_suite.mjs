@@ -86,7 +86,16 @@ async function runExhaustiveTests() {
   testEventId = evJson.event?.id;
   check(evJson.success && testEventId, 'Evento criado com sucesso via API', 'Falha ao criar evento');
 
-  const { data: dbSeats } = await supabase.from('seats').select('*').eq('event_id', testEventId).order('seat_number');
+  // Resiliently fetch the 80 generated seats (handling network latency)
+  let dbSeats = [];
+  for (let attempt = 0; attempt < 10; attempt++) {
+    const { data } = await supabase.from('seats').select('*').eq('event_id', testEventId).order('seat_number');
+    if (data && data.length === 80) {
+      dbSeats = data;
+      break;
+    }
+    await new Promise((r) => setTimeout(r, 400));
+  }
   testSeats = dbSeats || [];
   check(testSeats.length === 80, `80 assentos gerados no banco (A1..H10)`, `Esperava 80 assentos, achou ${testSeats.length}`);
 

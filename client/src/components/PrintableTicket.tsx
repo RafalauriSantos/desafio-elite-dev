@@ -54,9 +54,8 @@ export const PrintableTicket: React.FC<PrintableTicketProps> = ({ ticket, qrData
       })
     : '14/08/2026 às 21:51';
 
-  const refCode = safeTicketId.startsWith('t-') || safeTicketId.startsWith('T-')
-    ? safeTicketId.toUpperCase()
-    : `#T-${safeTicketId.slice(0, 6).toUpperCase()}`;
+  const rawId = safeTicketId.replace(/^t-|^T-|^#/, '');
+  const refCode = `#T-${rawId.slice(0, 6).toUpperCase() || 'DEMO-U'}`;
 
   const seatNumberPadded = String(seat.seat_number).padStart(2, '0');
 
@@ -128,7 +127,7 @@ export const PrintableTicket: React.FC<PrintableTicketProps> = ({ ticket, qrData
             TITULAR
           </span>
           <p className="text-sm font-black text-zinc-950 truncate mt-0.5">
-            {ticket?.user_name || 'Bruno Cliente'}
+            {ticket?.user_name || ticket?.user_email || 'Titular do Ingresso'}
           </p>
         </div>
         <div>
