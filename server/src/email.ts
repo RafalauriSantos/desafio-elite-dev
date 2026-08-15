@@ -17,8 +17,9 @@ export interface TicketEmail {
 }
 
 export async function sendTicketEmail(env: EmailEnv, ticket: TicketEmail): Promise<void> {
-  const apiKey = env.RESEND_API_KEY || (typeof process !== 'undefined' ? process.env?.RESEND_API_KEY : '');
-  const fromEmail = env.RESEND_FROM_EMAIL || (typeof process !== 'undefined' ? process.env?.RESEND_FROM_EMAIL : '') || 'onboarding@resend.dev';
+  const globalProc = typeof globalThis !== 'undefined' ? (globalThis as any).process : undefined;
+  const apiKey = env.RESEND_API_KEY || globalProc?.env?.RESEND_API_KEY || '';
+  const fromEmail = env.RESEND_FROM_EMAIL || globalProc?.env?.RESEND_FROM_EMAIL || 'onboarding@resend.dev';
 
   if (!apiKey) {
     console.log(`[Resend Simulated] Ticket email queued for ${ticket.to} (${ticket.eventTitle}) - RESEND_API_KEY not configured.`);
