@@ -53,47 +53,30 @@ Toda a estrutura de tabelas, índices e Stored Procedures em PL/pgSQL está vers
 
 ```mermaid
 erDiagram
-    PROFILES ||--o{ EVENTS : "gerencia"
-    EVENTS ||--|{ SEATS : "possui matriz"
-    EVENTS ||--o{ TICKETS : "emite"
-    SEATS ||--o| TICKETS : "vincula"
+    PROFILES ||--o{ EVENTS : cria
+    EVENTS ||--|{ SEATS : contem
+    EVENTS ||--o{ TICKETS : emite
+    SEATS ||--o| TICKETS : reserva
 
     PROFILES {
         uuid id PK
-        varchar email UK
+        varchar email
         varchar role
-        timestamptz created_at
     }
-
     EVENTS {
         uuid id PK
-        uuid organizer_id FK
         varchar title
-        varchar venue
-        timestamptz date
         numeric price
     }
-
     SEATS {
         uuid id PK
-        uuid event_id FK
-        varchar row_name
-        integer seat_number
         varchar category
-        numeric price
         varchar status
-        timestamptz locked_until
     }
-
     TICKETS {
         uuid id PK
-        uuid event_id FK
         uuid seat_id FK
-        varchar user_email
-        varchar user_name
         varchar status
-        text qr_signature
-        timestamptz created_at
     }
 ```
 
