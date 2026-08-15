@@ -88,12 +88,6 @@ const generateDemoSeats = (eventId: string) => {
       const seatId = `s-${eventId}-${row}-${num}`;
       const isVip = row === 'A' || row === 'B';
       const isPremium = row === 'C' || row === 'D';
-      let initialStatus: 'available' | 'locked' | 'sold' = 'available';
-      if (row === 'A' && num === 4) initialStatus = 'sold';
-      if (row === 'B' && num === 7) initialStatus = 'sold';
-      if (row === 'C' && num === 8) initialStatus = 'locked';
-      if (row === 'D' && num === 3) initialStatus = 'sold';
-
       seats.push({
         id: seatId,
         event_id: eventId,
@@ -101,7 +95,7 @@ const generateDemoSeats = (eventId: string) => {
         seat_number: num,
         category: isVip ? 'VIP' : isPremium ? 'Premium' : 'Standard',
         price: isVip ? 499.90 : isPremium ? 349.90 : 199.90,
-        status: initialStatus
+        status: 'available'
       });
     }
   });

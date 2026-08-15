@@ -118,14 +118,7 @@ const generateMockSeats = (eventId: string): SeatItem[] => {
     for (let num = 1; num <= 10; num++) {
       const isVip = row === 'A' || row === 'B';
       const isPremium = row === 'C' || row === 'D';
-      const seatId = `s-${eventId.substring(0, 4)}-${row}-${num}`;
-      
-      // Seed a few pre-locked / sold seats for realistic demo (~5% occupied)
-      let initialStatus: 'available' | 'locked' | 'sold' = 'available';
-      if (row === 'A' && num === 4) initialStatus = 'sold';
-      if (row === 'B' && num === 7) initialStatus = 'sold';
-      if (row === 'C' && num === 8) initialStatus = 'locked';
-      if (row === 'D' && num === 3) initialStatus = 'sold';
+      const seatId = `s-${eventId}-${row}-${num}`;
 
       seats.push({
         id: seatId,
@@ -134,7 +127,7 @@ const generateMockSeats = (eventId: string): SeatItem[] => {
         seat_number: num,
         category: isVip ? 'VIP' : isPremium ? 'Premium' : 'Standard',
         price: isVip ? 499.90 : isPremium ? 349.90 : 199.90,
-        status: initialStatus
+        status: 'available'
       });
     }
   });
