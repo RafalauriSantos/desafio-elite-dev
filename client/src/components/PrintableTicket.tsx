@@ -23,7 +23,7 @@ export const PrintableTicket: React.FC<PrintableTicketProps> = ({ ticket, qrData
 
   const finalQrString = qrData || buildTicketQrPayload(ticket);
 
-  const eventDateObj = new Date(event.date || Date.now());
+  const eventDateObj = event?.date && !isNaN(new Date(event.date).getTime()) ? new Date(event.date) : new Date();
   const day = eventDateObj.getDate();
   const monthStr = eventDateObj
     .toLocaleDateString('pt-BR', { month: 'short' })
@@ -34,7 +34,7 @@ export const PrintableTicket: React.FC<PrintableTicketProps> = ({ ticket, qrData
   const minutes = String(eventDateObj.getMinutes()).padStart(2, '0');
   const formattedDate = `${day} ${monthStr} ${year} • ${hours}:${minutes}`;
 
-  const usedDateStr = ticket?.used_at
+  const usedDateStr = ticket?.used_at && !isNaN(new Date(ticket.used_at).getTime())
     ? new Date(ticket.used_at).toLocaleDateString('pt-BR', {
         day: '2-digit',
         month: '2-digit',
@@ -46,7 +46,12 @@ export const PrintableTicket: React.FC<PrintableTicketProps> = ({ ticket, qrData
 
   const rawId = safeTicketId.replace(/^t-|^T-|^#/, '');
   const refCode = `#T-${rawId.slice(0, 6).toUpperCase() || 'DEMO'}`;
-  const seatNumberPadded = String(seat.seat_number).padStart(2, '0');
+  const rowName = seat?.row_name || 'A';
+  const rawSeatNum = seat?.seat_number;
+  const seatNumberPadded = typeof rawSeatNum === 'number' && !isNaN(rawSeatNum)
+    ? String(rawSeatNum).padStart(2, '0')
+    : (rawSeatNum ? String(rawSeatNum).padStart(2, '0') : '01');
+  const categoryName = seat?.category || 'VIP';
 
   const cleanUserName = (ticket?.user_name || ticket?.user_email || 'Cliente')
     .replace(/\s*\(Já Entrou\)/gi, '')
@@ -129,7 +134,7 @@ export const PrintableTicket: React.FC<PrintableTicketProps> = ({ ticket, qrData
             CATEGORIA / ASSENTO
           </span>
           <p className="text-sm font-black text-zinc-950 mt-0.5">
-            {seat.category || 'VIP'} • {seat.row_name}-{seatNumberPadded}
+            {categoryName} • {rowName}-{seatNumberPadded}
           </p>
         </div>
       </div>

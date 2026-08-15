@@ -62,7 +62,7 @@
 /* Otimização de Impressão de Bilhete em PDF (Padrão Oficial Suíço / Apple Wallet) */
 @page {
   size: A4 portrait;
-  margin: 12mm auto;
+  margin: 10mm auto;
 }
 
 @media print {
@@ -83,6 +83,13 @@
     display: none !important;
   }
 
+  .no-print,
+  nav,
+  header,
+  footer {
+    display: none !important;
+  }
+
   body * {
     visibility: hidden;
   }
@@ -93,24 +100,23 @@
   }
 
   .printable-ticket-area {
-    position: relative !important;
+    position: absolute !important;
+    top: 20px !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
     display: block !important;
-    width: 360px !important;
-    max-width: 360px !important;
-    margin: 10px auto !important;
+    width: 380px !important;
+    max-width: 380px !important;
+    margin: 0 auto !important;
     padding: 24px !important;
     background-color: #ffffff !important;
     color: #09090b !important;
-    border: 1px solid #d4d4d8 !important;
+    border: 1.5px solid #e4e4e7 !important;
     border-radius: 28px !important;
     box-shadow: none !important;
     page-break-inside: avoid !important;
     break-inside: avoid !important;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
-  }
-
-  .no-print {
-    display: none !important;
   }
 }
