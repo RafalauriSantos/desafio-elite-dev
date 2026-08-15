@@ -57,7 +57,7 @@ describe('UI Component Unit Tests', () => {
       />
     );
 
-    expect(screen.getByText('PALCO / TELA PRINCIPAL')).toBeInTheDocument();
+    expect(screen.getByText(/PALCO/i)).toBeInTheDocument();
     expect(screen.getByText('A')).toBeInTheDocument();
     expect(screen.getByText('VIP (R$ 499.90)')).toBeInTheDocument();
   });

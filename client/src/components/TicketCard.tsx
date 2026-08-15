@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import { TicketItem } from '../lib/api';
-import { Calendar, MapPin, Copy, Check, Printer, CalendarPlus, Share2, CheckCircle2 } from 'lucide-react';
+import { Calendar, MapPin, Copy, Check, Printer, CalendarPlus, Share2, CheckCircle2, ShieldCheck } from 'lucide-react';
 import { PrintableTicket } from './PrintableTicket';
 
 interface TicketCardProps {
@@ -16,7 +16,7 @@ export const TicketCard: React.FC<TicketCardProps> = ({ ticket, qrData }) => {
     title: 'Evento Oficial Elite Tickets',
     venue: 'Local do Evento',
     date: new Date().toISOString(),
-    banner_url: ''
+    banner_url: '',
   };
 
   const seat = ticket.seats || { row_name: 'A', seat_number: 1, category: 'VIP' };
@@ -28,16 +28,31 @@ export const TicketCard: React.FC<TicketCardProps> = ({ ticket, qrData }) => {
     userEmail: ticket.user_email,
     clientId: ticket.clientId || ticket.user_email,
     issuedAt: ticket.issuedAt || new Date(ticket.created_at).getTime(),
-    signature: ticket.qr_signature
+    signature: ticket.qr_signature,
   });
 
   const isUsed = ticket.status === 'used';
 
-  const handleCopyLink = () => {
+  const handleShare = async () => {
     const link = `${window.location.origin}/?ticket=${ticket.id}`;
+    const shareText = `🎟️ Ingresso Oficial: ${event.title}\nAssento: ${seat.row_name}${seat.seat_number}\nVeja o comprovante autenticado: ${link}`;
+
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: event.title,
+          text: shareText,
+          url: link,
+        });
+        return;
+      } catch {
+        // Fallback to clipboard
+      }
+    }
+
     navigator.clipboard.writeText(link);
     setCopiedType('link');
-    setTimeout(() => setCopiedType(null), 2000);
+    setTimeout(() => setCopiedType(null), 2500);
   };
 
   const handleCopyQr = () => {
@@ -68,9 +83,20 @@ export const TicketCard: React.FC<TicketCardProps> = ({ ticket, qrData }) => {
   return (
     <>
       {/* Screen View Ticket Card */}
-      <div className={`w-full max-w-sm mx-auto bg-[#111113] rounded-2xl overflow-hidden border transition-all no-print ${
-        isUsed ? 'border-amber-500/30 opacity-90 shadow-none' : 'border-zinc-800/70 hover:border-zinc-700 shadow-xl'
-      }`}>
+      <div
+        className={`w-full max-w-sm mx-auto bg-[#111113] rounded-3xl overflow-hidden border transition-all no-print relative shadow-2xl ${
+          isUsed ? 'border-amber-500/30 opacity-90' : 'border-zinc-800 hover:border-zinc-700'
+        }`}
+      >
+        {/* Holographic Security Top Bar */}
+        <div className="px-4 py-2 bg-gradient-to-r from-emerald-950/60 via-zinc-900 to-cyan-950/60 border-b border-zinc-800 flex items-center justify-between text-[10px] font-mono">
+          <div className="flex items-center gap-1 text-emerald-400 font-semibold">
+            <ShieldCheck className="w-3.5 h-3.5" />
+            <span>ASSINATURA HMAC-SHA256</span>
+          </div>
+          <span className="text-zinc-400 font-bold"> WALLET READY</span>
+        </div>
+
         {/* Banner */}
         {event.banner_url && (
           <div className="h-32 w-full relative overflow-hidden">
@@ -86,22 +112,32 @@ export const TicketCard: React.FC<TicketCardProps> = ({ ticket, qrData }) => {
         <div className="p-5 space-y-4">
           {/* Title + status */}
           <div className="flex items-start justify-between gap-2">
-            <h3 className="text-[15px] font-semibold text-white leading-snug">{event.title}</h3>
-            <span className={`shrink-0 inline-flex items-center gap-1.5 text-[11px] font-mono font-medium px-2 py-0.5 rounded-full border ${
-              isUsed
-                ? 'text-amber-400 bg-amber-950/40 border-amber-800/40'
-                : 'text-emerald-400 bg-emerald-950/40 border-emerald-800/40'
-            }`}>
+            <h3 className="text-base font-bold text-white leading-snug">{event.title}</h3>
+            <span
+              className={`shrink-0 inline-flex items-center gap-1.5 text-[11px] font-mono font-bold px-2.5 py-0.5 rounded-full border ${
+                isUsed
+                  ? 'text-amber-400 bg-amber-950/40 border-amber-800/40'
+                  : 'text-emerald-400 bg-emerald-950/40 border-emerald-800/40'
+              }`}
+            >
               <span className={`w-1.5 h-1.5 rounded-full ${isUsed ? 'bg-amber-400' : 'bg-emerald-400'}`} />
               {isUsed ? 'Utilizado' : 'Válido'}
             </span>
           </div>
 
           {/* Meta */}
-          <div className="space-y-1.5 text-xs text-zinc-500">
+          <div className="space-y-1.5 text-xs text-zinc-400">
             <div className="flex items-center gap-1.5">
               <Calendar className="w-3.5 h-3.5 shrink-0 text-zinc-400" />
-              <span>{new Date(event.date || Date.now()).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
+              <span>
+                {new Date(event.date || Date.now()).toLocaleDateString('pt-BR', {
+                  day: '2-digit',
+                  month: 'short',
+                  year: 'numeric',
+                  hour: '2-digit',
+                  minute: '2-digit',
+                })}
+              </span>
             </div>
             <div className="flex items-center gap-1.5">
               <MapPin className="w-3.5 h-3.5 shrink-0 text-zinc-400" />
@@ -110,21 +146,21 @@ export const TicketCard: React.FC<TicketCardProps> = ({ ticket, qrData }) => {
           </div>
 
           {/* Seat info */}
-          <div className="flex items-center justify-between bg-zinc-900/70 px-3.5 py-2.5 rounded-xl border border-zinc-800/60 text-xs">
+          <div className="flex items-center justify-between bg-zinc-900/80 px-4 py-3 rounded-2xl border border-zinc-800 text-xs">
             <div>
               <span className="text-zinc-500 text-[10px] uppercase font-mono font-bold">Titular</span>
-              <p className="text-zinc-200 font-medium truncate max-w-[140px]">{ticket.user_name || ticket.user_email}</p>
+              <p className="text-zinc-200 font-semibold truncate max-w-[140px]">{ticket.user_name || ticket.user_email}</p>
             </div>
             <div className="text-right">
               <span className="text-zinc-500 text-[10px] uppercase font-mono font-bold">Assento</span>
-              <p className={`font-mono font-bold ${isUsed ? 'text-zinc-400' : 'text-emerald-400'}`}>
+              <p className={`font-mono font-bold text-sm ${isUsed ? 'text-zinc-400' : 'text-emerald-400'}`}>
                 {seat.row_name}{seat.seat_number} {seat.category ? `(${seat.category})` : ''}
               </p>
             </div>
           </div>
 
           {/* QR Code with Rich State Overlay */}
-          <div className="flex flex-col items-center p-3 bg-white rounded-xl relative shadow-md">
+          <div className="flex flex-col items-center p-3.5 bg-white rounded-2xl relative shadow-md">
             <QRCodeSVG
               value={finalQrString}
               size={175}
@@ -137,21 +173,21 @@ export const TicketCard: React.FC<TicketCardProps> = ({ ticket, qrData }) => {
             </p>
 
             {isUsed && (
-              <div className="absolute inset-0 bg-zinc-950/95 backdrop-blur-[2px] rounded-xl flex flex-col items-center justify-center p-4 text-center border-2 border-amber-500/60 animate-in fade-in">
-                <CheckCircle2 className="w-8 h-8 text-amber-400 mb-1" />
-                <span className="text-sm font-bold text-amber-300 tracking-wide uppercase">Ingresso Utilizado</span>
+              <div className="absolute inset-0 bg-zinc-950/95 backdrop-blur-[2px] rounded-2xl flex flex-col items-center justify-center p-4 text-center border-2 border-amber-500/60 animate-in fade-in">
+                <CheckCircle2 className="w-9 h-9 text-amber-400 mb-1" />
+                <span className="text-sm font-bold text-amber-300 tracking-wide uppercase font-mono">Ingresso Utilizado</span>
                 <span className="text-xs text-zinc-300 font-mono mt-1">Entrada: {usedTimeStr}</span>
-                <span className="text-[10px] text-zinc-500 mt-0.5">Uso único registrado</span>
+                <span className="text-[10px] text-zinc-500 mt-0.5">Uso único registrado na portaria</span>
               </div>
             )}
           </div>
 
-          {/* Actions Bar: Ergonomic 2x2 Grid with 40px Touch Targets */}
-          <div className="pt-3 border-t border-zinc-800/60 grid grid-cols-2 gap-2">
+          {/* Actions Bar: Ergonomic 2x2 Grid with Touch Targets */}
+          <div className="pt-3 border-t border-zinc-800/80 grid grid-cols-2 gap-2">
             <button
               type="button"
               onClick={handleAddToCalendar}
-              className="h-10 px-3 rounded-lg bg-zinc-900/80 hover:bg-zinc-800 border border-zinc-800 text-zinc-300 hover:text-white text-xs font-medium flex items-center justify-center gap-1.5 transition-colors touch-manipulation active:scale-[0.98]"
+              className="h-10 px-3 rounded-xl bg-zinc-900/90 hover:bg-zinc-800 border border-zinc-700/80 text-zinc-300 hover:text-white text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors touch-manipulation active:scale-[0.98]"
               title="Adicionar ao Google Calendar"
             >
               <CalendarPlus className="w-4 h-4 text-emerald-400 shrink-0" />
@@ -161,7 +197,7 @@ export const TicketCard: React.FC<TicketCardProps> = ({ ticket, qrData }) => {
             <button
               type="button"
               onClick={handlePrint}
-              className="h-10 px-3 rounded-lg bg-zinc-900/80 hover:bg-zinc-800 border border-zinc-800 text-zinc-300 hover:text-white text-xs font-medium flex items-center justify-center gap-1.5 transition-colors touch-manipulation active:scale-[0.98]"
+              className="h-10 px-3 rounded-xl bg-zinc-900/90 hover:bg-zinc-800 border border-zinc-700/80 text-zinc-300 hover:text-white text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors touch-manipulation active:scale-[0.98]"
               title="Baixar PDF / Passe"
             >
               <Printer className="w-4 h-4 text-zinc-300 shrink-0" />
@@ -172,10 +208,10 @@ export const TicketCard: React.FC<TicketCardProps> = ({ ticket, qrData }) => {
               type="button"
               onClick={handleCopyQr}
               disabled={isUsed}
-              className={`h-10 px-3 rounded-lg border text-xs font-medium flex items-center justify-center gap-1.5 transition-colors touch-manipulation active:scale-[0.98] ${
+              className={`h-10 px-3 rounded-xl border text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors touch-manipulation active:scale-[0.98] ${
                 isUsed
                   ? 'bg-zinc-900/30 border-zinc-800/40 text-zinc-600 cursor-not-allowed'
-                  : 'bg-zinc-900/80 hover:bg-zinc-800 border-zinc-800 text-zinc-300 hover:text-white'
+                  : 'bg-zinc-900/90 hover:bg-zinc-800 border-zinc-700/80 text-zinc-300 hover:text-white'
               }`}
               title={isUsed ? 'Ingresso já utilizado' : 'Copiar Payload Criptográfico QR'}
             >
@@ -199,19 +235,19 @@ export const TicketCard: React.FC<TicketCardProps> = ({ ticket, qrData }) => {
 
             <button
               type="button"
-              onClick={handleCopyLink}
-              className="h-10 px-3 rounded-lg bg-zinc-900/80 hover:bg-zinc-800 border border-zinc-800 text-zinc-300 hover:text-white text-xs font-medium flex items-center justify-center gap-1.5 transition-colors touch-manipulation active:scale-[0.98]"
-              title="Copiar Link Compartilhável"
+              onClick={handleShare}
+              className="h-10 px-3 rounded-xl bg-zinc-900/90 hover:bg-zinc-800 border border-zinc-700/80 text-zinc-300 hover:text-white text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors touch-manipulation active:scale-[0.98]"
+              title="Compartilhar Ingresso (WhatsApp / Link)"
             >
               {copiedType === 'link' ? (
                 <>
                   <Check className="w-4 h-4 text-cyan-400 shrink-0" />
-                  <span className="text-cyan-400 font-semibold">Link OK!</span>
+                  <span className="text-cyan-400 font-semibold">Link Copiado!</span>
                 </>
               ) : (
                 <>
                   <Share2 className="w-4 h-4 text-cyan-400 shrink-0" />
-                  <span>Partilhar</span>
+                  <span>Compartilhar</span>
                 </>
               )}
             </button>

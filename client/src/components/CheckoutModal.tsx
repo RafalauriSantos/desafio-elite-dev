@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { SeatItem, EventItem } from '../lib/api';
 import { BottomSheet } from './BottomSheet';
+import { Timer, ShieldCheck, Lock } from 'lucide-react';
 
 interface CheckoutModalProps {
   isOpen: boolean;
@@ -24,9 +25,36 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [paymentOutcome, setPaymentOutcome] = useState<'approved' | 'declined'>('approved');
+  const [secondsRemaining, setSecondsRemaining] = useState(600); // 10 minutes reservation timer
+
+  useEffect(() => {
+    if (!isOpen) {
+      setSecondsRemaining(600);
+      return;
+    }
+
+    const timer = setInterval(() => {
+      setSecondsRemaining((prev) => {
+        if (prev <= 1) {
+          clearInterval(timer);
+          onClose();
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [isOpen, onClose]);
 
   const targetSeats = seats && seats.length > 0 ? seats : seat ? [seat] : [];
   const totalPrice = targetSeats.reduce((sum, s) => sum + s.price, 0);
+
+  const formatTimer = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+  };
 
   const handleSubmit = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
@@ -72,27 +100,30 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
   };
 
   const footerActions = (
-    <>
-      <button
-        type="button"
-        onClick={onClose}
-        className="flex-1 min-h-[48px] rounded-xl border border-zinc-700/80 text-zinc-300 hover:text-white hover:bg-zinc-800 text-sm font-semibold transition-all touch-manipulation active:scale-[0.98]"
-      >
-        Cancelar
-      </button>
+    <div className="w-full flex flex-col gap-2">
       <button
         type="button"
         onClick={() => handleSubmit()}
         disabled={loading}
-        className="flex-[2] min-h-[48px] rounded-xl bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-bold text-sm transition-all disabled:opacity-40 flex items-center justify-center shadow-lg shadow-emerald-950/40 touch-manipulation active:scale-[0.98]"
+        className="w-full min-h-[52px] rounded-xl bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-bold text-sm sm:text-base transition-all disabled:opacity-40 flex items-center justify-center gap-2 shadow-xl shadow-emerald-950/50 touch-manipulation active:scale-[0.99]"
       >
         {loading ? (
           <div className="w-5 h-5 border-2 border-zinc-950/30 border-t-zinc-950 rounded-full animate-spin" />
         ) : (
-          'Confirmar e emitir'
+          <>
+            <ShieldCheck className="w-5 h-5 text-zinc-950" />
+            <span>Confirmar e Emitir ({targetSeats.length}) • R$ {totalPrice.toFixed(2)}</span>
+          </>
         )}
       </button>
-    </>
+      <button
+        type="button"
+        onClick={onClose}
+        className="w-full py-2 text-center text-xs font-medium text-zinc-400 hover:text-zinc-200 transition-colors"
+      >
+        Cancelar e liberar assentos
+      </button>
+    </div>
   );
 
   return (
@@ -100,11 +131,22 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
       isOpen={isOpen}
       onClose={onClose}
       title="Finalizar compra"
-      subtitle="Emissão de ingressos com assinatura digital."
+      subtitle="Emissão de ingressos com assinatura HMAC-SHA256."
       maxWidthClass="sm:max-w-md"
       maxHeightClass="max-h-[82dvh] sm:max-h-[85dvh]"
       footer={footerActions}
     >
+      {/* Reservation Countdown Timer Bar */}
+      <div className="flex items-center justify-between px-3.5 py-2.5 rounded-xl bg-amber-950/30 border border-amber-800/40 text-amber-300 text-xs">
+        <div className="flex items-center gap-2">
+          <Timer className="w-4 h-4 text-amber-400 animate-pulse" />
+          <span className="font-semibold">Assentos reservados por:</span>
+        </div>
+        <span className="font-mono font-bold text-sm text-amber-400 bg-amber-950/60 px-2 py-0.5 rounded border border-amber-800/60">
+          {formatTimer(secondsRemaining)}
+        </span>
+      </div>
+
       {/* Order summary */}
       <div className="bg-zinc-900/80 p-4 rounded-xl border border-zinc-800 space-y-3 shadow-inner">
         <div className="flex justify-between items-start">
@@ -141,7 +183,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
       )}
 
       <div>
-        <label className="block text-xs text-zinc-300 mb-1.5 font-semibold">Nome completo</label>
+        <label className="block text-xs text-zinc-300 mb-1.5 font-semibold">Nome completo do titular</label>
         <input
           type="text"
           required
@@ -155,7 +197,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
       </div>
 
       <div>
-        <label className="block text-xs text-zinc-300 mb-1.5 font-semibold">E-mail para recebimento</label>
+        <label className="block text-xs text-zinc-300 mb-1.5 font-semibold">E-mail para recebimento do QR Code</label>
         <input
           type="email"
           required
@@ -170,16 +212,19 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
       </div>
 
       <div>
-        <label className="block text-xs text-zinc-300 mb-1.5 font-semibold">Resultado da simulação</label>
+        <label className="block text-xs text-zinc-300 mb-1.5 font-semibold">Simulação de Pagamento</label>
         <select
           value={paymentOutcome}
           onChange={(e) => setPaymentOutcome(e.target.value as 'approved' | 'declined')}
           className="w-full bg-zinc-900/90 border border-zinc-700/80 rounded-xl px-4 py-3 text-base sm:text-sm text-white outline-none focus:border-emerald-500 transition-all cursor-pointer font-medium"
         >
-          <option value="approved">Aprovar pagamento (Emitir Ingressos)</option>
-          <option value="declined">Recusar pagamento (Liberar Assentos)</option>
+          <option value="approved">✓ Aprovar Pagamento (Emitir Ingressos Criptografados)</option>
+          <option value="declined">✕ Recusar Pagamento (Liberar Assentos de Volta)</option>
         </select>
-        <p className="text-[11px] text-zinc-500 mt-1.5">A recusa libera os assentos de volta ao estoque em tempo real.</p>
+        <div className="flex items-center gap-1.5 mt-2 text-[11px] text-zinc-400">
+          <Lock className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+          <span>Protegido por concorrência pessimista (PostgreSQL FOR UPDATE)</span>
+        </div>
       </div>
     </BottomSheet>
   );
