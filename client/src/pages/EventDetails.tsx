@@ -200,7 +200,7 @@ export const EventDetails: React.FC<EventDetailsProps> = ({
       )}
 
       {/* Mobile Floating Action Bar for Instant Booking */}
-      {selectedSeats.length > 0 && (
+      {!isModalOpen && selectedSeats.length > 0 && (
         <div className="lg:hidden fixed bottom-[calc(4.5rem+env(safe-area-inset-bottom))] left-4 right-4 z-40 bg-[#111113]/95 backdrop-blur-xl p-3.5 rounded-2xl border border-emerald-500/30 shadow-2xl flex items-center justify-between animate-in slide-in-from-bottom duration-200">
           <div>
             <p className="text-[11px] uppercase tracking-wider text-zinc-400 font-medium font-mono">
