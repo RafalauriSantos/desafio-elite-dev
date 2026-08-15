@@ -26,6 +26,7 @@ Você é um Engenheiro Full-Stack Sênior atuando como copiloto no desenvolvimen
 4. **Evite AI Slop:** Crie interfaces intencionais, com hierarquia visual clara, estados de carregamento (*skeletons*), mensagens de erro explicativas e modais de resposta na portaria.
 5. **Git Commits:** Seguir o padrão *Conventional Commits* (`feat:`, `fix:`, `docs:`, `chore:`).
 6. **Esteira CI/CD Obrigatória:** Toda e qualquer alteração de código deve ser validada localmente, comitada com Conventional Commits e enviada automaticamente via `git push origin master` para execução completa da esteira no GitHub Actions e deploy automático na Cloudflare.
+7. **Proibição Absoluta de Tipagem `any` (Zero Any Tolerance):** Todo o código TypeScript (Client e Server) DEVE ser 100% tipado com interfaces estritas, tipos genéricos ou `unknown` / `Error`. O uso de `any` é terminantemente proibido.
 
 ---
 

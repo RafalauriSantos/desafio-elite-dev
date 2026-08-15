@@ -1,5 +1,5 @@
 import { Hono } from 'hono';
-import { Bindings } from '../types';
+import { Bindings, EventItem, SeatItem } from '../types';
 import { DEMO_EVENTS, generateDemoSeats } from '../data/demoEvents';
 import { getSupabaseClient, isSupabaseConfigured, requireRole } from '../middleware/auth';
 
@@ -42,11 +42,12 @@ eventsRouter.get('/events', async (c) => {
         .order('date', { ascending: true });
 
       if (!error && events && events.length > 0) {
-        return c.json({ success: true, events });
+        return c.json({ success: true, events: events as EventItem[] });
       }
     }
-  } catch (err: any) {
-    console.warn('Supabase fetch failed, falling back to DEMO_EVENTS:', err.message);
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : String(err);
+    console.warn('Supabase fetch failed, falling back to DEMO_EVENTS:', message);
   }
 
   return c.json({ success: true, events: DEMO_EVENTS });
@@ -73,11 +74,12 @@ eventsRouter.get('/events/:id', async (c) => {
           .order('row_name', { ascending: true })
           .order('seat_number', { ascending: true });
 
-        return c.json({ success: true, event, seats: seats || generateDemoSeats(eventId) });
+        return c.json({ success: true, event: event as EventItem, seats: (seats as SeatItem[]) || generateDemoSeats(eventId) });
       }
     }
-  } catch (err: any) {
-    console.warn('Supabase getEventDetails failed, using demo event details:', err.message);
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : String(err);
+    console.warn('Supabase getEventDetails failed, using demo event details:', message);
   }
 
   const demoEvent = DEMO_EVENTS.find(e => e.id === eventId) || DEMO_EVENTS[0];
@@ -90,7 +92,14 @@ eventsRouter.post('/events', async (c) => {
     const authorization = await requireRole(c, ['organizer']);
     if (authorization instanceof Response) return authorization;
 
-    const body = await c.req.json();
+    const body = await c.req.json<{
+      title?: string;
+      description?: string;
+      venue?: string;
+      date?: string;
+      price?: string | number;
+      banner_url?: string;
+    }>();
     const { title, description, venue, date, price, banner_url } = body;
 
     if (!title || !venue || !date) {
@@ -109,7 +118,7 @@ eventsRouter.post('/events', async (c) => {
         p_description: description || 'Evento publicado pelo organizador.',
         p_venue: venue.trim(),
         p_date: new Date(date).toISOString(),
-        p_price: parseFloat(price) || 200.0,
+        p_price: typeof price === 'number' ? price : (parseFloat(price || '200') || 200.0),
         p_banner_url: banner_url || 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&w=1200&q=80'
       });
 
@@ -120,18 +129,19 @@ eventsRouter.post('/events', async (c) => {
       return c.json({ success: true, event: data.event, message: 'Evento publicado com sucesso com 80 assentos gerados.' });
     }
 
-    const demoEvent = {
+    const demoEvent: EventItem = {
       id: `e-created-${Date.now()}`,
       title,
       description: description || 'Evento publicado.',
       venue,
       date: new Date(date).toISOString(),
-      price: parseFloat(price) || 200.0,
+      price: typeof price === 'number' ? price : (parseFloat(price || '200') || 200.0),
       banner_url: banner_url || 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&w=1200&q=80'
     };
     return c.json({ success: true, event: demoEvent, message: 'Evento criado em modo demo.' });
-  } catch (err: any) {
-    return c.json({ success: false, error: err.message }, 500);
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : String(err);
+    return c.json({ success: false, error: message }, 500);
   }
 });
 
@@ -141,8 +151,18 @@ eventsRouter.post('/events/bulk-import', async (c) => {
     const authorization = await requireRole(c, ['organizer']);
     if (authorization instanceof Response) return authorization;
 
-    const body = await c.req.json();
-    const items: any[] = body.items || [];
+    const body = await c.req.json<{
+      items?: Array<{
+        title: string;
+        description?: string;
+        venue?: string;
+        date?: string;
+        price?: string | number;
+        banner_url?: string;
+        source?: string;
+      }>;
+    }>();
+    const items = body.items || [];
 
     if (!items.length) {
       return c.json({ success: false, error: 'Nenhum evento fornecido para importação.' }, 400);
@@ -154,22 +174,23 @@ eventsRouter.post('/events/bulk-import', async (c) => {
         ? authorization.user.id
         : '11111111-1111-1111-1111-111111111111';
 
-      const importedEvents: any[] = [];
+      const importedEvents: EventItem[] = [];
       const skippedDuplicates: string[] = [];
 
       for (const item of items) {
-        const { data, error } = await supabase.rpc('create_event_with_seats_atomic', {
+        const itemPrice = typeof item.price === 'number' ? item.price : (item.price ? parseFloat(item.price) : (item.source === 'tmdb' ? 45.00 : 280.00));
+        const { data } = await supabase.rpc('create_event_with_seats_atomic', {
           p_organizer_id: organizerId,
           p_title: item.title.trim(),
           p_description: item.description || 'Evento importado via catálogo externo.',
           p_venue: item.venue || (item.source === 'tmdb' ? 'Cinemark Shopping Eldorado - Sala IMAX' : 'Allianz Parque - São Paulo, SP'),
           p_date: item.date || new Date(Date.now() + 86400000 * 30).toISOString(),
-          p_price: item.price ? parseFloat(item.price) : (item.source === 'tmdb' ? 45.00 : 280.00),
+          p_price: itemPrice,
           p_banner_url: item.banner_url || 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&w=1200&q=80'
         });
 
         if (data && data.success && data.event) {
-          importedEvents.push(data.event);
+          importedEvents.push(data.event as EventItem);
         } else {
           skippedDuplicates.push(item.title);
         }
@@ -184,19 +205,20 @@ eventsRouter.post('/events/bulk-import', async (c) => {
       });
     }
 
-    const demoEvents = items.map((item, idx) => ({
+    const demoEvents: EventItem[] = items.map((item, idx) => ({
       id: `e-imported-${Date.now()}-${idx}`,
       title: item.title,
-      description: item.description,
+      description: item.description || 'Evento importado.',
       venue: item.venue || 'Arena Cultural - SP',
       date: item.date || new Date(Date.now() + 86400000 * 30).toISOString(),
-      price: item.price ? parseFloat(item.price) : 150.00,
+      price: typeof item.price === 'number' ? item.price : (item.price ? parseFloat(item.price) : 150.00),
       banner_url: item.banner_url || 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&w=1200&q=80'
     }));
 
     return c.json({ success: true, events: demoEvents, importedCount: demoEvents.length });
-  } catch (err: any) {
-    return c.json({ success: false, error: err.message }, 500);
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : String(err);
+    return c.json({ success: false, error: message }, 500);
   }
 });
 

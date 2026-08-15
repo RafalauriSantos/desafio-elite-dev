@@ -16,8 +16,8 @@ export function isSupabaseConfigured(c: Context<{ Bindings: Bindings }>): boolea
 export function getHmacSecret(c: Context<{ Bindings: Bindings }>): string {
   const secret = c.env?.HMAC_SECRET;
   if (secret) return secret;
-  const globalProc = typeof globalThis !== 'undefined' ? (globalThis as any).process : undefined;
-  const envSecret = globalProc?.env?.HMAC_SECRET;
+  const globalObj = globalThis as unknown as { process?: { env?: Record<string, string> } };
+  const envSecret = globalObj.process?.env?.HMAC_SECRET;
   if (envSecret) return envSecret;
   return 'super-secret-hmac-key-elite-dev-2026';
 }

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Film, Music, ArrowRight, CheckCircle2, CheckSquare, Square, AlertCircle } from 'lucide-react';
-import { api, EventItem } from '../lib/api';
+import { api, EventItem, ExternalCatalogItem } from '../lib/api';
 import { BottomSheet } from './BottomSheet';
 
 interface OrganizerModalProps {
@@ -16,8 +16,8 @@ export const OrganizerModal: React.FC<OrganizerModalProps> = ({
 }) => {
   const [step, setStep] = useState<'select' | 'configure'>('select');
   const [source, setSource] = useState<'tmdb' | 'ticketmaster'>('tmdb');
-  const [externalResults, setExternalResults] = useState<any[]>([]);
-  const [selectedExternalItems, setSelectedExternalItems] = useState<any[]>([]);
+  const [externalResults, setExternalResults] = useState<ExternalCatalogItem[]>([]);
+  const [selectedExternalItems, setSelectedExternalItems] = useState<ExternalCatalogItem[]>([]);
   const [existingEventTitles, setExistingEventTitles] = useState<string[]>([]);
 
   const [title, setTitle] = useState('');
@@ -53,7 +53,7 @@ export const OrganizerModal: React.FC<OrganizerModalProps> = ({
     }
   };
 
-  const handleToggleExternalItem = (item: any) => {
+  const handleToggleExternalItem = (item: ExternalCatalogItem) => {
     if (existingEventTitles.includes(item.title.toLowerCase().trim())) return;
 
     setSelectedExternalItems((prev) => {
@@ -83,12 +83,13 @@ export const OrganizerModal: React.FC<OrganizerModalProps> = ({
     setLoading(true);
     setActionError(null);
 
-    const sanitizedItems = selectedExternalItems.map((item, idx) => ({
+    const sanitizedItems: ExternalCatalogItem[] = selectedExternalItems.map((item, idx) => ({
+      ...item,
       title: item.title?.trim() || 'Espetáculo Oficial',
       description: item.description?.trim() || 'Evento oficial importado pelo catálogo do organizador.',
       venue: item.venue || (item.source === 'tmdb' ? 'Cinemark Shopping Eldorado - Sala IMAX' : 'Allianz Parque - São Paulo, SP'),
       date: item.date || new Date(Date.now() + 86400000 * (20 + idx * 5)).toISOString(),
-      price: item.price ? parseFloat(item.price) : (item.source === 'tmdb' ? 45.00 : 280.00),
+      price: typeof item.price === 'number' ? item.price : (item.price ? parseFloat(item.price) : (item.source === 'tmdb' ? 45.00 : 280.00)),
       banner_url: item.banner_url || 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&w=1200&q=80',
     }));
 

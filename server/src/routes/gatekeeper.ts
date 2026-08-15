@@ -1,15 +1,25 @@
-import { Hono } from 'hono';
-import { Bindings } from '../types';
+import { Hono, Context } from 'hono';
+import { Bindings, GatekeeperValidationResult } from '../types';
 import { getSupabaseClient, isSupabaseConfigured, getHmacSecret } from '../middleware/auth';
 import { verifyTicketSignature, TicketPayload } from '../crypto';
 
 const gatekeeperRouter = new Hono<{ Bindings: Bindings }>();
 const usedTicketIdsCache = new Set<string>();
 
+interface QrParsedJson {
+  ticketId?: string;
+  eventId?: string;
+  seatId?: string;
+  clientId?: string;
+  userEmail?: string;
+  issuedAt?: number;
+  signature?: string;
+}
+
 // POST /api/gatekeeper/validate (MÁQUINA DE ESTADOS: VALID, ALREADY_USED, INVALID, WRONG_EVENT)
-const validateHandler = async (c: any) => {
+const validateHandler = async (c: Context<{ Bindings: Bindings }>) => {
   try {
-    const body = await c.req.json();
+    const body = await c.req.json<{ qrData?: string | QrParsedJson; targetEventId?: string }>();
     const { qrData, targetEventId } = body;
 
     if (!qrData) {
@@ -21,7 +31,7 @@ const validateHandler = async (c: any) => {
       }, 400);
     }
 
-    let parsed: any = null;
+    let parsed: QrParsedJson | null = null;
     let extractedTicketId: string | null = null;
 
     if (typeof qrData === 'string') {
@@ -36,7 +46,7 @@ const validateHandler = async (c: any) => {
         extractedTicketId = raw;
       } else {
         try {
-          parsed = JSON.parse(raw);
+          parsed = JSON.parse(raw) as QrParsedJson;
         } catch {
           extractedTicketId = raw;
         }
@@ -88,10 +98,11 @@ const validateHandler = async (c: any) => {
         });
 
         if (!dbErr && dbResult) {
-          if (dbResult.code === 'ALREADY_USED') return c.json(dbResult, 409);
-          if (dbResult.code === 'WRONG_EVENT') return c.json(dbResult, 422);
-          if (dbResult.code === 'INVALID') return c.json(dbResult, 400);
-          return c.json(dbResult, 200);
+          const result = dbResult as GatekeeperValidationResult;
+          if (result.code === 'ALREADY_USED') return c.json(result, 409);
+          if (result.code === 'WRONG_EVENT') return c.json(result, 422);
+          if (result.code === 'INVALID') return c.json(result, 400);
+          return c.json(result, 200);
         }
       }
 
@@ -165,8 +176,8 @@ const validateHandler = async (c: any) => {
     const hmacSecret = getHmacSecret(c);
     const payload: TicketPayload = {
       ticketId,
-      eventId,
-      seatId,
+      eventId: eventId || '',
+      seatId: seatId || '',
       clientId: clientId || userEmail || '',
       issuedAt: issuedAt || 0
     };
@@ -193,15 +204,16 @@ const validateHandler = async (c: any) => {
       });
 
       if (!dbErr && dbResult) {
-        if (dbResult.code === 'ALREADY_USED') {
+        const result = dbResult as GatekeeperValidationResult;
+        if (result.code === 'ALREADY_USED') {
           usedTicketIdsCache.add(ticketId);
-          return c.json(dbResult, 409);
+          return c.json(result, 409);
         }
-        if (dbResult.code === 'WRONG_EVENT') return c.json(dbResult, 422);
-        if (dbResult.code === 'INVALID') return c.json(dbResult, 400);
+        if (result.code === 'WRONG_EVENT') return c.json(result, 422);
+        if (result.code === 'INVALID') return c.json(result, 400);
 
         usedTicketIdsCache.add(ticketId);
-        return c.json(dbResult, 200);
+        return c.json(result, 200);
       }
     }
 
@@ -218,12 +230,13 @@ const validateHandler = async (c: any) => {
       event_title: 'Tech Summit Elite 2026',
       seat: 'Fileira A - Assento 1'
     }, 200);
-  } catch (err: any) {
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : String(err);
     return c.json({
       success: false,
       valid: false,
       code: 'INVALID',
-      error: err.message
+      error: message
     }, 500);
   }
 };

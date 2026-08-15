@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { api, EventItem, SeatItem } from '../lib/api';
+import { api, EventItem, SeatItem, TicketItem } from '../lib/api';
 import { SeatMap } from '../components/SeatMap';
 import { CheckoutModal } from '../components/CheckoutModal';
 import { EmailPreviewModal } from '../components/EmailPreviewModal';
@@ -8,7 +8,7 @@ import { ArrowLeft, Calendar, MapPin, X } from 'lucide-react';
 interface EventDetailsProps {
   eventId: string;
   onBack: () => void;
-  onTicketPurchased: (tickets: any[], qrData: string[]) => void;
+  onTicketPurchased: (tickets: TicketItem[], qrData: string[]) => void;
 }
 
 export const EventDetails: React.FC<EventDetailsProps> = ({
@@ -25,7 +25,7 @@ export const EventDetails: React.FC<EventDetailsProps> = ({
   const [reserveMessage, setReserveMessage] = useState<string | null>(null);
 
   // Email preview state
-  const [purchasedTicket, setPurchasedTicket] = useState<any | null>(null);
+  const [purchasedTicket, setPurchasedTicket] = useState<TicketItem | null>(null);
   const [purchasedQrData, setPurchasedQrData] = useState<string>('');
   const [isEmailModalOpen, setIsEmailModalOpen] = useState(false);
 

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { SeatItem, EventItem } from '../lib/api';
+import { SeatItem, EventItem, TicketItem } from '../lib/api';
 import { BottomSheet } from './BottomSheet';
 import { Timer, ShieldCheck, Lock } from 'lucide-react';
 
@@ -9,7 +9,7 @@ interface CheckoutModalProps {
   seat?: SeatItem;
   seats?: SeatItem[];
   onClose: () => void;
-  onSuccess: (tickets: any[], qrData: string[]) => void;
+  onSuccess: (tickets: TicketItem[], qrData: string[]) => void;
 }
 
 export const CheckoutModal: React.FC<CheckoutModalProps> = ({
@@ -92,8 +92,9 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
       } else {
         setError(res.error || 'Erro ao processar pagamento simulado.');
       }
-    } catch (err: any) {
-      setError(err.message || 'Falha na conexão com o servidor.');
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Falha na conexão com o servidor.';
+      setError(message);
     } finally {
       setLoading(false);
     }

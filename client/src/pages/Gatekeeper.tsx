@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { QRScanner } from '../components/QRScanner';
 import { CheckCircle2, Clock, ChevronDown, ChevronUp, Sliders, PlayCircle } from 'lucide-react';
-import { api, EventItem } from '../lib/api';
+import { api, EventItem, GatekeeperValidationResult } from '../lib/api';
 
 export const Gatekeeper: React.FC = () => {
   const [events, setEvents] = useState<EventItem[]>([]);
@@ -19,11 +19,11 @@ export const Gatekeeper: React.FC = () => {
     setEvents(data);
   };
 
-  const handleResult = (result: any) => {
+  const handleResult = (result: GatekeeperValidationResult) => {
     const newEntry = {
       timestamp: new Date().toLocaleTimeString('pt-BR'),
       status: result.valid ? ('valid' as const) : ('invalid' as const),
-      details: result.valid ? result.message : (result.error || 'Acesso Recusado'),
+      details: result.valid ? (result.message || 'Entrada Liberada') : (result.error || result.message || 'Acesso Recusado'),
     };
     setHistory((prev) => [newEntry, ...prev.slice(0, 9)]);
   };
@@ -104,8 +104,9 @@ export const Gatekeeper: React.FC = () => {
     try {
       const res = await api.validateTicket(payload, selectedTargetEventId);
       handleResult(res);
-    } catch (err: any) {
-      handleResult({ valid: false, error: err.message || 'Falha na validação' });
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Falha na validação';
+      handleResult({ success: false, valid: false, code: 'INVALID', error: message });
     }
   };
 

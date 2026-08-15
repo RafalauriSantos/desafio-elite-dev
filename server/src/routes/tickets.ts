@@ -1,5 +1,5 @@
-import { Hono } from 'hono';
-import { Bindings } from '../types';
+import { Hono, Context } from 'hono';
+import { Bindings, EventItem, SeatItem, TicketRow } from '../types';
 import { DEMO_EVENTS, generateDemoSeats } from '../data/demoEvents';
 import { getSupabaseClient, isSupabaseConfigured, getHmacSecret } from '../middleware/auth';
 import { signTicketPayload, TicketPayload } from '../crypto';
@@ -8,10 +8,18 @@ import { sendTicketEmail } from '../email';
 const ticketsRouter = new Hono<{ Bindings: Bindings }>();
 
 // POST /api/tickets/reserve (Reserva individual ou múltipla)
-const reserveHandler = async (c: any) => {
+const reserveHandler = async (c: Context<{ Bindings: Bindings }>) => {
   try {
-    const body = await c.req.json();
-    const seatIds: string[] = body.seatIds || body.seat_ids || (body.seatId || body.seat_id ? [body.seatId || body.seat_id] : []);
+    const body = await c.req.json<{
+      seatId?: string;
+      seat_id?: string;
+      seatIds?: string[];
+      seat_ids?: string[];
+      userEmail?: string;
+      user_email?: string;
+      clientId?: string;
+    }>();
+    const seatIds: string[] = body.seatIds || body.seat_ids || (body.seatId || body.seat_id ? [body.seatId || body.seat_id || ''] : []);
     const userEmail = body.userEmail || body.user_email || body.clientId;
 
     if (!seatIds.length || !userEmail) {
@@ -68,8 +76,9 @@ const reserveHandler = async (c: any) => {
       seatIds,
       lockedUntil: lockUntil
     });
-  } catch (err: any) {
-    return c.json({ success: false, error: err.message }, 500);
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : String(err);
+    return c.json({ success: false, error: message }, 500);
   }
 };
 
@@ -77,9 +86,14 @@ ticketsRouter.post('/tickets/reserve', reserveHandler);
 ticketsRouter.post('/reserve', reserveHandler); // Alias
 
 // POST /api/tickets/reserve-batch (Reserva em Lote)
-const reserveBatchHandler = async (c: any) => {
+const reserveBatchHandler = async (c: Context<{ Bindings: Bindings }>) => {
   try {
-    const body = await c.req.json();
+    const body = await c.req.json<{
+      seatIds?: string[];
+      seat_ids?: string[];
+      userEmail?: string;
+      user_email?: string;
+    }>();
     const seatIds: string[] = body.seatIds || body.seat_ids || [];
     const userEmail = body.userEmail || body.user_email;
 
@@ -117,8 +131,9 @@ const reserveBatchHandler = async (c: any) => {
       seatIds,
       lockedUntil: lockUntil
     });
-  } catch (err: any) {
-    return c.json({ success: false, error: err.message }, 500);
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : String(err);
+    return c.json({ success: false, error: message }, 500);
   }
 };
 
@@ -128,7 +143,15 @@ ticketsRouter.post('/reserve-batch', reserveBatchHandler);
 // POST /api/checkout (Processamento de compra simulada, emissão de tickets e HMAC)
 ticketsRouter.post('/checkout', async (c) => {
   try {
-    const body = await c.req.json();
+    const body = await c.req.json<{
+      seatId?: string;
+      seatIds?: string[];
+      eventId: string;
+      userEmail: string;
+      userName: string;
+      paymentOutcome?: string;
+      payment_status?: string;
+    }>();
     const { seatId, eventId, userEmail, userName } = body;
     const seatIds: string[] = Array.isArray(body.seatIds)
       ? Array.from(new Set(body.seatIds.filter((id: unknown): id is string => typeof id === 'string' && id.length > 0)))
@@ -168,7 +191,7 @@ ticketsRouter.post('/checkout', async (c) => {
 
     const hmacSecret = getHmacSecret(c);
     const issuedAt = Date.now();
-    const ticketRows: any[] = [];
+    const ticketRows: TicketRow[] = [];
     const qrCodes: string[] = [];
 
     for (const currentSeatId of seatIds) {
@@ -200,8 +223,8 @@ ticketsRouter.post('/checkout', async (c) => {
     const isUuid = (str?: string) => !!str && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str);
     const areAllUuids = seatIds.every((id: string) => isUuid(id)) && isUuid(eventId);
 
-    let eventData: any = DEMO_EVENTS.find((e) => e.id === eventId) || DEMO_EVENTS[0];
-    const seatsMap: Record<string, any> = {};
+    let eventData: EventItem = DEMO_EVENTS.find((e) => e.id === eventId) || DEMO_EVENTS[0];
+    const seatsMap: Record<string, SeatItem> = {};
 
     if (isSupabaseConfigured(c) && areAllUuids) {
       const supabase = getSupabaseClient(c);
@@ -217,16 +240,16 @@ ticketsRouter.post('/checkout', async (c) => {
       }
 
       const { data: dbEvent } = await supabase.from('events').select('*').eq('id', eventId).maybeSingle();
-      if (dbEvent) eventData = dbEvent;
+      if (dbEvent) eventData = dbEvent as EventItem;
 
       const { data: dbSeats } = await supabase.from('seats').select('*').in('id', seatIds);
       if (dbSeats) {
-        dbSeats.forEach((s: any) => { seatsMap[s.id] = s; });
+        dbSeats.forEach((s: SeatItem) => { seatsMap[s.id] = s; });
       }
     }
 
-    const hydratedTickets = ticketRows.map((row) => {
-      const seatObj = seatsMap[row.seat_id] || { row_name: 'A', seat_number: 1, category: 'VIP' };
+    const hydratedTickets: TicketRow[] = ticketRows.map((row) => {
+      const seatObj = seatsMap[row.seat_id] || { id: row.seat_id, event_id: row.event_id, row_name: 'A', seat_number: 1, category: 'VIP', price: 200, status: 'sold' };
       return {
         ...row,
         events: eventData,
@@ -246,8 +269,8 @@ ticketsRouter.post('/checkout', async (c) => {
       paymentStatus: 'approved'
     });
 
-    let executionCtx: any;
-    try { executionCtx = c.executionCtx; } catch { executionCtx = undefined; }
+    let executionCtx: { waitUntil?: (promise: Promise<unknown>) => void } | undefined;
+    try { executionCtx = c.executionCtx as { waitUntil?: (promise: Promise<unknown>) => void }; } catch { executionCtx = undefined; }
     const waitUntil = executionCtx?.waitUntil;
     if (typeof waitUntil === 'function') {
       hydratedTickets.forEach((row, index) => {
@@ -264,14 +287,18 @@ ticketsRouter.post('/checkout', async (c) => {
             eventVenue: eventData?.venue,
             eventDate: eventData?.date,
             seatName: seatLabel
-          }).catch((error) => console.warn('Ticket email delivery failed:', error.message))
+          }).catch((error: unknown) => {
+            const message = error instanceof Error ? error.message : String(error);
+            console.warn('Ticket email delivery failed:', message);
+          })
         );
       });
     }
 
     return response;
-  } catch (err: any) {
-    return c.json({ success: false, error: err.message }, 500);
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : String(err);
+    return c.json({ success: false, error: message }, 500);
   }
 });
 
@@ -309,12 +336,14 @@ ticketsRouter.get('/tickets/:id', async (c) => {
     // Demo Mode Ticket
     const demoEvent = DEMO_EVENTS[0];
     const demoSeat = generateDemoSeats(demoEvent.id)[0];
-    const demoTicket = {
+    const demoTicket: TicketRow = {
       id: ticketId,
       event_id: demoEvent.id,
       seat_id: demoSeat.id,
       user_email: 'ana.cliente@verzel.com',
       user_name: 'Ana Cliente',
+      clientId: 'ana.cliente@verzel.com',
+      issuedAt: Date.now(),
       status: 'valid',
       qr_signature: 'demo-signature-valid',
       created_at: new Date().toISOString(),
@@ -323,8 +352,9 @@ ticketsRouter.get('/tickets/:id', async (c) => {
     };
 
     return c.json({ success: true, ticket: demoTicket });
-  } catch (err: any) {
-    return c.json({ success: false, error: err.message }, 500);
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : String(err);
+    return c.json({ success: false, error: message }, 500);
   }
 });
 

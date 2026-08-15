@@ -63,7 +63,12 @@ describe('Server HMAC Cryptography & API Logic Tests', () => {
         paymentOutcome: 'approved'
       })
     });
-    const body = await response.json() as any;
+    const body = (await response.json()) as {
+      success: boolean;
+      paymentStatus: string;
+      tickets: Array<{ id: string; seat_id: string }>;
+      qrCodes: string[];
+    };
 
     expect(response.status).toBe(200);
     expect(body.success).toBe(true);
@@ -87,7 +92,11 @@ describe('Server HMAC Cryptography & API Logic Tests', () => {
         paymentOutcome: 'declined'
       })
     });
-    const body = await response.json() as any;
+    const body = (await response.json()) as {
+      success: boolean;
+      paymentStatus: string;
+      tickets: unknown[];
+    };
 
     expect(response.status).toBe(402);
     expect(body.success).toBe(false);

@@ -32,3 +32,32 @@ export interface SeatItem {
   locked_until?: string | null;
   locked_by?: string | null;
 }
+
+export interface TicketRow {
+  id: string;
+  event_id: string;
+  seat_id: string;
+  user_email: string;
+  user_name: string;
+  clientId: string;
+  issuedAt: number;
+  status: 'valid' | 'used' | 'cancelled';
+  qr_signature: string;
+  created_at: string;
+  used_at?: string | null;
+  events?: EventItem;
+  seats?: SeatItem;
+}
+
+export interface GatekeeperValidationResult {
+  success: boolean;
+  valid: boolean;
+  code: 'VALID' | 'ALREADY_USED' | 'INVALID' | 'WRONG_EVENT';
+  message?: string;
+  error?: string;
+  user_name?: string;
+  event_title?: string;
+  seat?: string;
+  used_at?: string;
+  ticket_event?: string;
+}

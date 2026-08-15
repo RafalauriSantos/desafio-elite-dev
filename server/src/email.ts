@@ -17,9 +17,9 @@ export interface TicketEmail {
 }
 
 export async function sendTicketEmail(env: EmailEnv, ticket: TicketEmail): Promise<void> {
-  const globalProc = typeof globalThis !== 'undefined' ? (globalThis as any).process : undefined;
-  const apiKey = env.RESEND_API_KEY || globalProc?.env?.RESEND_API_KEY || '';
-  const fromEmail = env.RESEND_FROM_EMAIL || globalProc?.env?.RESEND_FROM_EMAIL || 'onboarding@resend.dev';
+  const globalObj = globalThis as unknown as { process?: { env?: Record<string, string> } };
+  const apiKey = env.RESEND_API_KEY || globalObj.process?.env?.RESEND_API_KEY || '';
+  const fromEmail = env.RESEND_FROM_EMAIL || globalObj.process?.env?.RESEND_FROM_EMAIL || 'onboarding@resend.dev';
 
   if (!apiKey) {
     console.log(`[Resend Simulated] Ticket email queued for ${ticket.to} (${ticket.eventTitle}) - RESEND_API_KEY not configured.`);
@@ -201,8 +201,9 @@ export async function sendTicketEmail(env: EmailEnv, ticket: TicketEmail): Promi
     } else {
       console.log(`[Resend Success] Real ticket email sent to ${ticket.to} for ${eventTitle}`);
     }
-  } catch (err: any) {
-    console.warn(`[Resend Network Error] ${err.message}`);
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : String(err);
+    console.warn(`[Resend Network Error] ${message}`);
   }
 }
 

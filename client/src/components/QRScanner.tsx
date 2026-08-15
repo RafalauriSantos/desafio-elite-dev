@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Html5Qrcode } from 'html5-qrcode';
-import { api } from '../lib/api';
+import { api, GatekeeperValidationResult, TicketItem } from '../lib/api';
 import {
   Camera,
   Keyboard,
@@ -13,7 +13,7 @@ import {
 } from 'lucide-react';
 
 interface QRScannerProps {
-  onResult: (result: any) => void;
+  onResult: (result: GatekeeperValidationResult) => void;
   targetEventId?: string;
 }
 
@@ -31,7 +31,7 @@ export const QRScanner: React.FC<QRScannerProps> = ({ onResult, targetEventId = 
     valid: boolean;
     code: string;
     message: string;
-    ticket?: any;
+    ticket?: TicketItem;
   } | null>(null);
 
   const html5QrCodeRef = useRef<Html5Qrcode | null>(null);
@@ -42,7 +42,7 @@ export const QRScanner: React.FC<QRScannerProps> = ({ onResult, targetEventId = 
   // Helper Web Audio synthesizer for clean audio feedback
   const playBeep = (valid: boolean) => {
     try {
-      const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
+      const AudioCtx = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
       if (!AudioCtx) return;
       const ctx = new AudioCtx();
 
@@ -124,7 +124,7 @@ export const QRScanner: React.FC<QRScannerProps> = ({ onResult, targetEventId = 
       } else {
         await startMobileCamera();
       }
-    } catch (err: any) {
+    } catch {
       setCameraError('Permissão de câmera não concedida. Use o modo manual ou envie uma imagem.');
     }
   };
@@ -183,10 +183,11 @@ export const QRScanner: React.FC<QRScannerProps> = ({ onResult, targetEventId = 
         setIsScanning(true);
         setCameraError(null);
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       if (mountedRef.current) {
         setIsScanning(false);
-        setCameraError('Erro ao iniciar câmera: ' + (err.message || err));
+        const message = err instanceof Error ? err.message : String(err);
+        setCameraError('Erro ao iniciar câmera: ' + message);
       }
     }
   };
@@ -216,7 +217,7 @@ export const QRScanner: React.FC<QRScannerProps> = ({ onResult, targetEventId = 
       const decodedText = await html5QrCode.scanFile(file, true);
       await html5QrCode.clear();
       await handleValidate(decodedText);
-    } catch (err: any) {
+    } catch {
       setCameraError('Não foi possível identificar o QR Code na imagem fornecida.');
     } finally {
       setLoading(false);
@@ -273,22 +274,23 @@ export const QRScanner: React.FC<QRScannerProps> = ({ onResult, targetEventId = 
       setTimeout(() => {
         setActiveOverlay(null);
       }, 3500);
-    } catch (err: any) {
+    } catch (err: unknown) {
       playBeep(false);
       try {
         navigator.vibrate?.([100, 50, 100]);
       } catch {}
+      const message = err instanceof Error ? err.message : 'Falha na validação do QR Code.';
       setActiveOverlay({
         valid: false,
         code: 'INVALID',
-        message: err.message || 'Falha na validação do QR Code.',
+        message,
       });
 
       onResult({
         success: false,
         valid: false,
         code: 'INVALID',
-        error: err.message || 'Falha na validação do QR Code.',
+        error: message,
       });
 
       setTimeout(() => {

@@ -53,6 +53,33 @@ export interface TicketItem {
   seats?: Partial<SeatItem>;
 }
 
+export interface ExternalCatalogItem {
+  externalId: string;
+  source: 'tmdb' | 'ticketmaster';
+  type: 'movie' | 'show';
+  title: string;
+  description: string;
+  banner_url: string;
+  category: string;
+  venue?: string;
+  date?: string;
+  price?: number;
+}
+
+export interface GatekeeperValidationResult {
+  success: boolean;
+  valid: boolean;
+  code?: 'VALID' | 'ALREADY_USED' | 'INVALID' | 'WRONG_EVENT' | string;
+  message?: string;
+  error?: string;
+  user_name?: string;
+  event_title?: string;
+  seat?: string;
+  used_at?: string;
+  ticket_event?: string;
+  ticket?: TicketItem;
+}
+
 // In-Memory Storage for Standalone Demo Fallback & Rich Catalog
 const MOCK_EVENTS: EventItem[] = [
   {
@@ -368,8 +395,16 @@ export const api = {
     }
 
     try {
-      let parsed: any;
-      let rawString = qrData.trim();
+      let parsed: {
+        ticketId?: string;
+        eventId?: string;
+        seatId?: string;
+        clientId?: string;
+        userEmail?: string;
+        user_name?: string;
+        signature?: string;
+      } = {};
+      const rawString = qrData.trim();
 
       // Check if user pasted a link like http://.../?ticket=UUID or #ticket-UUID
       if (rawString.includes('ticket=')) {
@@ -386,6 +421,8 @@ export const api = {
           parsed = { ticketId: rawString };
         }
       }
+
+      if (!parsed) parsed = {};
 
       const stored = getStoredTickets();
       const targetId = parsed.ticketId || rawString;
@@ -520,18 +557,18 @@ export const api = {
   },
 
   // 8. Fetch External Catalog (TMDb / Ticketmaster search list for organizers)
-  async fetchExternalCatalog(source: string = 'tmdb', query: string = ''): Promise<any[]> {
+  async fetchExternalCatalog(source: string = 'tmdb', query: string = ''): Promise<ExternalCatalogItem[]> {
     try {
       const res = await fetch(`${API_BASE_URL}/api/external-catalog?source=${source}&query=${encodeURIComponent(query)}`);
       if (res.ok) {
         const json = await res.json();
-        if (json.success && json.results) return json.results;
+        if (json.success && json.results) return json.results as ExternalCatalogItem[];
       }
     } catch {
       console.warn('API external-catalog offline, using fallback list.');
     }
 
-    const fullList = [
+    const fullList: ExternalCatalogItem[] = [
       {
         externalId: 'tmdb-1',
         source: 'tmdb',
@@ -687,7 +724,7 @@ export const api = {
   },
 
   // 9. Bulk Import Events (TMDb / Ticketmaster)
-  async bulkImportEvents(items: any[]): Promise<{ success: boolean; events?: EventItem[]; message?: string }> {
+  async bulkImportEvents(items: ExternalCatalogItem[]): Promise<{ success: boolean; events?: EventItem[]; message?: string }> {
     try {
       const authHeaders = await getAuthHeaders();
       const res = await fetch(`${API_BASE_URL}/api/events/bulk-import`, {
@@ -712,7 +749,7 @@ export const api = {
       description: item.description || 'Evento importado via catálogo externo.',
       venue: item.venue || (item.source === 'tmdb' ? 'Cine Multiplex IMAX - São Paulo, SP' : 'Allianz Parque - São Paulo, SP'),
       date: item.date || new Date(Date.now() + 86400000 * 30).toISOString(),
-      price: item.price ? parseFloat(item.price) : (item.source === 'tmdb' ? 45.00 : 250.00),
+      price: typeof item.price === 'number' ? item.price : (item.price ? parseFloat(item.price) : (item.source === 'tmdb' ? 45.00 : 250.00)),
       banner_url: item.banner_url || 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&w=1200&q=80'
     }));
 
