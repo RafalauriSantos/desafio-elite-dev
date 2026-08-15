@@ -64,7 +64,7 @@ export const EmailPreviewModal: React.FC<EmailPreviewModalProps> = ({
       <div className="bg-zinc-900/80 p-3.5 rounded-2xl border border-zinc-800 space-y-1 text-xs">
         <div className="flex justify-between">
           <span className="text-zinc-500 font-medium">De:</span>
-          <span className="text-zinc-300 font-medium">confirmacao@elitetickets.com.br</span>
+          <span className="text-zinc-300 font-medium">Elite Tickets &lt;confirmacao@elitetickets.com.br&gt;</span>
         </div>
         <div className="flex justify-between">
           <span className="text-zinc-500 font-medium">Para:</span>

@@ -179,6 +179,8 @@ export async function sendTicketEmail(env: EmailEnv, ticket: TicketEmail): Promi
   `;
 
   try {
+    const senderField = fromEmail.includes('<') ? fromEmail : `Elite Tickets <${fromEmail}>`;
+
     const response = await fetch('https://api.resend.com/emails', {
       method: 'POST',
       headers: {
@@ -186,7 +188,7 @@ export async function sendTicketEmail(env: EmailEnv, ticket: TicketEmail): Promi
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        from: fromEmail,
+        from: senderField,
         to: [ticket.to],
         subject: `Ingresso: ${eventTitle} — Elite Tickets`,
         html: htmlContent
