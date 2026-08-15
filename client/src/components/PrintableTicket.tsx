@@ -59,7 +59,7 @@ export const PrintableTicket: React.FC<PrintableTicketProps> = ({ ticket, qrData
   const seatNumberPadded = String(seat.seat_number).padStart(2, '0');
 
   return (
-    <div className="printable-ticket-area bg-white text-zinc-950 rounded-[32px] border border-zinc-200 shadow-xl p-6 sm:p-7 max-w-[380px] mx-auto space-y-4 font-sans print:max-w-none print:w-full print:border-2 print:shadow-none">
+    <div className="printable-ticket-area bg-white text-zinc-950 rounded-[32px] border border-zinc-200 shadow-xl p-6 sm:p-7 max-w-[380px] mx-auto space-y-4 font-sans print:shadow-none print:mx-auto">
       {/* Top Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2.5">
