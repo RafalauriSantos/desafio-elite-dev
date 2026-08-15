@@ -62,9 +62,75 @@ Se você preferir testar via tela de login tradicional, os seguintes usuários j
 
 ---
 
-## 🗄️ Banco de Dados e Configuração
+## 🗄️ Banco de Dados & Arquitetura de Concorrência
 
-O projeto utiliza **PostgreSQL** hospedado no Supabase. Toda a estrutura de tabelas, índices e Stored Procedures em PL/pgSQL está versionada no arquivo [`supabase/schema.sql`](supabase/schema.sql). 
+O projeto utiliza **PostgreSQL** hospedado no Supabase, projetado com **Defesa em Profundidade em 2 Camadas** para garantir integridade transacional absoluta e zero overbooking. Toda a estrutura e Stored Procedures estão versionadas no arquivo [`supabase/schema.sql`](supabase/schema.sql).
+
+### 📊 Diagrama Entidade-Relacionamento (ERD)
+
+```mermaid
+erDiagram
+    PROFILES {
+        uuid id PK
+        varchar email UK
+        varchar role "organizer | client | gatekeeper"
+        timestamptz created_at
+    }
+
+    EVENTS {
+        uuid id PK
+        varchar title
+        text description
+        varchar venue
+        timestamptz date
+        numeric price "Preço base"
+        text banner_url
+        uuid organizer_id FK
+        timestamptz created_at
+    }
+
+    SEATS {
+        uuid id PK
+        uuid event_id FK
+        varchar row_name "Fileira (A..H)"
+        integer seat_number "Número (1..10)"
+        varchar category "VIP | Premium | Standard"
+        numeric price "Preço do setor"
+        varchar status "available | locked | sold"
+        timestamptz locked_until "TTL de 10 min"
+        varchar locked_by "E-mail do comprador"
+    }
+
+    TICKETS {
+        uuid id PK
+        uuid event_id FK
+        uuid seat_id FK "Índice Único Parcial (Anti-Overbooking)"
+        varchar user_email
+        varchar user_name
+        varchar status "valid | used | cancelled"
+        text qr_signature "HMAC-SHA256"
+        timestamptz created_at
+        timestamptz used_at
+    }
+
+    PROFILES ||--o{ EVENTS : "gerencia"
+    EVENTS ||--|{ SEATS : "possui matriz de 80"
+    EVENTS ||--o{ TICKETS : "emite"
+    SEATS ||--o| TICKETS : "reserva única"
+```
+
+### 🛡️ Pilares de Segurança & Integridade de Dados:
+1. **Pessimistic Locking (`SELECT ... FOR UPDATE`):** Na Stored Procedure `reserve_ticket_atomic`, as poltronas são bloqueadas no nível de linha, serializando requisições simultâneas e evitando *race conditions*.
+2. **Prevenção de Deadlocks (`ORDER BY 1 ASC`):** Na reserva em lote (`reserve_tickets_batch_atomic`), os IDs dos assentos são ordenados de forma determinística antes de adquirir as travas.
+3. **Anti-Overbooking no Nível de DDL (Índice Único Parcial):**
+   ```sql
+   CREATE UNIQUE INDEX idx_unique_active_ticket_seat 
+   ON public.tickets (seat_id) 
+   WHERE status IN ('valid', 'used');
+   ```
+   *Garante matematicamente que, mesmo se houver um `INSERT` direto no banco, nunca existirão dois ingressos ativos para o mesmo assento.*
+4. **Validação Atômica na Portaria:** A Stored Procedure `validate_ticket_gatekeeper` processa atomicamente a máquina de 4 estados (`VALID`, `ALREADY_USED`, `INVALID`, `WRONG_EVENT`).
+5. **Row Level Security (RLS) Default Deny:** Nenhuma alteração de escrita pode ser feita diretamente via API pública; todas as mutações passam pelas Stored Procedures com `SECURITY DEFINER`.
 
 ---
 
