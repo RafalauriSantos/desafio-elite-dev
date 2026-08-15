@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import { TicketItem } from '../lib/api';
-import { Calendar, MapPin, Check, Printer, CalendarPlus, Share2, CheckCircle2, ShieldCheck } from 'lucide-react';
+import { Calendar, MapPin, Check, Printer, CalendarPlus, Share2, CheckCircle2, ShieldCheck, Copy } from 'lucide-react';
 import { PrintableTicket } from './PrintableTicket';
 import { buildGoogleCalendarUrl, buildTicketShareLink, buildTicketQrPayload } from '../lib/ticketUtils';
 
@@ -12,6 +12,7 @@ interface TicketCardProps {
 
 export const TicketCard: React.FC<TicketCardProps> = ({ ticket, qrData }) => {
   const [copiedLink, setCopiedLink] = useState(false);
+  const [copiedPayload, setCopiedPayload] = useState(false);
 
   const event = ticket.events || {
     title: 'Evento Oficial Elite Tickets',
@@ -45,6 +46,12 @@ export const TicketCard: React.FC<TicketCardProps> = ({ ticket, qrData }) => {
     navigator.clipboard.writeText(link);
     setCopiedLink(true);
     setTimeout(() => setCopiedLink(false), 2500);
+  };
+
+  const handleCopyPayload = () => {
+    navigator.clipboard.writeText(finalQrString);
+    setCopiedPayload(true);
+    setTimeout(() => setCopiedPayload(false), 2500);
   };
 
   const handlePrint = () => {
@@ -164,6 +171,26 @@ export const TicketCard: React.FC<TicketCardProps> = ({ ticket, qrData }) => {
               </div>
             )}
           </div>
+
+          {/* Quick Copy for Manual Gatekeeper Validation */}
+          <button
+            type="button"
+            onClick={handleCopyPayload}
+            className="w-full py-2.5 px-4 rounded-2xl bg-zinc-900/90 hover:bg-zinc-800/90 border border-zinc-700/80 hover:border-emerald-500/50 text-zinc-300 hover:text-white text-xs font-semibold flex items-center justify-center gap-2 transition-all active:scale-[0.98] shadow-sm"
+            title="Copiar código/payload para colar na portaria no modo manual"
+          >
+            {copiedPayload ? (
+              <>
+                <Check className="w-4 h-4 text-emerald-400" />
+                <span className="text-emerald-400 font-bold">Código Copiado para a Portaria!</span>
+              </>
+            ) : (
+              <>
+                <Copy className="w-4 h-4 text-cyan-400" />
+                <span>Copiar Código p/ Portaria (Manual)</span>
+              </>
+            )}
+          </button>
 
           {/* Prioritized, Clean Action Buttons */}
           <div className="pt-3 border-t border-zinc-800/80 flex items-center justify-between gap-2">

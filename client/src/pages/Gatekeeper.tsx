@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { QRScanner } from '../components/QRScanner';
+import React, { useState, useEffect, useRef } from 'react';
+import { QRScanner, QRScannerHandle } from '../components/QRScanner';
 import { CheckCircle2, Clock, ChevronDown, ChevronUp, Sliders, PlayCircle } from 'lucide-react';
 import { api, EventItem, GatekeeperValidationResult } from '../lib/api';
 
@@ -9,6 +9,7 @@ export const Gatekeeper: React.FC = () => {
   const [history, setHistory] = useState<Array<{ timestamp: string; status: 'valid' | 'invalid'; details: string }>>([]);
   const [showTestPresets, setShowTestPresets] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
+  const scannerRef = useRef<QRScannerHandle>(null);
 
   useEffect(() => {
     loadEvents();
@@ -101,12 +102,16 @@ export const Gatekeeper: React.FC = () => {
       });
     }
 
-    try {
-      const res = await api.validateTicket(payload, selectedTargetEventId);
-      handleResult(res);
-    } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Falha na validação';
-      handleResult({ success: false, valid: false, code: 'INVALID', error: message });
+    if (scannerRef.current) {
+      await scannerRef.current.validate(payload);
+    } else {
+      try {
+        const res = await api.validateTicket(payload, selectedTargetEventId);
+        handleResult(res);
+      } catch (err: unknown) {
+        const message = err instanceof Error ? err.message : 'Falha na validação';
+        handleResult({ success: false, valid: false, code: 'INVALID', error: message });
+      }
     }
   };
 
@@ -147,7 +152,7 @@ export const Gatekeeper: React.FC = () => {
       </div>
 
       {/* Main Focus: The Scanner */}
-      <QRScanner targetEventId={selectedTargetEventId} onResult={handleResult} />
+      <QRScanner ref={scannerRef} targetEventId={selectedTargetEventId} onResult={handleResult} />
 
       {/* Accordion: Simulador de 4 Estados do Edital (Verzel QA) */}
       <div className="bg-[#111113] rounded-2xl border border-zinc-800/80 overflow-hidden shadow-sm">

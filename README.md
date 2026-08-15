@@ -4,11 +4,9 @@ Plataforma de ponta a ponta para publicação de eventos, seleção de assentos 
 
 ---
 
-## 🔗 Links em Produção
+## 🔗 Aplicação no Ar
 
-- 💻 **Aplicação Web:** [https://elite-tickets.pages.dev](https://elite-tickets.pages.dev)
-- ⚙️ **API Serverless:** [https://elite-tickets-api.agenddar.workers.dev](https://elite-tickets-api.agenddar.workers.dev)
-- 📦 **Repositório:** [https://github.com/RafalauriSantos/desafio-elite-dev](https://github.com/RafalauriSantos/desafio-elite-dev)
+- 💻 **Acessar Sistema:** [https://elite-tickets.pages.dev](https://elite-tickets.pages.dev)
 
 ---
 
@@ -26,12 +24,11 @@ O seletor de personas no topo da tela permite testar todos os fluxos sem necessi
    - Mude para a persona **"Organizador"** $\rightarrow$ clique em **"Publicar evento"**.
    - Cadastre manualmente ou importe atrações em lote via catálogo **TMDb / Ticketmaster**.
 
-### Usuários Pré-Configurados (Seed Data)
-| Papel | E-mail | Permissões |
+### Usuários de Demonstração (3 Personas)
+| Papel | E-mail de Teste | Permissões |
 | :--- | :--- | :--- |
 | **Organizador** | `organizador@verzel.com` | Publicação e importação de eventos |
-| **Cliente 1** | `ana.cliente@verzel.com` | Reserva e compra de ingressos |
-| **Cliente 2** | `bruno.cliente@verzel.com` | Reserva e compra de ingressos |
+| **Cliente** | `ana.cliente@verzel.com` | Reserva e compra de ingressos |
 | **Portaria** | `portaria@verzel.com` | Validação de entradas na portaria |
 
 ---
@@ -47,37 +44,16 @@ O seletor de personas no topo da tela permite testar todos os fluxos sem necessi
 
 ---
 
-## 🏗️ Arquitetura do Sistema (Visão Geral)
+## 🗄️ Modelo de Dados (PostgreSQL / Supabase)
 
-Toda a infraestrutura do projeto opera em arquitetura desacoplada e distribuída na borda:
+Toda a estrutura de tabelas, índices e Stored Procedures em PL/pgSQL está versionada em [`supabase/schema.sql`](supabase/schema.sql).
 
-```mermaid
-flowchart TB
-    subgraph CLIENT["🌐 FRONT-END (Cloudflare Pages)"]
-        direction LR
-        UI["🎨 React 18 + Tailwind<br/><b>Persona Switcher</b>"]
-        QR["📷 Scanner Portaria<br/><b>html5-qrcode</b>"]
-    end
-
-    subgraph WORKER["⚡ BACK-END EDGE (Cloudflare Workers)"]
-        direction LR
-        HONO["🚀 <b>Hono.js API</b><br/>Latência &lt; 50ms"]
-        HMAC["🛡️ <b>Web Crypto API</b><br/>HMAC-SHA256"]
-    end
-
-    subgraph DB["🗄️ BANCO DE DADOS (PostgreSQL / Supabase)"]
-        direction TB
-        RPC_LOCK["🔒 <b>reserve_ticket_atomic</b><br/>SELECT ... FOR UPDATE"]
-        RPC_GATE["🎟️ <b>validate_ticket_gatekeeper</b><br/>Máquina de 4 Estados"]
-        DDL_IDX["🛡️ <b>idx_unique_active_ticket_seat</b><br/>Índice Único Parcial (Zero Overbooking)"]
-    end
-
-    UI -->|"1. Reserva & Checkout"| HONO
-    HONO -->|"2. Pessimistic Lock"| RPC_LOCK
-    RPC_LOCK -->|"3. Trava no Disco"| DDL_IDX
-    HONO -->|"4. Assina Ingresso"| HMAC
-    QR -->|"5. Validação de QR"| RPC_GATE
-```
+| Tabela | Descrição | Colunas Principais | Chaves & Constraints |
+| :--- | :--- | :--- | :--- |
+| **`profiles`** | Contas de usuário | `id`, `email`, `name`, `role`, `created_at` | `id PK`, `email UNIQUE` |
+| **`events`** | Eventos e shows | `id`, `organizer_id`, `title`, `venue`, `date`, `price`, `banner_url` | `id PK`, `organizer_id FK (profiles)` |
+| **`seats`** | Matriz de 80 assentos | `id`, `event_id`, `row_name`, `seat_number`, `category`, `price`, `status`, `locked_until` | `id PK`, `event_id FK (events)` |
+| **`tickets`** | Ingressos emitidos | `id`, `event_id`, `seat_id`, `user_email`, `user_name`, `status`, `qr_signature`, `used_at` | `id PK`, `seat_id FK (Índice Único Parcial)` |
 
 ---
 

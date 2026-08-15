@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, forwardRef, useImperativeHandle } from 'react';
 import { Html5Qrcode } from 'html5-qrcode';
 import { api, GatekeeperValidationResult, TicketItem } from '../lib/api';
 import {
@@ -12,12 +12,16 @@ import {
   Sparkles,
 } from 'lucide-react';
 
+export interface QRScannerHandle {
+  validate: (qrText: string) => Promise<void>;
+}
+
 interface QRScannerProps {
   onResult: (result: GatekeeperValidationResult) => void;
   targetEventId?: string;
 }
 
-export const QRScanner: React.FC<QRScannerProps> = ({ onResult, targetEventId = 'all' }) => {
+export const QRScanner = forwardRef<QRScannerHandle, QRScannerProps>(({ onResult, targetEventId = 'all' }, ref) => {
   const [mode, setMode] = useState<'camera' | 'manual'>('manual');
   const [manualInput, setManualInput] = useState('');
   const [loading, setLoading] = useState(false);
@@ -301,6 +305,10 @@ export const QRScanner: React.FC<QRScannerProps> = ({ onResult, targetEventId = 
     }
   };
 
+  useImperativeHandle(ref, () => ({
+    validate: handleValidate,
+  }));
+
   return (
     <div className="w-full bg-[#111113] rounded-3xl border border-zinc-800 p-5 space-y-4 shadow-2xl relative overflow-hidden">
       {/* HUD Heads-Up Result Alert */}
@@ -410,23 +418,46 @@ export const QRScanner: React.FC<QRScannerProps> = ({ onResult, targetEventId = 
           )}
 
           {/* Camera Viewport & Scan Target Overlay */}
-          <div className="relative w-full max-w-md rounded-2xl overflow-hidden border border-zinc-800 bg-zinc-950 min-h-[260px] flex items-center justify-center shadow-inner">
-            <div id="qr-reader-viewport" className="w-full h-full min-h-[260px]" />
+          <div className="relative w-full max-w-md rounded-3xl overflow-hidden border border-zinc-700/60 bg-zinc-950 min-h-[280px] flex items-center justify-center shadow-2xl">
+            <div id="qr-reader-viewport" className="w-full h-full min-h-[280px]" />
 
-            {/* Glowing Laser Scan Animation Overlay */}
+            {/* Glowing Laser Scan & HUD Corner Reticles */}
             {isScanning && (
-              <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-                <div className="w-52 h-52 border-2 border-emerald-400 rounded-2xl relative overflow-hidden shadow-[0_0_20px_rgba(16,185,129,0.4)]">
-                  <div className="w-full h-0.5 bg-emerald-400 shadow-[0_0_12px_#10b981] animate-[bounce_2s_infinite]" />
+              <div className="pointer-events-none absolute inset-0 flex items-center justify-center p-6">
+                {/* Top Floating HUD Status */}
+                <div className="absolute top-3 inset-x-0 flex justify-center">
+                  <div className="px-3 py-1 rounded-full bg-zinc-950/80 backdrop-blur-md border border-emerald-500/30 flex items-center gap-2 text-[10px] font-mono font-bold text-emerald-400 shadow-md">
+                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
+                    <span>SCANNER ÓPTICO ATIVO • 60 FPS</span>
+                  </div>
+                </div>
+
+                {/* Cyberpunk High-Precision Target Frame */}
+                <div className="w-56 h-56 relative rounded-2xl">
+                  {/* 4 Precision Corner Brackets */}
+                  <div className="absolute top-0 left-0 w-7 h-7 border-t-[3px] border-l-[3px] border-emerald-400 rounded-tl-xl shadow-[0_0_10px_rgba(16,185,129,0.5)]" />
+                  <div className="absolute top-0 right-0 w-7 h-7 border-t-[3px] border-r-[3px] border-emerald-400 rounded-tr-xl shadow-[0_0_10px_rgba(16,185,129,0.5)]" />
+                  <div className="absolute bottom-0 left-0 w-7 h-7 border-b-[3px] border-l-[3px] border-emerald-400 rounded-bl-xl shadow-[0_0_10px_rgba(16,185,129,0.5)]" />
+                  <div className="absolute bottom-0 right-0 w-7 h-7 border-b-[3px] border-r-[3px] border-emerald-400 rounded-br-xl shadow-[0_0_10px_rgba(16,185,129,0.5)]" />
+
+                  {/* Center Subtle Crosshair */}
+                  <div className="absolute inset-0 flex items-center justify-center opacity-30">
+                    <div className="w-4 h-0.5 bg-emerald-400" />
+                    <div className="w-0.5 h-4 bg-emerald-400 absolute" />
+                  </div>
+
+                  {/* Sweeping Laser Line */}
+                  <div className="absolute inset-x-0 h-0.5 bg-gradient-to-r from-transparent via-emerald-400 to-transparent shadow-[0_0_14px_#10b981] animate-[bounce_2.2s_infinite]" />
                 </div>
               </div>
             )}
 
             {cameraError && (
-              <div className="p-5 text-center space-y-2.5">
-                <AlertCircle className="w-8 h-8 text-amber-400 mx-auto" />
+              <div className="p-6 text-center space-y-3 z-10">
+                <AlertCircle className="w-9 h-9 text-amber-400 mx-auto" />
                 <p className="text-xs text-zinc-400 max-w-xs leading-relaxed">{cameraError}</p>
                 <button
+                  type="button"
                   onClick={() => void startMobileCamera()}
                   className="px-4 py-2 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-white text-xs font-semibold inline-flex items-center gap-1.5 transition-colors"
                 >
@@ -436,8 +467,9 @@ export const QRScanner: React.FC<QRScannerProps> = ({ onResult, targetEventId = 
             )}
           </div>
 
-          <p className="text-xs text-zinc-400 font-medium text-center">
-            Aponte a câmera para o QR Code do visitante para validar instantaneamente.
+          <p className="text-xs text-zinc-400 font-medium text-center flex items-center justify-center gap-1.5">
+            <Sparkles className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+            <span>Centralize o QR Code no retângulo de foco para validação instantânea.</span>
           </p>
         </div>
       ) : (
@@ -468,4 +500,6 @@ export const QRScanner: React.FC<QRScannerProps> = ({ onResult, targetEventId = 
       )}
     </div>
   );
-};
+});
+
+QRScanner.displayName = 'QRScanner';
