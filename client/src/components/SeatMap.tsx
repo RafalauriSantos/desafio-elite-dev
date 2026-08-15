@@ -1,6 +1,5 @@
 import React from 'react';
 import { SeatItem } from '../lib/api';
-import { Sparkles, Flame } from 'lucide-react';
 
 interface SeatMapProps {
   seats: SeatItem[];
@@ -19,42 +18,29 @@ export const SeatMap: React.FC<SeatMapProps> = ({
 
   const totalSeats = seats.length;
   const availableSeats = seats.filter((s) => s.status === 'available').length;
-  const availableVip = seats.filter((s) => s.status === 'available' && s.category === 'VIP').length;
   const occupancyPct = totalSeats > 0 ? Math.round(((totalSeats - availableSeats) / totalSeats) * 100) : 0;
 
   return (
-    <div className="w-full bg-[#111113] p-4 sm:p-8 rounded-2xl border border-zinc-800 space-y-6 shadow-2xl relative overflow-hidden">
-      {/* Dynamic Occupancy & Urgência Indicator */}
-      <div className="flex flex-wrap items-center justify-between gap-3 text-xs border-b border-zinc-800/80 pb-4">
-        <div className="flex items-center gap-2">
-          <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-950/40 border border-amber-800/50 text-amber-300 font-semibold">
-            <Flame className="w-3.5 h-3.5 text-amber-400 animate-pulse" />
-            <span>{occupancyPct}% Reservado ({totalSeats - availableSeats}/{totalSeats})</span>
-          </div>
-          {availableVip > 0 && (
-            <div className="hidden sm:flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-950/40 border border-emerald-800/50 text-emerald-300 font-medium">
-              <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
-              <span>Apenas {availableVip} VIPs restantes</span>
-            </div>
-          )}
-        </div>
-
-        <div className="flex items-center gap-2 text-zinc-400 font-mono text-[11px]">
-          <span className="inline-block w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
-          <span>Lock Pessimista Ativo</span>
-        </div>
+    <div className="w-full bg-[#111113] p-4 sm:p-7 rounded-2xl border border-zinc-800 space-y-5 shadow-xl relative overflow-hidden">
+      {/* Clean Minimalist Occupancy Bar (Zero Blinking LEDs) */}
+      <div className="flex items-center justify-between text-xs text-zinc-400 border-b border-zinc-800/80 pb-3">
+        <span className="font-medium text-zinc-300">
+          {totalSeats - availableSeats} de {totalSeats} assentos ocupados ({occupancyPct}%)
+        </span>
+        <span className="text-[11px] font-mono text-zinc-500">
+          Mapa de Assentos
+        </span>
       </div>
 
-      {/* Stage indicator with neon light glow */}
-      <div className="text-center space-y-2 relative">
-        <div className="mx-auto max-w-lg py-2.5 rounded-b-3xl bg-gradient-to-b from-zinc-800/80 to-zinc-900/60 border-b-2 border-emerald-500 shadow-[0_10px_30px_rgba(16,185,129,0.15)] relative overflow-hidden">
-          <div className="absolute inset-x-0 bottom-0 h-0.5 bg-gradient-to-r from-transparent via-emerald-400 to-transparent" />
-          <span className="text-[11px] sm:text-xs uppercase tracking-widest font-bold text-zinc-200">
+      {/* Stage indicator with subtle, clean styling */}
+      <div className="text-center space-y-1 relative">
+        <div className="mx-auto max-w-md py-2 rounded-b-2xl bg-zinc-800/40 border-b-2 border-emerald-500/80 relative overflow-hidden">
+          <span className="text-[11px] uppercase tracking-widest font-bold text-zinc-200">
             PALCO / TELÃO PRINCIPAL
           </span>
         </div>
         <p className="sm:hidden text-[10px] text-zinc-500 font-mono">
-          Deslize lateralmente para explorar todas as fileiras ↔
+          Deslize lateralmente para ver todas as poltronas ↔
         </p>
       </div>
 
@@ -135,7 +121,7 @@ export const SeatMap: React.FC<SeatMapProps> = ({
         </div>
 
         <span className="text-[11px] text-zinc-500 font-mono hidden md:inline">
-          Garantia de Não-Dupla Venda (SELECT FOR UPDATE)
+          Reserva Atômica
         </span>
       </div>
     </div>
