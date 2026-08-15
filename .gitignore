@@ -36,3 +36,9 @@ Thumbs.db
 *INTERVIEW*
 INTERVIEW_PREP.md
 docs/INTERVIEW_*.md
+
+# Testes e Imagens Temporárias
+__pycache__/
+*.pyc
+tests/__pycache__/
+tests/screenshots*/
