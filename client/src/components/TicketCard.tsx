@@ -49,7 +49,8 @@ export const TicketCard: React.FC<TicketCardProps> = ({ ticket, qrData }) => {
   };
 
   const handleCopyPayload = () => {
-    navigator.clipboard.writeText(finalQrString);
+    const codeToCopy = ticket.id || finalQrString;
+    navigator.clipboard.writeText(codeToCopy);
     setCopiedPayload(true);
     setTimeout(() => setCopiedPayload(false), 2500);
   };

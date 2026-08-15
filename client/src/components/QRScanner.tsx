@@ -478,7 +478,14 @@ export const QRScanner = forwardRef<QRScannerHandle, QRScannerProps>(({ onResult
             rows={3}
             value={manualInput}
             onChange={(e) => setManualInput(e.target.value)}
-            placeholder='Cole o payload JSON, código do bilhete ou hash HMAC assinado...'
+            onPaste={(e) => {
+              const pasted = e.clipboardData?.getData('text') || '';
+              if (pasted.trim()) {
+                setManualInput(pasted.trim());
+                void handleValidate(pasted.trim());
+              }
+            }}
+            placeholder="Cole o código do ingresso aqui (validação instantânea automática ao colar)..."
             className="w-full bg-zinc-900/80 border border-zinc-700/80 rounded-2xl p-4 text-xs text-zinc-200 font-mono placeholder-zinc-600 outline-none focus:border-emerald-500 transition-all resize-none"
           />
 
