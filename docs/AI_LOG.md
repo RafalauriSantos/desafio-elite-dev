@@ -1,29 +1,29 @@
-# Relatório de Transparência no Uso de IA (AI_LOG.md)
+# 🤖 Transparência e Uso de IA — Desafio Elite Dev
 
-**Projeto:** Desafio Elite Dev 2026 (Verzel)  
 **Candidato:** Rafael Lauri  
-**Data:** Agosto / 2026  
+**Projeto:** Elite Tickets  
 
 ---
 
-## 🛠️ Ferramentas Utilizadas
-- **Antigravity AI (Google DeepMind) / Claude:** Auxílio no planejamento de arquitetura, estruturação formal do PRD, geração de schema SQL base, diagramação do grafo de conhecimento (Graphify), automação de testes de concorrência e auditoria de requisitos do edital da Verzel.
+## 🎯 Como usei IA neste projeto
+
+O próprio enunciado do desafio destacou que valoriza o uso consciente de IA, e não a geração automática de soluções genéricas sem critério (*AI Slop*). 
+
+Minha postura foi utilizar IA como um **assistente de alta produtividade**, mantendo total autoria e controle sobre a arquitetura, regras de negócio e decisões de design.
 
 ---
 
-## 🎯 Divisão de Responsabilidades
+## ⚡ Onde usei IA para acelerar:
+- **Setup e Boilerplate:** Criação das configurações iniciais de `wrangler.toml`, `vite.config.ts`, `tailwind.config.js` e definições básicas de tipos TypeScript.
+- **Estruturação de Testes:** Apoio na escrita do esqueleto de testes unitários com Vitest e cenários de automação com Playwright.
+- **Indexação de Conhecimento:** Criação do grafo de arquitetura com Graphify para documentar relações entre módulos.
 
-### 🤖 Gerado com Auxílio de IA:
-- **Boilerplate e Tipagens Base:** Criação inicial dos arquivos de configuração (`wrangler.toml`, `package.json`, `vite.config.ts`, `tailwind.config.js`) e das interfaces TypeScript correspondentes às tabelas relacionais (`EventItem`, `SeatItem`, `TicketItem`).
-- **Scripts de Automação de Testes de Caos:** Auxílio na estruturação dos 18 cenários da suíte de teste de concorrência massiva (`tests/qa_all_scenarios_suite.mjs`).
-- **Pipeline CI/CD:** Configuração dos workflows do GitHub Actions com jobs encadeados para Gitleaks, TypeCheck, Vitest e deploy automatizado na Cloudflare.
-- **Mapeamento do Grafo (Graphify):** Geração e indexação do "segundo cérebro" do projeto em 312 nós e 408 arestas interconectadas.
+---
 
-### ✋ Engenharia e Implementação Manual:
-- **Trava de Concorrência Pessimista (`FOR UPDATE`):** Desenvolvimento da Stored Procedure em PL/pgSQL (`reserve_ticket_atomic`) com bloqueio ordenado de linha por ID (`ORDER BY id ASC`), eliminando deadlocks e duplas vendas em cenários de alta concorrência.
-- **Assinatura Criptográfica HMAC-SHA256:** Criação do módulo `server/src/crypto.ts` usando a Web Crypto API para geração e conferência de assinaturas de ingressos na borda (Edge).
-- **Validação de Entrada na Portaria:** Criação da função atômica `validate_ticket_gatekeeper` para tratamento dos 4 estados do edital (`VALID`, `ALREADY_USED`, `INVALID`, `WRONG_EVENT`) e defesa contra ataques de repetição (*Replay Attacks*).
-- **Design System Editorial & Passe Digital:** Criação manual do design minimalista (*Anti-AI-Slop*) do ingresso digital em formato vertical (Swiss design / Apple Wallet Pass), eliminando ruídos visuais, refinando alinhamento A4 para PDF e ajustando hierarquia tipográfica.
-- **Integração Real de E-mail via Resend:** Implementação do disparo assíncrono em segundo plano no Cloudflare Workers com `c.executionCtx.waitUntil(sendTicketEmail(...))`.
-- **Isolamento de Inventário por Evento:** Garantia de particionamento estrito de assentos no banco e na API, evitando colisões de inventário entre eventos importados.
-- **Camada de Resiliência Offline / Demo Mode:** Arquitetura de fallback inteligente no cliente React (`client/src/lib/api.ts`) permitindo a demonstração completa da aplicação mesmo em condições de oscilação de rede.
+## ✋ O que foi pensado, desenhado e implementado por mim:
+1. **Concorrência Segura no Banco:** Decidi criar a Stored Procedure em PL/pgSQL (`reserve_ticket_atomic`) usando `SELECT ... FOR UPDATE` ordenado por ID (`ORDER BY id ASC`). Isso garante que duas pessoas tentando o mesmo assento no mesmo milissegundo nunca gerem duplicidade ou deadlock.
+2. **Criptografia Anti-Fraude (HMAC-SHA256):** Implementei a assinatura dos ingressos na borda usando Web Crypto API, impedindo que alguém gere um QR Code falso copiando apenas o JSON do ingresso.
+3. **Máquina de 4 Estados da Portaria:** Estruturei a validação para cobrir os 4 estados exigidos (`Válido`, `Já Utilizado`, `Inválido` e `Evento Errado`), com atualização atômica no banco para evitar reaproveitamento de ingressos.
+4. **Design Editorial (Anti-AI-Slop):** Recusei os layouts genéricos com excesso de sombras e gradientes roxos. Desenhei um bilhete digital limpo, no padrão Swiss / Apple Wallet Pass, com alinhamento rigoroso para impressão em PDF A4.
+5. **Integração Real com Resend:** Implementei o envio de e-mails assíncrono em segundo plano no Worker (`c.executionCtx.waitUntil`), mantendo a confirmação de compra instantânea na tela.
+6. **Persona Switcher:** Criei o alternador de perfis no topo da aplicação para que a banca possa testar as 3 jornadas (Cliente, Portaria, Organizador) em segundos, sem fricção de login.

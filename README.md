@@ -1,167 +1,89 @@
-# 🎟️ Plataforma de Eventos e Ingressos — Desafio Elite Dev 2026
+# 🎟️ Elite Tickets — Plataforma de Eventos e Ingressos
 
-Aplicação Full-Stack de Alta Performance desenvolvida para o **Desafio Elite Dev 2026 (Verzel)**. O sistema oferece uma experiência completa de publicação de eventos (sincronizada com catálogos TMDb e Ticketmaster), seleção de assentos numerados em tempo real com concorrência pessimista, checkout simulado, emissão de bilhetes digitais em formato **Apple Wallet Pass** com QR Code criptográfico HMAC-SHA256 e validação atômica na portaria com retorno háptico.
+Aplicação desenvolvida para o **Desafio Elite Dev (Verzel)**. Permite a publicação de eventos por organizadores (integrado a catálogos externos), seleção de assentos em tempo real com bloqueio de concorrência, checkout simulado, emissão de bilhetes digitais com QR Code criptografado (HMAC-SHA256) e validação na portaria.
 
 ---
 
-## 🔗 Links Oficiais do Projeto em Produção
-- 💻 **Front-End (Cloudflare Pages):** [https://elite-tickets.pages.dev](https://elite-tickets.pages.dev)
-- ⚙️ **API Back-End (Cloudflare Workers):** [https://elite-tickets-api.agenddar.workers.dev](https://elite-tickets-api.agenddar.workers.dev)
+## 🔗 Links do Projeto no Ar
+
+- 💻 **Aplicação Web:** [https://elite-tickets.pages.dev](https://elite-tickets.pages.dev)
+- ⚙️ **API Serverless:** [https://elite-tickets-api.agenddar.workers.dev](https://elite-tickets-api.agenddar.workers.dev)
 - 📦 **Repositório GitHub:** [https://github.com/RafalauriSantos/desafio-elite-dev](https://github.com/RafalauriSantos/desafio-elite-dev)
-- 📊 **Pipeline CI/CD (GitHub Actions):** [https://github.com/RafalauriSantos/desafio-elite-dev/actions](https://github.com/RafalauriSantos/desafio-elite-dev/actions)
 
 ---
 
-## ⚡ Roteiro de Avaliação Rápida para a Banca (3 Minutos)
+## ⚡ Como Avaliar em 2 Minutos
 
-Para testar todo o fluxo do edital sem barreiras de autenticação, utilize o **Persona Switcher** no canto superior direito:
+Para facilitar a correção sem necessidade de login manual, use o **seletor de personas** no topo da tela:
 
-1. **🎟️ Jornada do Cliente (Ana):**
-   - Acesse o catálogo de eventos e clique em **"Ver assentos"**.
-   - Selecione 2 poltronas no mapa interativo (Linhas A–D) e clique em **"Ir para Pagamento"**.
-   - No modal de checkout, selecione **"Aprovado"** e confirme para emitir os bilhetes digitais em formato **Apple Wallet Pass** com QR Code criptografado (HMAC-SHA256).
-   - *(Opcional: Teste a opção "Recusado" para verificar a devolução atômica dos assentos ao estoque).*
-2. **🛡️ Jornada da Portaria (Roberto):**
-   - Clique na aba **"Portaria"** no menu principal.
-   - Utilize a câmera do dispositivo para ler o QR Code emitido (ou use os botões rápidos do edital para testar `VALID`, `ALREADY_USED`, `INVALID` e `WRONG_EVENT`).
-   - Observe a validação atômica em tempo real e o retorno háptico (vibração).
-3. **🎪 Jornada do Organizador (Carlos):**
-   - No topo direito, alterne a persona para **"Carlos (Organizador)"**.
-   - Na página de eventos, clique em **"Publicar evento"** e utilize o painel de **Importação em Lote** sincronizado com as APIs do **TMDb** e **Ticketmaster**.
-4. **🔐 Autenticação Real Supabase Auth (Opcional):**
-   - Clique em **"Entrar"** no cabeçalho para testar o fluxo de login com senha, recuperação ou cadastro direto de novos clientes.
-
+1. **🎟️ Como Cliente:**
+   - Escolha qualquer evento no catálogo e clique em **"Ver assentos"**.
+   - Selecione poltronas no mapa e clique em **"Ir para Pagamento"**.
+   - No modal de checkout, escolha **"Aprovado"** para gerar o ingresso com QR Code (ou **"Recusado"** para ver o assento voltar ao estoque imediatamente).
+2. **🛡️ Como Portaria:**
+   - Acesse a aba **"Portaria"**.
+   - Aponte a câmera para o QR Code emitido (ou use a digitação manual).
+   - O sistema valida na hora: `Válido`, `Já Utilizado`, `Inválido` ou `Evento Errado`, com retorno de vibração no smartphone.
+3. **🎪 Como Organizador:**
+   - Alterne a persona para **"Organizador"**.
+   - Clique em **"Publicar evento"** e importe atrações direto da API do **TMDb** ou catálogo curado.
 
 ---
 
-## 🏗️ Arquitetura do Sistema
+## 🧠 Decisões Técnicas de Engenharia
 
-```text
-                  ┌────────────────────────┐
-                  │ TMDb / Ticketmaster    │ (24 Atrações Curadas)
-                  └───────────┬────────────┘
-                              │ Importação em Lote
-                              ▼
-  ┌─────────────────────────────────────────────────────────┐
-  │ Front-End: React 18 + Vite + TypeScript + Tailwind CSS  │
-  │ (Cloudflare Pages - Bottom Sheets & Apple Wallet Pass)   │
-  └────────────┬───────────────────────────────▲────────────┘
-               │                               │
-    Requisições HTTP API             Validação QR / Háptica
-               │                               │
-  ┌────────────▼───────────────────────────────┴────────────┐
-  │ Back-End: Hono.js + TypeScript                       │
-  │ (Cloudflare Workers - Serverless Edge Runtime)          │
-  └────────────┬───────────────────────────────▲────────────┘
-               │                               │
-    Assinatura HMAC-SHA256         FOR UPDATE ORDER BY id ASC
-               │                               │
-  ┌────────────▼───────────────────────────────┴────────────┐
-  │ Banco de Dados: PostgreSQL                              │
-  │ (Supabase - RLS + PL/pgSQL Stored Procedures)           │
-  └─────────────────────────────────────────────────────────┘
-```
+- **Por que Cloudflare Workers + Hono.js no Back-End?**
+  Optamos por uma arquitetura Edge Serverless para garantir resposta sub-50ms e deploy global sem custos de infraestrutura ociosa.
+- **Por que `SELECT ... FOR UPDATE` no Postgres?**
+  Para resolver a concorrência na raiz. A reserva é processada via Stored Procedure atômica com ordenação de IDs (`ORDER BY id ASC`), impedindo dupla venda e deadlocks mesmo sob requisições simultâneas.
+- **Por que HMAC-SHA256 no QR Code?**
+  O QR Code não guarda apenas um ID simples; ele carrega uma assinatura criptográfica gerada no servidor via Web Crypto API, impedindo forja ou adulteração de dados.
+- **Por que Design Minimalista (Swiss Design)?**
+  Fugimos de interfaces genéricas com excesso de gradientes e efeitos desnecessários (*AI Slop*). O bilhete foi desenhado no padrão Apple Wallet / editorial suíço, focado na clareza para leitura rápida na portaria e com impressão perfeita em PDF A4.
+- **Envio Real de E-mails:**
+  Integração em segundo plano com a API do **Resend** para entrega assíncrona da confirmação sem travar o tempo de resposta do checkout.
 
 ---
 
-## 🛠️ Tecnologias Utilizadas
+## 🛠️ Stack Tecnológica
 
-- **Front-End:** React 18, Vite, TypeScript, Tailwind CSS, Lucide Icons, `qrcode.react`, `html5-qrcode`, Vitest, React Testing Library.
-- **Back-End:** Node.js / TypeScript, Hono.js, Cloudflare Workers, Web Crypto API (HMAC-SHA256), Vitest.
-- **Banco de Dados:** PostgreSQL (Supabase), Row Level Security (RLS), Stored Procedures com `SELECT ... FOR UPDATE ORDER BY 1 ASC`.
-- **Automação & E2E:** Playwright (Chromium Headless E2E Suite em Python).
-- **Segurança & CI/CD:** GitHub Actions (Security Audit com Gitleaks, TypeCheck, Test Suite e Deploy Automatizado na Cloudflare).
-
----
-
-## 🌟 Principais Recursos & Soluções de Engenharia
-
-### 1. Prevenção de Dupla Venda & Deadlocks (Concorrência Pessimista)
-A reserva de assentos invoca a Stored Procedure `reserve_tickets_batch_atomic` no PostgreSQL. A função executa um bloqueio exclusivo de linha ordenado por ID (`SELECT ... FOR UPDATE ORDER BY id ASC`), garantindo atomicidade, prevenindo deadlocks e impedindo dupla venda mesmo sob requisições concorrentes massivas.
-
-### 2. Ingressos Anti-Fraude (HMAC-SHA256) & Formato Apple Wallet Pass
-Os QR Codes contêm uma hash HMAC-SHA256 gerada na borda combinando `ticket_id`, `event_id`, `seat_id`, `user_email` e a chave secreta do servidor. O passe digital é renderizado em formato vertical **Apple Wallet Pass** (`PrintableTicket.tsx`) com referência mascarada `REF: #7361-5E6D`.
-
-### 3. Operações em Lote (Bulk Operations)
-- **Cliente:** Seleção múltipla de poltronas no mapa de assentos (`SeatMap.tsx`) com resumo do valor total acumulado e reserva atômica em lote.
-- **Organizador:** Checkboxes no modal de organizador (`OrganizerModal.tsx`) para importação simultânea em lote de atrações das APIs do TMDb e Ticketmaster (`POST /api/events/bulk-import`).
-
-### 4. Validação Háptica & Máquina de 4 Estados na Portaria
-A Stored Procedure `validate_ticket_gatekeeper` e o scanner tratam atomicamente os 4 estados do edital:
-- 🟢 `VALID` (Acesso liberado + vibração háptica `[80ms]`).
-- 🟡 `ALREADY_USED` (Entrada recusada: Ingresso já utilizado + vibração `[100ms, 50ms, 100ms]`).
-- 🔴 `INVALID` (Assinatura HMAC alterada ou QR Code forjado).
-- 🔵 `WRONG_EVENT` (Ingresso válido, porém de outro espetáculo).
-
-### 5. Esteira CI/CD & Escudo de Segurança (GitHub Actions)
-Uma pipeline de 4 estágios encadeados garante a qualidade do código:
-1. `security-audit`: Varredura Gitleaks (com `.gitleaks.toml` allowlist) para impedir vazamento de segredos + `npm audit`.
-2. `type-check`: Verificação estrita TypeScript (`tsc --noEmit`).
-3. `test-suite`: Execução dos testes unitários Vitest e automação Playwright E2E.
-4. `deploy-production`: Deploy automático na Cloudflare Pages e Workers após 100% de aprovação.
+- **Front-End:** React, Vite, TypeScript, Tailwind CSS, Lucide Icons, `qrcode.react`, `html5-qrcode`.
+- **Back-End:** TypeScript, Hono.js, Cloudflare Workers Runtime, Web Crypto API.
+- **Banco de Dados:** PostgreSQL (Supabase) com Stored Procedures em PL/pgSQL e Row Level Security (RLS).
+- **Testes & CI/CD:** Vitest, Playwright (E2E), Gitleaks e GitHub Actions com deploy automático.
 
 ---
-
-## 👥 Credenciais para Teste (Seed Data)
-
-Com `VITE_SUPABASE_URL` e `VITE_SUPABASE_ANON_KEY` configurados, a aplicação exige sessão Supabase Auth e carrega o papel em `public.profiles`. As contas abaixo são os perfis seed; a senha deve ser definida no painel Auth do projeto, sem ser versionada.
-
-| Role | E-mail | Acesso na Aplicação |
-|---|---|---|
-| **Organizador** | `organizador@verzel.com` | Painel de publicação e importação em lote. |
-| **Cliente 1** | `ana.cliente@verzel.com` | Mapa de assentos, lote e carteira de ingressos. |
-| **Cliente 2** | `bruno.cliente@verzel.com` | Mapa de assentos, lote e carteira de ingressos. |
-| **Portaria (Gatekeeper)** | `portaria@verzel.com` | Scanner háptico e máquina de 4 estados. |
-
----
-
-O fluxo de recuperação de senha usa o Supabase Auth. Para entrega de e-mails em produção, configure o Resend como SMTP do Supabase e mantenha a API key fora do frontend. O Worker também aceita `RESEND_API_KEY` e `RESEND_FROM_EMAIL` como secrets para enviar a confirmação do ingresso após o checkout; a ausência desses secrets não interrompe a emissão.
 
 ## 🚀 Como Executar Localmente
 
-### Deploy do Worker
-
-O Worker de produção usa o projeto Supabase `zgbhmduzypqfgfuncnhl` (Verzel DB). Os valores públicos/secretos ficam nos bindings da Cloudflare; mantenha-os ao publicar:
-
+### 1. Clonar e Instalar Dependências
 ```bash
-cd server
-npx wrangler deploy --keep-vars
+git clone https://github.com/RafalauriSantos/desafio-elite-dev.git
+cd desafio-elite-dev
+npm install
 ```
 
-### Pré-requisitos
-- Node.js 20+ instalado.
-- Python 3.11+ (para suíte de testes E2E Playwright).
-
-### Execução dos Testes Locais
+### 2. Rodar a Aplicação
 ```bash
-# Executar verificação de tipos TypeScript
-npm run typecheck
+# Iniciar o Front-End
+cd client && npm run dev
 
-# Executar testes unitários (Vitest)
-npm run test
-
-# Executar testes de integração E2E (Playwright)
-npm run test:e2e
+# Iniciar a API Localmente
+cd server && npm run dev
 ```
 
-### Executar a Aplicação
+### 3. Rodar os Testes
 ```bash
-# Executar Back-End API (Worker)
-cd server
-npm install
-npm run dev
-
-# Executar Front-End (Client)
-cd ../client
-npm install
-npm run dev
+npm run typecheck    # Verificação estrita de TypeScript
+npm run test         # Testes unitários (Client + Server)
+npm run test:e2e     # Testes E2E com Playwright
 ```
 
 ---
 
-## 📚 Documentação e Especificações Oficiais
-- 📜 **Enunciado Oficial do Desafio:** [docs/DESAFIO_ELITE_DEV_EDITAL.md](docs/DESAFIO_ELITE_DEV_EDITAL.md)
-- 📋 **Checklist de Conformidade & Overdelivery:** [docs/CHECKLIST_ENTREGA.md](docs/CHECKLIST_ENTREGA.md)
-- 🛡️ **Matriz de Requisitos (SDD):** [docs/REQUIREMENTS_AUDIT.md](docs/REQUIREMENTS_AUDIT.md)
-- 🤖 **Relatório de Transparência e Uso de IA:** [docs/AI_LOG.md](docs/AI_LOG.md)
-- 🧭 **Grafo de Conhecimento e Arquitetura:** [graphify-out/GRAPH_REPORT.md](graphify-out/GRAPH_REPORT.md) | [Grafo Visual Interativo](graphify-out/graph.html)
+## 📚 Documentação Adicional
+
+- 📜 **Enunciado Original da Verzel:** [`docs/DESAFIO_ELITE_DEV_EDITAL.md`](docs/DESAFIO_ELITE_DEV_EDITAL.md)
+- 📋 **Checklist de Itens Entregues:** [`docs/CHECKLIST_ENTREGA.md`](docs/CHECKLIST_ENTREGA.md)
+- 🤖 **Transparência no Uso de IA:** [`docs/AI_LOG.md`](docs/AI_LOG.md)
+- 🧭 **Grafo de Arquitetura (Graphify):** [`graphify-out/GRAPH_REPORT.md`](graphify-out/GRAPH_REPORT.md)
