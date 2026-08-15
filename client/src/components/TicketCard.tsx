@@ -159,25 +159,21 @@ export const TicketCard: React.FC<TicketCardProps> = ({ ticket, qrData }) => {
             </div>
           </div>
 
-          {/* QR Code with Rich State Overlay */}
-          <div className="flex flex-col items-center p-3.5 bg-white rounded-2xl relative shadow-md">
+          {/* Centered QR Code with High Density */}
+          <div className="w-full max-w-[200px] aspect-square mx-auto flex items-center justify-center p-3 bg-white rounded-2xl relative shadow-md">
             <QRCodeSVG
               value={finalQrString}
               size={175}
               level="M"
-              includeMargin={true}
-              className="w-full max-w-[175px] h-auto"
+              includeMargin={false}
+              className="w-full h-full object-contain mx-auto"
             />
-            <p className="text-[10px] text-zinc-700 font-mono font-bold mt-1 tracking-wider">
-              REF: #${(ticket?.id || 'TICK0000').slice(0, 4).toUpperCase()}-${(ticket?.id || 'TICK0000').slice(4, 8).toUpperCase()}
-            </p>
 
             {isUsed && (
               <div className="absolute inset-0 bg-zinc-950/95 backdrop-blur-[2px] rounded-2xl flex flex-col items-center justify-center p-4 text-center border-2 border-amber-500/60 animate-in fade-in">
-                <CheckCircle2 className="w-9 h-9 text-amber-400 mb-1" />
-                <span className="text-sm font-bold text-amber-300 tracking-wide uppercase font-mono">Ingresso Utilizado</span>
-                <span className="text-xs text-zinc-300 font-mono mt-1">Entrada: {usedTimeStr}</span>
-                <span className="text-[10px] text-zinc-500 mt-0.5">Uso único registrado na portaria</span>
+                <CheckCircle2 className="w-8 h-8 text-amber-400 mb-1" />
+                <span className="text-xs font-bold text-amber-300 tracking-wide uppercase font-mono">Ingresso Utilizado</span>
+                <span className="text-[11px] text-zinc-300 font-mono mt-0.5">Entrada: {usedTimeStr}</span>
               </div>
             )}
           </div>

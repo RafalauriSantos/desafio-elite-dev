@@ -56,11 +56,10 @@ export const PrintableTicket: React.FC<PrintableTicketProps> = ({ ticket, qrData
 
   const rawId = safeTicketId.replace(/^t-|^T-|^#/, '');
   const refCode = `#T-${rawId.slice(0, 6).toUpperCase() || 'DEMO-U'}`;
-
   const seatNumberPadded = String(seat.seat_number).padStart(2, '0');
 
   return (
-    <div className="printable-ticket-area bg-white text-zinc-950 rounded-[32px] border border-zinc-200 shadow-xl p-7 max-w-[380px] mx-auto space-y-4 font-sans print:max-w-none print:w-full print:border-2 print:shadow-none">
+    <div className="printable-ticket-area bg-white text-zinc-950 rounded-[32px] border border-zinc-200 shadow-xl p-6 sm:p-7 max-w-[380px] mx-auto space-y-4 font-sans print:max-w-none print:w-full print:border-2 print:shadow-none">
       {/* Top Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2.5">
@@ -142,35 +141,37 @@ export const PrintableTicket: React.FC<PrintableTicketProps> = ({ ticket, qrData
 
       <div className="border-t border-dashed border-zinc-200 my-2" />
 
-      {/* QR Code Container with Holographic Texture */}
-      <div className="bg-[#f9fafb] border border-zinc-200/80 rounded-3xl p-5 flex flex-col items-center justify-center relative shadow-inner">
-        <QRCodeSVG
-          value={finalQrString}
-          size={185}
-          level="H"
-          includeMargin={false}
-          className="w-full max-w-[185px] h-auto"
-        />
+      {/* Centered QR Code Container (Strict alignment, zero loose unaligned elements) */}
+      <div className="w-full flex flex-col items-center justify-center space-y-2">
+        <div className="w-full max-w-[210px] aspect-square bg-[#fafafa] border border-zinc-200/90 rounded-3xl p-3 flex items-center justify-center relative shadow-inner mx-auto">
+          <QRCodeSVG
+            value={finalQrString}
+            size={180}
+            level="H"
+            includeMargin={false}
+            className="w-full h-full object-contain mx-auto"
+          />
 
-        {/* Circular Lock Overlay if Used */}
-        {isUsed && (
-          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-            <div className="w-24 h-24 rounded-full bg-white shadow-xl border border-zinc-200 flex flex-col items-center justify-center p-2 text-center">
-              <Lock className="w-6 h-6 text-zinc-900 mb-0.5 stroke-[2.5]" />
-              <span className="text-[9px] font-black text-zinc-900 uppercase tracking-wider">
-                UTILIZADO
-              </span>
+          {/* Centered Circular Lock Badge if Used */}
+          {isUsed && (
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+              <div className="w-20 h-20 rounded-full bg-white shadow-xl border border-zinc-200 flex flex-col items-center justify-center p-2 text-center">
+                <Lock className="w-5 h-5 text-zinc-900 mb-0.5 stroke-[2.5]" />
+                <span className="text-[8px] font-black text-zinc-900 uppercase tracking-wider">
+                  UTILIZADO
+                </span>
+              </div>
             </div>
-          </div>
+          )}
+        </div>
+
+        {/* Dynamic usage stamp only when ticket is used */}
+        {isUsed && (
+          <p className="text-center text-[11px] text-zinc-500 font-mono">
+            Entrada registrada em {usedDateStr}
+          </p>
         )}
       </div>
-
-      {/* Subtext under QR Code */}
-      <p className="text-center text-[11px] text-zinc-500 font-medium">
-        {isUsed
-          ? `Entrada registrada em ${usedDateStr}`
-          : 'Assinatura Digital HMAC-SHA256 • Autêntico'}
-      </p>
 
       {/* Instructions Box */}
       <div className="border-t border-zinc-200/80 pt-3 flex items-center gap-3">

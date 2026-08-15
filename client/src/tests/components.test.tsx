@@ -36,11 +36,11 @@ describe('UI Component Unit Tests', () => {
     }
   };
 
-  it('renders TicketCard with masked reference REF: #T123-4567', () => {
+  it('renders TicketCard with title and valid status', () => {
     render(<TicketCard ticket={mockTicket} />);
 
     expect(screen.getAllByText('Tech Summit Elite 2026')[0]).toBeInTheDocument();
-    expect(screen.getAllByText(/REF: #/i)[0]).toBeInTheDocument();
+    expect(screen.getByText('Válido')).toBeInTheDocument();
   });
 
   it('renders SeatMap with highlighted row letters and category legend', () => {
