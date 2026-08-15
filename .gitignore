@@ -32,7 +32,7 @@ server/supabase/
 .DS_Store
 Thumbs.db
 .vscode/*
-!.vscode/settings.json
-.idea/
-__pycache__/
-*.pyc
+# Arquivos de Preparação de Entrevista (Privado / Não comitar)
+*INTERVIEW*
+INTERVIEW_PREP.md
+docs/INTERVIEW_*.md
