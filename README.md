@@ -159,5 +159,9 @@ npm run dev
 
 ---
 
-## 🤖 Transparência e Uso de IA
-O relatório detalhado de engenharia e transparência está disponível em [docs/AI_LOG.md](docs/AI_LOG.md) e [docs/PRD.md](docs/PRD.md).
+## 📚 Documentação e Especificações Oficiais
+- 📜 **Enunciado Oficial do Desafio:** [docs/DESAFIO_ELITE_DEV_EDITAL.md](docs/DESAFIO_ELITE_DEV_EDITAL.md)
+- 📋 **Checklist de Conformidade & Overdelivery:** [docs/CHECKLIST_ENTREGA.md](docs/CHECKLIST_ENTREGA.md)
+- 🛡️ **Matriz de Requisitos (SDD):** [docs/REQUIREMENTS_AUDIT.md](docs/REQUIREMENTS_AUDIT.md)
+- 🤖 **Relatório de Transparência e Uso de IA:** [docs/AI_LOG.md](docs/AI_LOG.md)
+- 🧭 **Grafo de Conhecimento e Arquitetura:** [graphify-out/GRAPH_REPORT.md](graphify-out/GRAPH_REPORT.md) | [Grafo Visual Interativo](graphify-out/graph.html)
