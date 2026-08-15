@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import { TicketItem } from '../lib/api';
-import { Calendar, MapPin, Copy, Check, Printer, CalendarPlus, Share2, CheckCircle2, ShieldCheck } from 'lucide-react';
+import { Calendar, MapPin, Check, Printer, CalendarPlus, Share2, CheckCircle2, ShieldCheck } from 'lucide-react';
 import { PrintableTicket } from './PrintableTicket';
+import { buildGoogleCalendarUrl, buildTicketShareLink, buildTicketQrPayload } from '../lib/ticketUtils';
 
 interface TicketCardProps {
   ticket: TicketItem;
@@ -10,7 +11,7 @@ interface TicketCardProps {
 }
 
 export const TicketCard: React.FC<TicketCardProps> = ({ ticket, qrData }) => {
-  const [copiedType, setCopiedType] = useState<'link' | 'qr' | null>(null);
+  const [copiedLink, setCopiedLink] = useState(false);
 
   const event = ticket.events || {
     title: 'Evento Oficial Elite Tickets',
@@ -20,21 +21,12 @@ export const TicketCard: React.FC<TicketCardProps> = ({ ticket, qrData }) => {
   };
 
   const seat = ticket.seats || { row_name: 'A', seat_number: 1, category: 'VIP' };
-
-  const finalQrString = qrData || JSON.stringify({
-    ticketId: ticket.id,
-    eventId: ticket.event_id,
-    seatId: ticket.seat_id,
-    userEmail: ticket.user_email,
-    clientId: ticket.clientId || ticket.user_email,
-    issuedAt: ticket.issuedAt || new Date(ticket.created_at).getTime(),
-    signature: ticket.qr_signature,
-  });
-
+  const finalQrString = qrData || buildTicketQrPayload(ticket);
   const isUsed = ticket.status === 'used';
+  const shortRef = (ticket.id || '').replace(/^t-|^T-|^#/, '').slice(0, 6).toUpperCase() || 'DEMO';
 
   const handleShare = async () => {
-    const link = `${window.location.origin}/?ticket=${ticket.id}`;
+    const link = buildTicketShareLink(ticket.id);
     const shareText = `🎟️ Ingresso Oficial: ${event.title}\nAssento: ${seat.row_name}${seat.seat_number}\nVeja o comprovante autenticado: ${link}`;
 
     if (navigator.share) {
@@ -51,15 +43,8 @@ export const TicketCard: React.FC<TicketCardProps> = ({ ticket, qrData }) => {
     }
 
     navigator.clipboard.writeText(link);
-    setCopiedType('link');
-    setTimeout(() => setCopiedType(null), 2500);
-  };
-
-  const handleCopyQr = () => {
-    if (isUsed) return;
-    navigator.clipboard.writeText(finalQrString);
-    setCopiedType('qr');
-    setTimeout(() => setCopiedType(null), 2000);
+    setCopiedLink(true);
+    setTimeout(() => setCopiedLink(false), 2500);
   };
 
   const handlePrint = () => {
@@ -67,18 +52,18 @@ export const TicketCard: React.FC<TicketCardProps> = ({ ticket, qrData }) => {
   };
 
   const handleAddToCalendar = () => {
-    const rawDate = event.date || new Date().toISOString();
-    const eventTitle = event.title || 'Evento';
-    const eventVenue = event.venue || 'Local do Evento';
-    const startDate = new Date(rawDate).toISOString().replace(/-|:|\.\d\d\d/g, '');
-    const endDate = new Date(new Date(rawDate).getTime() + 3 * 3600 * 1000).toISOString().replace(/-|:|\.\d\d\d/g, '');
-    const googleCalendarUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(eventTitle)}&dates=${startDate}/${endDate}&details=${encodeURIComponent('Ingresso emitido via Elite Tickets. Assento: ' + seat.row_name + seat.seat_number)}&location=${encodeURIComponent(eventVenue)}`;
-    window.open(googleCalendarUrl, '_blank');
+    window.open(buildGoogleCalendarUrl(ticket), '_blank');
   };
 
   const usedTimeStr = ticket.used_at
     ? new Date(ticket.used_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
     : 'Portaria';
+
+  // Ensure pure user name display without any concatenated status suffixes
+  const cleanUserName = (ticket.user_name || ticket.user_email || 'Cliente')
+    .replace(/\s*\(Já Entrou\)/gi, '')
+    .replace(/\s*\(Utilizado\)/gi, '')
+    .trim();
 
   return (
     <>
@@ -88,13 +73,15 @@ export const TicketCard: React.FC<TicketCardProps> = ({ ticket, qrData }) => {
           isUsed ? 'border-amber-500/30 opacity-90' : 'border-zinc-800 hover:border-zinc-700'
         }`}
       >
-        {/* Holographic Security Top Bar */}
-        <div className="px-4 py-2 bg-gradient-to-r from-emerald-950/60 via-zinc-900 to-cyan-950/60 border-b border-zinc-800 flex items-center justify-between text-[10px] font-mono">
-          <div className="flex items-center gap-1 text-emerald-400 font-semibold">
-            <ShieldCheck className="w-3.5 h-3.5" />
-            <span>ASSINATURA HMAC-SHA256</span>
+        {/* Clean Security Header Bar */}
+        <div className="px-4 py-2.5 bg-zinc-900/90 border-b border-zinc-800 flex items-center justify-between text-xs">
+          <div className="flex items-center gap-1.5 text-zinc-300 font-medium">
+            <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
+            <span>Ingresso Autenticado</span>
           </div>
-          <span className="text-zinc-400 font-bold"> WALLET READY</span>
+          <span className="text-zinc-500 font-mono text-[11px] font-bold tracking-wider whitespace-nowrap">
+            REF #{shortRef}
+          </span>
         </div>
 
         {/* Banner */}
@@ -110,7 +97,7 @@ export const TicketCard: React.FC<TicketCardProps> = ({ ticket, qrData }) => {
         )}
 
         <div className="p-5 space-y-4">
-          {/* Title + status */}
+          {/* Title + Single Unified Status Badge */}
           <div className="flex items-start justify-between gap-2">
             <h3 className="text-base font-bold text-white leading-snug">{event.title}</h3>
             <span
@@ -125,7 +112,7 @@ export const TicketCard: React.FC<TicketCardProps> = ({ ticket, qrData }) => {
             </span>
           </div>
 
-          {/* Meta */}
+          {/* Event Metadata */}
           <div className="space-y-1.5 text-xs text-zinc-400">
             <div className="flex items-center gap-1.5">
               <Calendar className="w-3.5 h-3.5 shrink-0 text-zinc-400" />
@@ -145,11 +132,11 @@ export const TicketCard: React.FC<TicketCardProps> = ({ ticket, qrData }) => {
             </div>
           </div>
 
-          {/* Seat info */}
+          {/* Clean Titular and Seat Information */}
           <div className="flex items-center justify-between bg-zinc-900/80 px-4 py-3 rounded-2xl border border-zinc-800 text-xs">
             <div>
               <span className="text-zinc-500 text-[10px] uppercase font-mono font-bold">Titular</span>
-              <p className="text-zinc-200 font-semibold truncate max-w-[140px]">{ticket.user_name || ticket.user_email}</p>
+              <p className="text-zinc-200 font-semibold truncate max-w-[140px]">{cleanUserName}</p>
             </div>
             <div className="text-right">
               <span className="text-zinc-500 text-[10px] uppercase font-mono font-bold">Assento</span>
@@ -178,74 +165,44 @@ export const TicketCard: React.FC<TicketCardProps> = ({ ticket, qrData }) => {
             )}
           </div>
 
-          {/* Actions Bar: Ergonomic 2x2 Grid with Touch Targets */}
-          <div className="pt-3 border-t border-zinc-800/80 grid grid-cols-2 gap-2">
-            <button
-              type="button"
-              onClick={handleAddToCalendar}
-              className="h-10 px-3 rounded-xl bg-zinc-900/90 hover:bg-zinc-800 border border-zinc-700/80 text-zinc-300 hover:text-white text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors touch-manipulation active:scale-[0.98]"
-              title="Adicionar ao Google Calendar"
-            >
-              <CalendarPlus className="w-4 h-4 text-emerald-400 shrink-0" />
-              <span>Agenda</span>
-            </button>
-
+          {/* Prioritized, Clean Action Buttons */}
+          <div className="pt-3 border-t border-zinc-800/80 flex items-center justify-between gap-2">
             <button
               type="button"
               onClick={handlePrint}
-              className="h-10 px-3 rounded-xl bg-zinc-900/90 hover:bg-zinc-800 border border-zinc-700/80 text-zinc-300 hover:text-white text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors touch-manipulation active:scale-[0.98]"
-              title="Baixar PDF / Passe"
+              className="flex-1 h-10 px-3 rounded-xl bg-zinc-900/90 hover:bg-zinc-800 border border-zinc-700/80 text-zinc-300 hover:text-white text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors touch-manipulation active:scale-[0.98]"
+              title="Baixar PDF do Ingresso"
             >
               <Printer className="w-4 h-4 text-zinc-300 shrink-0" />
-              <span>PDF / Passe</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={handleCopyQr}
-              disabled={isUsed}
-              className={`h-10 px-3 rounded-xl border text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors touch-manipulation active:scale-[0.98] ${
-                isUsed
-                  ? 'bg-zinc-900/30 border-zinc-800/40 text-zinc-600 cursor-not-allowed'
-                  : 'bg-zinc-900/90 hover:bg-zinc-800 border-zinc-700/80 text-zinc-300 hover:text-white'
-              }`}
-              title={isUsed ? 'Ingresso já utilizado' : 'Copiar Payload Criptográfico QR'}
-            >
-              {copiedType === 'qr' ? (
-                <>
-                  <Check className="w-4 h-4 text-emerald-400 shrink-0" />
-                  <span className="text-emerald-400 font-semibold">Copiado!</span>
-                </>
-              ) : isUsed ? (
-                <>
-                  <Check className="w-4 h-4 text-zinc-600 shrink-0" />
-                  <span>Registrado</span>
-                </>
-              ) : (
-                <>
-                  <Copy className="w-4 h-4 text-emerald-400 shrink-0" />
-                  <span>Copiar QR</span>
-                </>
-              )}
+              <span>Salvar PDF</span>
             </button>
 
             <button
               type="button"
               onClick={handleShare}
-              className="h-10 px-3 rounded-xl bg-zinc-900/90 hover:bg-zinc-800 border border-zinc-700/80 text-zinc-300 hover:text-white text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors touch-manipulation active:scale-[0.98]"
-              title="Compartilhar Ingresso (WhatsApp / Link)"
+              className="flex-1 h-10 px-3 rounded-xl bg-zinc-900/90 hover:bg-zinc-800 border border-zinc-700/80 text-zinc-300 hover:text-white text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors touch-manipulation active:scale-[0.98]"
+              title="Compartilhar Link do Ingresso"
             >
-              {copiedType === 'link' ? (
+              {copiedLink ? (
                 <>
-                  <Check className="w-4 h-4 text-cyan-400 shrink-0" />
-                  <span className="text-cyan-400 font-semibold">Link Copiado!</span>
+                  <Check className="w-4 h-4 text-emerald-400 shrink-0" />
+                  <span className="text-emerald-400 font-semibold">Copiado!</span>
                 </>
               ) : (
                 <>
-                  <Share2 className="w-4 h-4 text-cyan-400 shrink-0" />
+                  <Share2 className="w-4 h-4 text-zinc-300 shrink-0" />
                   <span>Compartilhar</span>
                 </>
               )}
+            </button>
+
+            <button
+              type="button"
+              onClick={handleAddToCalendar}
+              className="h-10 w-10 shrink-0 rounded-xl bg-zinc-900/90 hover:bg-zinc-800 border border-zinc-700/80 text-zinc-300 hover:text-white flex items-center justify-center transition-colors touch-manipulation active:scale-[0.98]"
+              title="Adicionar ao Google Calendar"
+            >
+              <CalendarPlus className="w-4 h-4 text-zinc-300" />
             </button>
           </div>
         </div>

@@ -2,6 +2,7 @@ import React from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import { TicketItem } from '../lib/api';
 import { Sparkles, Calendar, MapPin, Check, Lock, Smartphone } from 'lucide-react';
+import { buildTicketQrPayload } from '../lib/ticketUtils';
 
 interface PrintableTicketProps {
   ticket: TicketItem;
@@ -10,28 +11,17 @@ interface PrintableTicketProps {
 
 export const PrintableTicket: React.FC<PrintableTicketProps> = ({ ticket, qrData }) => {
   const event = ticket?.events || {
-    title: 'Tech Summit Elite 2026',
-    venue: 'Arena Innovation Hub',
-    date: '2026-08-14T21:51:00.000Z',
+    title: 'Evento Oficial Elite Tickets',
+    venue: 'Local do Evento',
+    date: new Date().toISOString(),
     banner_url: '',
   };
 
-  const seat = ticket?.seats || { row_name: 'A', seat_number: 2, category: 'VIP' };
-  const safeTicketId = ticket?.id || 'T-DEMO-U';
-  const safeSignature = ticket?.qr_signature || '';
+  const seat = ticket?.seats || { row_name: 'A', seat_number: 1, category: 'VIP' };
+  const safeTicketId = ticket?.id || 'T-DEMO';
   const isUsed = ticket?.status === 'used';
 
-  const finalQrString =
-    qrData ||
-    JSON.stringify({
-      ticketId: safeTicketId,
-      eventId: ticket?.event_id || '',
-      seatId: ticket?.seat_id || '',
-      userEmail: ticket?.user_email || '',
-      clientId: ticket?.clientId || ticket?.user_email || '',
-      issuedAt: ticket?.issuedAt || new Date(ticket?.created_at || Date.now()).getTime(),
-      signature: safeSignature,
-    });
+  const finalQrString = qrData || buildTicketQrPayload(ticket);
 
   const eventDateObj = new Date(event.date || Date.now());
   const day = eventDateObj.getDate();
@@ -52,11 +42,16 @@ export const PrintableTicket: React.FC<PrintableTicketProps> = ({ ticket, qrData
         hour: '2-digit',
         minute: '2-digit',
       })
-    : '14/08/2026 às 21:51';
+    : 'Portaria';
 
   const rawId = safeTicketId.replace(/^t-|^T-|^#/, '');
-  const refCode = `#T-${rawId.slice(0, 6).toUpperCase() || 'DEMO-U'}`;
+  const refCode = `#T-${rawId.slice(0, 6).toUpperCase() || 'DEMO'}`;
   const seatNumberPadded = String(seat.seat_number).padStart(2, '0');
+
+  const cleanUserName = (ticket?.user_name || ticket?.user_email || 'Cliente')
+    .replace(/\s*\(Já Entrou\)/gi, '')
+    .replace(/\s*\(Utilizado\)/gi, '')
+    .trim();
 
   return (
     <div className="printable-ticket-area bg-white text-zinc-950 rounded-[32px] border border-zinc-200 shadow-xl p-6 sm:p-7 max-w-[380px] mx-auto space-y-4 font-sans print:shadow-none print:mx-auto">
@@ -74,7 +69,7 @@ export const PrintableTicket: React.FC<PrintableTicketProps> = ({ ticket, qrData
           <span className="text-[10px] font-mono font-bold text-zinc-400 uppercase tracking-widest block leading-none">
             REF
           </span>
-          <span className="text-xs font-mono font-black text-zinc-900 mt-0.5 block">
+          <span className="text-xs font-mono font-black text-zinc-900 mt-0.5 block whitespace-nowrap">
             {refCode}
           </span>
         </div>
@@ -82,7 +77,7 @@ export const PrintableTicket: React.FC<PrintableTicketProps> = ({ ticket, qrData
 
       <div className="border-t border-dashed border-zinc-200 my-2" />
 
-      {/* Used Status Banner (if used) */}
+      {/* Used Status Banner (only if used) */}
       {isUsed && (
         <div className="bg-[#fff7ed] border border-[#ffedd5] rounded-2xl p-3.5 flex items-center gap-3">
           <div className="w-7 h-7 rounded-full bg-[#ea580c] flex items-center justify-center text-white shrink-0">
@@ -126,7 +121,7 @@ export const PrintableTicket: React.FC<PrintableTicketProps> = ({ ticket, qrData
             TITULAR
           </span>
           <p className="text-sm font-black text-zinc-950 truncate mt-0.5">
-            {ticket?.user_name || ticket?.user_email || 'Titular do Ingresso'}
+            {cleanUserName}
           </p>
         </div>
         <div>
@@ -141,7 +136,7 @@ export const PrintableTicket: React.FC<PrintableTicketProps> = ({ ticket, qrData
 
       <div className="border-t border-dashed border-zinc-200 my-2" />
 
-      {/* Centered QR Code Container (Strict alignment, zero loose unaligned elements) */}
+      {/* Centered QR Code Container */}
       <div className="w-full flex flex-col items-center justify-center space-y-2">
         <div className="w-full max-w-[210px] aspect-square bg-[#fafafa] border border-zinc-200/90 rounded-3xl p-3 flex items-center justify-center relative shadow-inner mx-auto">
           <QRCodeSVG

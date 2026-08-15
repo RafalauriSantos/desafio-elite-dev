@@ -379,6 +379,38 @@ BEGIN
 END;
 $$;
 
+-- Procedure 3: get_public_ticket_by_id (Shared Ticket Public View via Link)
+CREATE OR REPLACE FUNCTION public.get_public_ticket_by_id(p_ticket_id UUID)
+RETURNS JSONB
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+    v_result JSONB;
+BEGIN
+    SELECT jsonb_build_object(
+        'id', t.id,
+        'event_id', t.event_id,
+        'seat_id', t.seat_id,
+        'user_email', t.user_email,
+        'user_name', t.user_name,
+        'status', t.status,
+        'qr_signature', t.qr_signature,
+        'created_at', t.created_at,
+        'used_at', t.used_at,
+        'events', row_to_json(e),
+        'seats', row_to_json(s)
+    )
+    INTO v_result
+    FROM public.tickets t
+    JOIN public.events e ON e.id = t.event_id
+    JOIN public.seats s ON s.id = t.seat_id
+    WHERE t.id = p_ticket_id;
+
+    RETURN v_result;
+END;
+$$;
+
 -- Procedure 4: create_event_with_seats_atomic (Organizador - Criação Atômica com 80 Assentos)
 CREATE OR REPLACE FUNCTION public.create_event_with_seats_atomic(
     p_title TEXT,

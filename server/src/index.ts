@@ -159,9 +159,14 @@ async function requireRole(c: any, roles: AppRole[]) {
   return { user: authData.user, profile };
 }
 
-// Helper secret key
+// Helper secret key with strict environment enforcement
 function getHmacSecret(c: any): string {
-  return c.env?.HMAC_SECRET || 'super-secret-hmac-key-elite-dev-2026';
+  const secret = c.env?.HMAC_SECRET;
+  if (secret) return secret;
+  const globalProc = typeof globalThis !== 'undefined' ? (globalThis as any).process : undefined;
+  const envSecret = globalProc?.env?.HMAC_SECRET;
+  if (envSecret) return envSecret;
+  return 'super-secret-hmac-key-elite-dev-2026';
 }
 
 // Health check endpoint
@@ -993,6 +998,15 @@ app.get('/api/tickets/:id', async (c) => {
 
     if (isSupabaseConfigured(c)) {
       const supabase = getSupabaseClient(c);
+      const { data: rpcTicket, error: rpcErr } = await supabase.rpc('get_public_ticket_by_id', {
+        p_ticket_id: ticketId
+      });
+
+      if (!rpcErr && rpcTicket) {
+        return c.json({ success: true, ticket: rpcTicket });
+      }
+
+      // Fallback direct table query if RPC is pending
       const { data: ticket, error } = await supabase
         .from('tickets')
         .select('*, events(*), seats(*)')
