@@ -60,10 +60,15 @@ CREATE TABLE IF NOT EXISTS public.tickets (
     used_at TIMESTAMPTZ
 );
 
--- Indexes for performance
+-- Indexes for performance & DDL-Level Anti-Overbooking Constraint
 CREATE INDEX IF NOT EXISTS idx_seats_event_status ON public.seats(event_id, status);
 CREATE INDEX IF NOT EXISTS idx_tickets_user ON public.tickets(user_email);
 CREATE INDEX IF NOT EXISTS idx_tickets_signature ON public.tickets(qr_signature);
+
+-- DDL-Level Constraint: Partial Unique Index ensuring exactly 1 active/used ticket per seat
+CREATE UNIQUE INDEX IF NOT EXISTS idx_unique_active_ticket_seat 
+ON public.tickets (seat_id) 
+WHERE status IN ('valid', 'used');
 
 -- --------------------------------------------------------
 -- 3. ROW LEVEL SECURITY (RLS) POLICIES
