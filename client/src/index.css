@@ -71,7 +71,7 @@
 /* Otimização de Impressão de Bilhete em PDF (Padrão Oficial Suíço / Apple Wallet) */
 @page {
   size: A4 portrait;
-  margin: 10mm auto;
+  margin: 15mm auto;
 }
 
 @media print {
@@ -95,37 +95,58 @@
   .no-print,
   nav,
   header,
-  footer {
+  footer,
+  aside,
+  button,
+  form,
+  .persona-switcher {
     display: none !important;
   }
 
-  body * {
-    visibility: hidden;
+  #root, main {
+    display: block !important;
+    width: 100% !important;
+    min-height: auto !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    background: transparent !important;
   }
 
-  .printable-ticket-area,
-  .printable-ticket-area * {
-    visibility: visible !important;
+  .printable-container {
+    display: block !important;
+    width: 100% !important;
+    margin: 0 auto !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
   }
 
   .printable-ticket-area {
-    position: absolute !important;
-    top: 20px !important;
-    left: 50% !important;
-    transform: translateX(-50%) !important;
     display: block !important;
+    margin: 20px auto !important;
     width: 380px !important;
     max-width: 380px !important;
-    margin: 0 auto !important;
     padding: 24px !important;
     background-color: #ffffff !important;
     color: #09090b !important;
-    border: 1.5px solid #e4e4e7 !important;
-    border-radius: 28px !important;
+    border: 1.5px solid #d4d4d8 !important;
+    border-radius: 24px !important;
     box-shadow: none !important;
     page-break-inside: avoid !important;
     break-inside: avoid !important;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
+  }
+
+  .printable-ticket-area * {
+    color: #09090b !important;
+  }
+
+  .printable-ticket-area .bg-black {
+    background-color: #000000 !important;
+    color: #ffffff !important;
+  }
+
+  .printable-ticket-area .bg-black * {
+    color: #ffffff !important;
   }
 }

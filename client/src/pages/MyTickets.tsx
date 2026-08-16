@@ -139,57 +139,56 @@ export const MyTickets: React.FC<MyTicketsProps> = ({ tickets, onBrowseEvents })
                   : 'Validado na Portaria';
 
                 return (
-                  <div
-                    key={ticket.id}
-                    className="p-4 bg-[#0e0e11] rounded-2xl border border-zinc-800/80 flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-all hover:border-zinc-700"
-                  >
-                    {/* Event & Seat Details */}
-                    <div className="space-y-1.5 min-w-0">
-                      <div className="flex items-center gap-2">
-                        <span className="inline-flex items-center gap-1 text-[10px] font-mono font-bold text-amber-400 bg-amber-950/40 px-2 py-0.5 rounded border border-amber-800/40 shrink-0">
-                          <CheckCircle2 className="w-3 h-3" />
-                          UTILIZADO
-                        </span>
-                        <h3 className="text-sm font-semibold text-zinc-200 truncate">{event.title}</h3>
+                  <React.Fragment key={ticket.id}>
+                    <div className="p-4 bg-[#0e0e11] rounded-2xl border border-zinc-800/80 flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-all hover:border-zinc-700 no-print">
+                      {/* Event & Seat Details */}
+                      <div className="space-y-1.5 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <span className="inline-flex items-center gap-1 text-[10px] font-mono font-bold text-amber-400 bg-amber-950/40 px-2 py-0.5 rounded border border-amber-800/40 shrink-0">
+                            <CheckCircle2 className="w-3 h-3" />
+                            UTILIZADO
+                          </span>
+                          <h3 className="text-sm font-semibold text-zinc-200 truncate">{event.title}</h3>
+                        </div>
+
+                        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-zinc-400 font-mono">
+                          <span className="text-zinc-300">
+                            Poltrona {seat.row_name}{seat.seat_number} ({seat.category || 'VIP'})
+                          </span>
+                          <span className="flex items-center gap-1 text-zinc-500 font-sans">
+                            <MapPin className="w-3 h-3 shrink-0" />
+                            <span className="truncate max-w-[200px]">{event.venue}</span>
+                          </span>
+                          <span className="flex items-center gap-1 text-zinc-500">
+                            <Calendar className="w-3 h-3 shrink-0" />
+                            <span>{new Date(event.date || Date.now()).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' })}</span>
+                          </span>
+                        </div>
+
+                        <p className="text-[11px] font-mono text-zinc-500">
+                          Entrada: <span className="text-zinc-400 font-semibold">{usedTime}</span> • REF: #{ticket.id.slice(0, 4).toUpperCase()}-{ticket.id.slice(4, 8).toUpperCase()}
+                        </p>
                       </div>
 
-                      <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-zinc-400 font-mono">
-                        <span className="text-zinc-300">
-                          Poltrona {seat.row_name}{seat.seat_number} ({seat.category || 'VIP'})
-                        </span>
-                        <span className="flex items-center gap-1 text-zinc-500 font-sans">
-                          <MapPin className="w-3 h-3 shrink-0" />
-                          <span className="truncate max-w-[200px]">{event.venue}</span>
-                        </span>
-                        <span className="flex items-center gap-1 text-zinc-500">
-                          <Calendar className="w-3 h-3 shrink-0" />
-                          <span>{new Date(event.date || Date.now()).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' })}</span>
-                        </span>
-                      </div>
-
-                      <p className="text-[11px] font-mono text-zinc-500">
-                        Entrada: <span className="text-zinc-400 font-semibold">{usedTime}</span> • REF: #{ticket.id.slice(0, 4).toUpperCase()}-{ticket.id.slice(4, 8).toUpperCase()}
-                      </p>
-                    </div>
-
-                    {/* Print / Proof Button */}
-                    <div className="shrink-0 flex items-center gap-2">
-                      <button
-                        type="button"
-                        onClick={handlePrintSpecific}
-                        className="px-3.5 py-2 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-zinc-300 hover:text-white text-xs font-semibold flex items-center gap-1.5 transition-colors touch-manipulation shadow-sm"
-                        title="Baixar Comprovante"
-                      >
-                        <Printer className="w-3.5 h-3.5 text-zinc-400" />
-                        <span>Comprovante</span>
-                      </button>
-
-                      {/* Hidden PDF Printable Ticket for Print Mode */}
-                      <div className="hidden print:block">
-                        <PrintableTicket ticket={ticket} />
+                      {/* Print / Proof Button */}
+                      <div className="shrink-0 flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={handlePrintSpecific}
+                          className="px-3.5 py-2 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-zinc-300 hover:text-white text-xs font-semibold flex items-center gap-1.5 transition-colors touch-manipulation shadow-sm"
+                          title="Baixar Comprovante"
+                        >
+                          <Printer className="w-3.5 h-3.5 text-zinc-400" />
+                          <span>Comprovante</span>
+                        </button>
                       </div>
                     </div>
-                  </div>
+
+                    {/* Printable Voucher in Print Mode */}
+                    <div className="hidden print:block printable-container">
+                      <PrintableTicket ticket={ticket} />
+                    </div>
+                  </React.Fragment>
                 );
               })}
             </div>

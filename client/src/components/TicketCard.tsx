@@ -243,11 +243,11 @@ export const TicketCard: React.FC<TicketCardProps> = ({ ticket, qrData }) => {
             </button>
           </div>
         </div>
+      </div>
 
-        {/* Hidden PDF Printable Ticket for Print Mode */}
-        <div className="hidden print:block">
-          <PrintableTicket ticket={ticket} />
-        </div>
+      {/* High-Resolution Printable Ticket for PDF Export */}
+      <div className="hidden print:block printable-container">
+        <PrintableTicket ticket={ticket} />
       </div>
     </>
   );
