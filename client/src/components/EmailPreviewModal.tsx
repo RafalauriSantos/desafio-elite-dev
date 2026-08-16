@@ -54,8 +54,8 @@ export const EmailPreviewModal: React.FC<EmailPreviewModalProps> = ({
     <BottomSheet
       isOpen={isOpen}
       onClose={onClose}
-      title="E-mail de Confirmação"
-      subtitle="Simulador de entrega digital de ingresso."
+      title="Confirmação de Compra"
+      subtitle="Comprovante de pagamento e bilhete de acesso digital."
       maxWidthClass="sm:max-w-md"
       maxHeightClass="max-h-[85dvh] sm:max-h-[88dvh]"
       footer={footerActions}

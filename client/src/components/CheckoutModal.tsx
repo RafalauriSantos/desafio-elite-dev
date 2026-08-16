@@ -179,7 +179,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
         setLoading(false);
         setErrorMessage(
           res.error ||
-            'Não foi possível concluir o pagamento. Seu cartão foi recusado pela instituição financeira.'
+            'Transação não autorizada. Verifique os dados do cartão, o limite disponível ou tente outro meio de pagamento.'
         );
         return;
       }
@@ -229,39 +229,6 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
       maxHeightClass="max-h-[90dvh]"
       footer={footerActions}
     >
-      {/* Test mode discreet banner (Stripe style) */}
-      <div className="flex items-center justify-between p-2 rounded-xl bg-zinc-900 border border-zinc-800 text-xs">
-        <div className="flex items-center gap-1.5 text-zinc-400 font-mono text-[11px]">
-          <span className="w-2 h-2 rounded-full bg-amber-400" />
-          <span>Modo de teste:</span>
-        </div>
-        <div className="flex items-center gap-1">
-          <button
-            type="button"
-            onClick={() => fillTestCard('approved')}
-            className={`px-2 py-0.5 rounded text-[11px] font-semibold transition-all ${
-              scenario === 'approved'
-                ? 'bg-zinc-800 text-emerald-400 border border-zinc-700'
-                : 'text-zinc-500 hover:text-zinc-300'
-            }`}
-          >
-            Aprovar
-          </button>
-          <span className="text-zinc-700">·</span>
-          <button
-            type="button"
-            onClick={() => fillTestCard('declined')}
-            className={`px-2 py-0.5 rounded text-[11px] font-semibold transition-all ${
-              scenario === 'declined'
-                ? 'bg-zinc-800 text-red-400 border border-zinc-700'
-                : 'text-zinc-500 hover:text-zinc-300'
-            }`}
-          >
-            Recusar
-          </button>
-        </div>
-      </div>
-
       {/* Order Summary Line */}
       <div className="bg-zinc-900/60 p-3.5 rounded-xl border border-zinc-800/80 flex items-center justify-between gap-3 text-xs">
         <div className="min-w-0">
@@ -279,11 +246,13 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
 
       {/* Error Message */}
       {errorMessage && (
-        <div className="p-3 bg-red-950/60 border border-red-900/60 text-red-300 text-xs rounded-xl flex items-start gap-2 animate-in fade-in">
+        <div className="p-3.5 bg-red-950/50 border border-red-900/60 text-red-300 text-xs rounded-xl flex items-start gap-2.5 animate-in fade-in">
           <AlertCircle className="w-4 h-4 text-red-400 shrink-0 mt-0.5" />
           <div className="space-y-1">
-            <p className="font-semibold">{errorMessage}</p>
-            <p className="text-[11px] text-red-400/90">Os assentos selecionados foram liberados de volta ao mapa.</p>
+            <p className="font-semibold text-red-200">{errorMessage}</p>
+            <p className="text-[11px] text-red-400/90 leading-relaxed">
+              Por favor, verifique os dados informados ou escolha outra forma de pagamento.
+            </p>
           </div>
         </div>
       )}

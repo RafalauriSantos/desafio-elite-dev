@@ -62,7 +62,7 @@ const validateHandler = async (c: Context<{ Bindings: Bindings }>) => {
           success: false,
           valid: false,
           code: 'ALREADY_USED',
-          message: 'INGRESSO JÁ UTILIZADO! Entrada registrada anteriormente.'
+          message: 'Ingresso já utilizado. Entrada registrada anteriormente.'
         }, 409);
       }
       if (extractedTicketId.includes('invalid') || extractedTicketId.includes('forged')) {
@@ -70,7 +70,7 @@ const validateHandler = async (c: Context<{ Bindings: Bindings }>) => {
           success: false,
           valid: false,
           code: 'INVALID',
-          error: 'ASSINATURA HMAC INVÁLIDA! QR Code forjado ou adulterado.'
+          error: 'Ingresso inválido. Código de autenticação não reconhecido.'
         }, 401);
       }
 
@@ -112,7 +112,7 @@ const validateHandler = async (c: Context<{ Bindings: Bindings }>) => {
           success: false,
           valid: false,
           code: 'WRONG_EVENT',
-          message: 'INGRESSO DE OUTRO EVENTO! Este ingresso não pertence a esta portaria.'
+          message: 'Ingresso de outro evento. Este bilhete não pertence a esta portaria.'
         }, 422);
       }
 
@@ -120,14 +120,14 @@ const validateHandler = async (c: Context<{ Bindings: Bindings }>) => {
         success: true,
         valid: true,
         code: 'VALID',
-        message: 'ENTRADA LIBERADA! Ingresso verificado com sucesso.',
+        message: 'Acesso autorizado. Entrada liberada com sucesso.',
         user_name: 'Cliente Verzel',
         event_title: 'Tech Summit Elite 2026',
         seat: 'Fileira A - Assento 1'
       }, 200);
     }
 
-    // Case B: JSON Payload with cryptographic HMAC signature
+    // Case B: JSON Payload with cryptographic signature
     const { ticketId, eventId, seatId, clientId, userEmail, issuedAt, signature } = parsed || {};
 
     if (!ticketId || !signature) {
@@ -135,7 +135,7 @@ const validateHandler = async (c: Context<{ Bindings: Bindings }>) => {
         success: false,
         valid: false,
         code: 'INVALID',
-        error: 'Estrutura de QR Code incompleta (Ticket ID / Assinatura ausentes).'
+        error: 'Estrutura de bilhete incompleta.'
       }, 400);
     }
 
@@ -149,11 +149,11 @@ const validateHandler = async (c: Context<{ Bindings: Bindings }>) => {
         success: false,
         valid: false,
         code: 'ALREADY_USED',
-        message: 'INGRESSO JÁ UTILIZADO! Entrada registrada anteriormente.'
+        message: 'Ingresso já utilizado. Entrada registrada anteriormente.'
       }, 409);
     }
 
-    // 2. Verificação de Estado WRONG_EVENT (Evento incompatível com a portaria ou simulação explícita)
+    // 2. Verificação de Estado WRONG_EVENT
     if (
       (ticketId && ticketId.includes('wrong')) ||
       (eventId && (eventId.includes('wrong') || eventId === 'e-different-wrong-event-id-999')) ||
@@ -163,17 +163,17 @@ const validateHandler = async (c: Context<{ Bindings: Bindings }>) => {
         success: false,
         valid: false,
         code: 'WRONG_EVENT',
-        message: 'INGRESSO DE OUTRO EVENTO! Este ingresso não pertence a esta portaria.'
+        message: 'Ingresso de outro evento. Este bilhete pertence a outro espetáculo.'
       }, 422);
     }
 
-    // 3. Verificação de Estado INVALID (Assinatura HMAC Forjada ou Corrompida)
+    // 3. Verificação de Estado INVALID
     if (ticketId.includes('forged') || ticketId.includes('fake') || (signature && (signature.includes('INVALID') || signature.includes('forged') || signature.includes('fake')))) {
       return c.json({
         success: false,
         valid: false,
         code: 'INVALID',
-        error: 'ASSINATURA HMAC INVÁLIDA! QR Code alterado ou forjado.'
+        error: 'Ingresso inválido. Código de autenticação não reconhecido.'
       }, 401);
     }
 
@@ -193,7 +193,7 @@ const validateHandler = async (c: Context<{ Bindings: Bindings }>) => {
         success: false,
         valid: false,
         code: 'INVALID',
-        error: 'ASSINATURA HMAC INVÁLIDA! QR Code alterado ou forjado.'
+        error: 'Ingresso inválido. Código de autenticação não reconhecido.'
       }, 401);
     }
 
@@ -229,7 +229,7 @@ const validateHandler = async (c: Context<{ Bindings: Bindings }>) => {
       success: true,
       valid: true,
       code: 'VALID',
-      message: 'ENTRADA LIBERADA! Ingresso válido.',
+      message: 'Acesso autorizado. Entrada liberada com sucesso.',
       user_name: clientId || userEmail || 'Cliente Verzel',
       event_title: 'Tech Summit Elite 2026',
       seat: 'Fileira A - Assento 1'

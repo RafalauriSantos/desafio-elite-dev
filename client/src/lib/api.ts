@@ -368,7 +368,7 @@ export const api = {
           success: false,
           valid: false,
           code: 'ALREADY_USED',
-          error: 'INGRESSO JÁ UTILIZADO (ALREADY_USED)! Entrada recusada.',
+          error: 'Ingresso já utilizado. Entrada registrada anteriormente.',
           ticket: foundTicket
         };
       }
@@ -385,7 +385,7 @@ export const api = {
           success: false,
           valid: false,
           code: 'WRONG_EVENT',
-          error: 'INGRESSO DE OUTRO EVENTO (WRONG_EVENT)! Este bilhete pertence a outro espetáculo.',
+          error: 'Ingresso de outro evento. Este bilhete pertence a outro espetáculo.',
           ticket: foundTicket
         };
       }
@@ -399,7 +399,7 @@ export const api = {
           success: false,
           valid: false,
           code: 'INVALID',
-          error: 'ASSINATURA CRAM-HMAC INVÁLIDA (INVALID)! QR Code alterado ou forjado.',
+          error: 'Ingresso inválido. Código de autenticação não reconhecido.',
           ticket: foundTicket
         };
       }
@@ -414,11 +414,11 @@ export const api = {
         success: true,
         valid: true,
         code: 'VALID',
-        message: 'ENTRADA LIBERADA (VALID)! Ingresso autêntico.',
+        message: 'Acesso autorizado. Entrada liberada com sucesso.',
         ticket: foundTicket
       };
     } catch {
-      return { success: false, valid: false, code: 'INVALID', error: 'Falha ao processar leitura de QR Code.' };
+      return { success: false, valid: false, code: 'INVALID', error: 'Falha ao processar leitura do ingresso.' };
     }
   },
 

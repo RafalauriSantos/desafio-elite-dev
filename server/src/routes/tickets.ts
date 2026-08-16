@@ -185,7 +185,7 @@ ticketsRouter.post('/checkout', async (c) => {
         success: false,
         paymentStatus: 'declined',
         tickets: [],
-        error: 'Pagamento recusado na simulação. Nenhum ingresso foi emitido.'
+        error: 'Transação não autorizada pela administradora do cartão.'
       }, 402);
     }
 

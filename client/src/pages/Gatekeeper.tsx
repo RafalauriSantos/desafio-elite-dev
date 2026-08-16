@@ -162,8 +162,8 @@ export const Gatekeeper: React.FC = () => {
           className="w-full px-4 py-3 text-xs font-semibold text-zinc-300 hover:text-white flex items-center justify-between transition-colors"
         >
           <div className="flex items-center gap-2">
-            <PlayCircle className="w-4 h-4 text-cyan-400" />
-            <span>Simulador de Cenários do Edital (4 Estados)</span>
+            <PlayCircle className="w-4 h-4 text-emerald-400" />
+            <span>Validação Rápida de Portaria (4 Estados)</span>
           </div>
           {showTestPresets ? <ChevronUp className="w-4 h-4 text-zinc-500" /> : <ChevronDown className="w-4 h-4 text-zinc-500" />}
         </button>
@@ -175,28 +175,28 @@ export const Gatekeeper: React.FC = () => {
               onClick={() => triggerPresetValidation('valid')}
               className="p-2.5 bg-emerald-950/40 hover:bg-emerald-900/60 border border-emerald-800/50 rounded-xl text-xs font-bold text-emerald-300 text-center transition-all active:scale-95"
             >
-              🟢 1. VÁLIDO
+              🟢 Válido
             </button>
             <button
               type="button"
               onClick={() => triggerPresetValidation('used')}
               className="p-2.5 bg-amber-950/40 hover:bg-amber-900/60 border border-amber-800/50 rounded-xl text-xs font-bold text-amber-300 text-center transition-all active:scale-95"
             >
-              🟡 2. JÁ USADO
+              🟡 Já Utilizado
             </button>
             <button
               type="button"
               onClick={() => triggerPresetValidation('invalid')}
               className="p-2.5 bg-red-950/40 hover:bg-red-900/60 border border-red-800/50 rounded-xl text-xs font-bold text-red-300 text-center transition-all active:scale-95"
             >
-              🔴 3. FORJADO
+              🔴 Inválido
             </button>
             <button
               type="button"
               onClick={() => triggerPresetValidation('wrong_event')}
               className="p-2.5 bg-blue-950/40 hover:bg-blue-900/60 border border-blue-800/50 rounded-xl text-xs font-bold text-blue-300 text-center transition-all active:scale-95"
             >
-              🔵 4. SHOW ERRADO
+              🔵 Outro Evento
             </button>
           </div>
         )}
