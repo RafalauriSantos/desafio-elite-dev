@@ -203,18 +203,27 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
         type="button"
         onClick={() => handlePay()}
         disabled={loading}
-        className="w-full min-h-[50px] rounded-xl bg-white hover:bg-zinc-100 text-zinc-950 font-bold text-sm transition-all disabled:opacity-50 flex items-center justify-center gap-2 shadow-sm active:scale-[0.99] touch-manipulation"
+        className={`w-full min-h-[50px] rounded-xl font-bold text-sm transition-all disabled:opacity-50 flex items-center justify-center gap-2 shadow-sm active:scale-[0.99] touch-manipulation ${
+          scenario === 'declined'
+            ? 'bg-red-600 hover:bg-red-500 text-white'
+            : 'bg-white hover:bg-zinc-100 text-zinc-950'
+        }`}
       >
         {loading ? (
-          <div className="w-4 h-4 border-2 border-zinc-950/30 border-t-zinc-950 rounded-full animate-spin" />
+          <div className={`w-4 h-4 border-2 rounded-full animate-spin ${scenario === 'declined' ? 'border-white/30 border-t-white' : 'border-zinc-950/30 border-t-zinc-950'}`} />
+        ) : scenario === 'declined' ? (
+          <span className="flex items-center gap-1.5">
+            <AlertCircle className="w-4 h-4" />
+            <span>Simular Pagamento Recusado (R$ {totalPrice.toFixed(2)})</span>
+          </span>
         ) : (
-          <span>Pagar R$ {totalPrice.toFixed(2)}</span>
+          <span>Pagar R$ {totalPrice.toFixed(2)} (Aprovar)</span>
         )}
       </button>
 
       <div className="flex items-center justify-center gap-1.5 text-[11px] text-zinc-500 pt-1">
         <Lock className="w-3 h-3" />
-        <span>Pagamento processado com segurança</span>
+        <span>Pagamento simulado seguro para avaliação</span>
       </div>
     </div>
   );
@@ -244,6 +253,47 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
         </div>
       </div>
 
+      {/* Simulator Test Mode Selector (Edital Verzel - Aprovado / Recusado) */}
+      <div className="bg-zinc-950/80 p-3 rounded-xl border border-zinc-800 space-y-2">
+        <div className="flex items-center justify-between">
+          <span className="text-[11px] font-mono font-bold text-zinc-400 uppercase tracking-wider flex items-center gap-1.5">
+            <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
+            Simulação de Pagamento (Edital)
+          </span>
+          <span className={`text-[10px] font-mono font-bold px-2 py-0.5 rounded ${scenario === 'approved' ? 'bg-emerald-950 text-emerald-300 border border-emerald-800' : 'bg-red-950 text-red-300 border border-red-800'}`}>
+            {scenario === 'approved' ? '🟢 Modo Aprovação' : '🔴 Modo Recusa / Falha'}
+          </span>
+        </div>
+
+        <div className="grid grid-cols-2 gap-2">
+          <button
+            type="button"
+            onClick={() => fillTestCard('approved')}
+            className={`py-2 px-3 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition-all ${
+              scenario === 'approved'
+                ? 'bg-emerald-950/80 border border-emerald-700 text-emerald-300 shadow-sm'
+                : 'bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-zinc-200'
+            }`}
+          >
+            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+            <span>Simular Aprovação</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => fillTestCard('declined')}
+            className={`py-2 px-3 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition-all ${
+              scenario === 'declined'
+                ? 'bg-red-950/80 border border-red-700 text-red-300 shadow-sm'
+                : 'bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-zinc-200'
+            }`}
+          >
+            <AlertCircle className="w-3.5 h-3.5 text-red-400" />
+            <span>Simular Recusa / Falha</span>
+          </button>
+        </div>
+      </div>
+
       {/* Error Message */}
       {errorMessage && (
         <div className="p-3.5 bg-red-950/50 border border-red-900/60 text-red-300 text-xs rounded-xl flex items-start gap-2.5 animate-in fade-in">
@@ -251,7 +301,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
           <div className="space-y-1">
             <p className="font-semibold text-red-200">{errorMessage}</p>
             <p className="text-[11px] text-red-400/90 leading-relaxed">
-              Por favor, verifique os dados informados ou escolha outra forma de pagamento.
+              Os assentos foram liberados de volta ao estoque para nova tentativa.
             </p>
           </div>
         </div>
