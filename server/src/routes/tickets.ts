@@ -302,6 +302,39 @@ ticketsRouter.post('/checkout', async (c) => {
   }
 });
 
+// GET /api/tickets (Consulta de ingressos por usuário ou geral)
+const listTicketsHandler = async (c: Context<{ Bindings: Bindings }>) => {
+  try {
+    const email = c.req.query('email') || c.req.query('userEmail');
+
+    if (isSupabaseConfigured(c)) {
+      const supabase = getSupabaseClient(c);
+      let query = supabase
+        .from('tickets')
+        .select('*, events(*), seats(*)')
+        .order('created_at', { ascending: false });
+
+      if (email && email !== 'all') {
+        query = query.eq('user_email', email);
+      }
+
+      const { data: tickets, error } = await query;
+      if (error) {
+        return c.json({ success: false, error: error.message }, 500);
+      }
+      return c.json({ success: true, tickets: tickets || [] });
+    }
+
+    return c.json({ success: true, tickets: [] });
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : String(err);
+    return c.json({ success: false, error: message }, 500);
+  }
+};
+
+ticketsRouter.get('/tickets', listTicketsHandler);
+ticketsRouter.get('/user-tickets', listTicketsHandler);
+
 // GET /api/tickets/:id (Consulta pública para ingressos compartilhados)
 ticketsRouter.get('/tickets/:id', async (c) => {
   try {

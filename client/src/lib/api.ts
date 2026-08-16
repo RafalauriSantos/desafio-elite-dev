@@ -493,12 +493,32 @@ export const api = {
     }
   },
 
-  // 6. Get User Tickets
+  // 6. Get User Tickets (Local Cache)
   getTickets(): TicketItem[] {
     return getStoredTickets();
   },
 
-  // 6.0 Clear Stored Tickets
+  // 6.0 Fetch User Tickets from Remote Database (Realtime DB Sync)
+  async fetchUserTickets(userEmail?: string): Promise<TicketItem[]> {
+    try {
+      const url = userEmail
+        ? `${API_BASE_URL}/api/tickets?email=${encodeURIComponent(userEmail)}`
+        : `${API_BASE_URL}/api/tickets`;
+      const res = await fetch(url);
+      if (res.ok) {
+        const json = await res.json();
+        if (json.success && Array.isArray(json.tickets)) {
+          localStorage.setItem('elite_tickets_demo', JSON.stringify(json.tickets));
+          return json.tickets;
+        }
+      }
+    } catch {
+      console.warn('API /api/tickets offline, falling back to local cache.');
+    }
+    return getStoredTickets();
+  },
+
+  // 6.0.1 Clear Stored Tickets
   clearStoredTickets(): void {
     try {
       localStorage.removeItem('elite_tickets_demo');

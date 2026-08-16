@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { TicketItem, api } from '../lib/api';
 import { TicketCard } from '../components/TicketCard';
 import { PrintableTicket } from '../components/PrintableTicket';
@@ -11,8 +11,21 @@ interface MyTicketsProps {
 
 export const MyTickets: React.FC<MyTicketsProps> = ({ tickets, onBrowseEvents }) => {
   const [activeTab, setActiveTab] = useState<'active' | 'used'>('active');
-  const userTickets = tickets.length > 0 ? tickets : api.getTickets();
+  const [remoteTickets, setRemoteTickets] = useState<TicketItem[]>(tickets);
 
+  useEffect(() => {
+    let isMounted = true;
+    void api.fetchUserTickets().then((data) => {
+      if (isMounted) {
+        setRemoteTickets(data);
+      }
+    });
+    return () => {
+      isMounted = false;
+    };
+  }, [tickets]);
+
+  const userTickets = remoteTickets;
   const activeTickets = userTickets.filter((t) => t.status !== 'used');
   const usedTickets = userTickets.filter((t) => t.status === 'used');
 
