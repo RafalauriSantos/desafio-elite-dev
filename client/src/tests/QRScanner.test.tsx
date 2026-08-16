@@ -60,6 +60,6 @@ describe('QRScanner camera flow', () => {
 
     expect(api.validateTicket).toHaveBeenCalledTimes(1);
     expect(onResult).toHaveBeenCalledTimes(1);
-    expect(screen.getByText('ENTRADA LIBERADA')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /ACESSO AUTORIZADO|ENTRADA LIBERADA/i })).toBeInTheDocument();
   });
 });

@@ -332,12 +332,12 @@ export const QRScanner = forwardRef<QRScannerHandle, QRScannerProps>(({ onResult
 
           <h2 className="text-xl font-bold uppercase tracking-wide font-mono">
             {activeOverlay.valid
-              ? 'ENTRADA LIBERADA'
+              ? 'ACESSO AUTORIZADO'
               : activeOverlay.code === 'ALREADY_USED'
               ? 'INGRESSO JÁ UTILIZADO'
               : activeOverlay.code === 'WRONG_EVENT'
               ? 'EVENTO INCORRETO'
-              : 'ASSINATURA INVÁLIDA'}
+              : 'INGRESSO INVÁLIDO'}
           </h2>
 
           <p className="text-sm mt-1.5 max-w-xs opacity-90 leading-relaxed font-medium">
@@ -428,7 +428,7 @@ export const QRScanner = forwardRef<QRScannerHandle, QRScannerProps>(({ onResult
                 <div className="absolute top-3 inset-x-0 flex justify-center">
                   <div className="px-3 py-1 rounded-full bg-zinc-950/80 backdrop-blur-md border border-emerald-500/30 flex items-center gap-2 text-[10px] font-mono font-bold text-emerald-400 shadow-md">
                     <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
-                    <span>SCANNER ÓPTICO ATIVO • 60 FPS</span>
+                    <span>CÂMERA ATIVA PARA LEITURA</span>
                   </div>
                 </div>
 

@@ -28,7 +28,7 @@ export const SeatMap: React.FC<SeatMapProps> = ({
   const standardPrice = standardSeat ? `(R$ ${standardSeat.price.toFixed(2)})` : '';
 
   return (
-    <div className="w-full bg-[#111113] p-4 sm:p-7 rounded-2xl border border-zinc-800 space-y-5 shadow-xl relative overflow-hidden">
+    <div className="w-full bg-[#0e0e11] p-4 sm:p-7 rounded-2xl border border-zinc-800/90 space-y-5 shadow-2xl relative overflow-hidden bg-[radial-gradient(ellipse_80%_40%_at_50%_0%,rgba(16,185,129,0.08),transparent_70%)]">
       {/* Clean Minimalist Occupancy Bar */}
       <div className="flex items-center justify-between text-xs text-zinc-400 border-b border-zinc-800/80 pb-3">
         <span className="font-medium text-zinc-300">
@@ -39,9 +39,9 @@ export const SeatMap: React.FC<SeatMapProps> = ({
         </span>
       </div>
 
-      {/* Stage indicator */}
+      {/* Stage indicator with subtle spotlight beam */}
       <div className="text-center space-y-1 relative">
-        <div className="mx-auto max-w-md py-2 rounded-b-2xl bg-zinc-800/40 border-b-2 border-emerald-500/80 relative overflow-hidden">
+        <div className="mx-auto max-w-md py-2.5 rounded-b-2xl bg-zinc-900/90 border-b-2 border-emerald-500 relative overflow-hidden shadow-lg shadow-emerald-950/30">
           <span className="text-[11px] uppercase tracking-widest font-bold text-zinc-200">
             PALCO / TELÃO PRINCIPAL
           </span>
