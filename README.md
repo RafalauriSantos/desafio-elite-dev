@@ -6,8 +6,7 @@ Plataforma de publicação de eventos, reserva de assentos com controle de conco
 
 ## 🔗 Aplicação no Ar
 
-- 💻 **Aplicação:** [https://elite-tickets.pages.dev](https://elite-tickets.pages.dev)
-- ⚡ **API Edge:** `https://elite-tickets-api.agenddar.workers.dev`
+- 💻 **Acessar Sistema:** [https://elite-tickets.pages.dev](https://elite-tickets.pages.dev)
 
 ---
 
