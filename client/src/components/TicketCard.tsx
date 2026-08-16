@@ -169,47 +169,33 @@ export const TicketCard: React.FC<TicketCardProps> = ({ ticket, qrData }) => {
           </div>
 
           {/* QR Code Voucher Stub with Click to Zoom */}
-          <div className="space-y-1.5">
-            <button
-              type="button"
-              onClick={() => setIsZoomed(true)}
-              className="w-full max-w-[190px] aspect-square mx-auto flex items-center justify-center p-3 bg-white rounded-2xl relative shadow-md group cursor-pointer transition-transform hover:scale-[1.02] active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-emerald-400/50"
-              title="Toque para ampliar o QR Code"
-            >
-              <QRCodeSVG
-                value={finalQrString}
-                size={165}
-                level="M"
-                includeMargin={true}
-                className="w-full h-full object-contain mx-auto"
-              />
+          <button
+            type="button"
+            onClick={() => setIsZoomed(true)}
+            className="w-full max-w-[190px] aspect-square mx-auto flex items-center justify-center p-3 bg-white rounded-2xl relative shadow-md group cursor-pointer transition-transform hover:scale-[1.02] active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-emerald-400/50"
+            title="Toque para ampliar o QR Code"
+          >
+            <QRCodeSVG
+              value={finalQrString}
+              size={165}
+              level="M"
+              includeMargin={true}
+              className="w-full h-full object-contain mx-auto"
+            />
 
-              {/* Hover Zoom Cue */}
-              <div className="absolute bottom-2 right-2 bg-black/70 backdrop-blur-sm p-1 rounded-md text-white opacity-80 group-hover:opacity-100 transition-opacity">
-                <Maximize2 className="w-3.5 h-3.5" />
+            {/* Hover Zoom Cue */}
+            <div className="absolute bottom-2 right-2 bg-black/70 backdrop-blur-sm p-1 rounded-md text-white opacity-80 group-hover:opacity-100 transition-opacity">
+              <Maximize2 className="w-3.5 h-3.5" />
+            </div>
+
+            {isUsed && (
+              <div className="absolute inset-0 bg-zinc-950/95 backdrop-blur-[2px] rounded-2xl flex flex-col items-center justify-center p-4 text-center border-2 border-amber-500/60 animate-in fade-in">
+                <CheckCircle2 className="w-8 h-8 text-amber-400 mb-1" />
+                <span className="text-xs font-bold text-amber-300 tracking-wide uppercase font-mono">Ingresso Utilizado</span>
+                <span className="text-[11px] text-zinc-300 font-mono mt-0.5">Entrada: {usedTimeStr}</span>
               </div>
-
-              {isUsed && (
-                <div className="absolute inset-0 bg-zinc-950/95 backdrop-blur-[2px] rounded-2xl flex flex-col items-center justify-center p-4 text-center border-2 border-amber-500/60 animate-in fade-in">
-                  <CheckCircle2 className="w-8 h-8 text-amber-400 mb-1" />
-                  <span className="text-xs font-bold text-amber-300 tracking-wide uppercase font-mono">Ingresso Utilizado</span>
-                  <span className="text-[11px] text-zinc-300 font-mono mt-0.5">Entrada: {usedTimeStr}</span>
-                </div>
-              )}
-            </button>
-
-            <p className="text-[10px] text-center text-zinc-500 font-mono flex items-center justify-center gap-1">
-              <Maximize2 className="w-2.5 h-2.5 text-zinc-400" />
-              <span>Toque no QR Code para ampliar</span>
-            </p>
-          </div>
-
-          {/* Barcode lines graphic */}
-          <div className="flex justify-center items-center gap-0.5 py-1 opacity-40">
-            {[4, 2, 8, 1, 6, 3, 7, 2, 5, 8, 3, 2, 6, 4, 8, 1, 3, 5, 2, 7, 4].map((h, i) => (
-              <span key={i} className="w-0.5 bg-zinc-400 rounded-full" style={{ height: `${h * 2 + 4}px` }} />
-            ))}
-          </div>
+            )}
+          </button>
 
           {/* Quick Copy */}
           <button
