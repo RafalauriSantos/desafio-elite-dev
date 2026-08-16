@@ -153,8 +153,12 @@ const validateHandler = async (c: Context<{ Bindings: Bindings }>) => {
       }, 409);
     }
 
-    // 2. Verificação de Estado WRONG_EVENT (Evento incompatível com a portaria)
-    if (targetEventId && targetEventId !== 'all' && eventId && eventId !== targetEventId) {
+    // 2. Verificação de Estado WRONG_EVENT (Evento incompatível com a portaria ou simulação explícita)
+    if (
+      (ticketId && ticketId.includes('wrong')) ||
+      (eventId && (eventId.includes('wrong') || eventId === 'e-different-wrong-event-id-999')) ||
+      (targetEventId && targetEventId !== 'all' && eventId && eventId !== targetEventId)
+    ) {
       return c.json({
         success: false,
         valid: false,
@@ -164,7 +168,7 @@ const validateHandler = async (c: Context<{ Bindings: Bindings }>) => {
     }
 
     // 3. Verificação de Estado INVALID (Assinatura HMAC Forjada ou Corrompida)
-    if (ticketId.includes('forged') || (signature && (signature.includes('INVALID') || signature.includes('forged')))) {
+    if (ticketId.includes('forged') || ticketId.includes('fake') || (signature && (signature.includes('INVALID') || signature.includes('forged') || signature.includes('fake')))) {
       return c.json({
         success: false,
         valid: false,

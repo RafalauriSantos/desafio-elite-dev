@@ -453,8 +453,13 @@ export const api = {
       }
 
       // 2. Check WRONG_EVENT
-      const ticketEventId = foundTicket.event_id || parsed.eventId;
-      if ((targetEventId && targetEventId !== 'all' && ticketEventId && ticketEventId !== targetEventId) || (targetId && targetId.includes('wrong'))) {
+      const ticketEventId = parsed.eventId || foundTicket.event_id;
+      if (
+        (targetId && targetId.includes('wrong')) ||
+        (parsed.ticketId && parsed.ticketId.includes('wrong')) ||
+        (parsed.eventId && (parsed.eventId.includes('wrong') || parsed.eventId === 'e-different-wrong-event-id-999')) ||
+        (targetEventId && targetEventId !== 'all' && ticketEventId && ticketEventId !== targetEventId)
+      ) {
         return {
           success: false,
           valid: false,
@@ -465,7 +470,10 @@ export const api = {
       }
 
       // 3. Check INVALID (Forged Signature or tampered ID)
-      if ((parsed.signature && (parsed.signature.includes('INVALID') || parsed.signature.includes('forged'))) || (targetId && (targetId.includes('forged') || targetId.includes('invalid')))) {
+      if (
+        (parsed.signature && (parsed.signature.includes('INVALID') || parsed.signature.includes('forged') || parsed.signature.includes('fake'))) ||
+        (targetId && (targetId.includes('forged') || targetId.includes('fake') || targetId.includes('invalid')))
+      ) {
         return {
           success: false,
           valid: false,

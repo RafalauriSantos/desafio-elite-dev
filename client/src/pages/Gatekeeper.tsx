@@ -51,13 +51,13 @@ export const Gatekeeper: React.FC = () => {
         });
       } else {
         payload = JSON.stringify({
-          ticketId: 't-demo-001',
-          eventId: 'e1111111-1111-1111-1111-111111111111',
+          ticketId: 't-demo-valid-001',
+          eventId: selectedTargetEventId !== 'all' ? selectedTargetEventId : (events[0]?.id || 'e1111111-1111-1111-1111-111111111111'),
           seatId: 's-demo-001',
-          userEmail: 'dev@verzel.com.br',
-          clientId: 'dev@verzel.com.br',
+          userEmail: 'ana.cliente@verzel.com',
+          clientId: 'ana.cliente@verzel.com',
           issuedAt: now,
-          signature: 'sig_demo_test_preset',
+          signature: 'hmac_sha256_valid_demo_pass',
         });
       }
     } else if (type === 'used') {
@@ -75,30 +75,30 @@ export const Gatekeeper: React.FC = () => {
         });
       } else {
         payload = JSON.stringify({
-          ticketId: 't-used-sample',
-          eventId: 'e1111111-1111-1111-1111-111111111111',
+          ticketId: 't-demo-used-001',
+          eventId: selectedTargetEventId !== 'all' ? selectedTargetEventId : (events[0]?.id || 'e1111111-1111-1111-1111-111111111111'),
           seatId: 's-used-001',
-          userEmail: 'cliente.antigo@exemplo.com',
-          clientId: 'cliente.antigo@exemplo.com',
+          userEmail: 'cliente.antigo@verzel.com',
+          clientId: 'cliente.antigo@verzel.com',
           issuedAt: now - 3600000,
-          signature: 'sig_already_used_sample',
+          signature: 'used-signature-demo-sample',
         });
       }
     } else if (type === 'invalid') {
       payload = JSON.stringify({
-        ticketId: 't-fake-hacker',
-        eventId: 'e1111111-1111-1111-1111-111111111111',
+        ticketId: 't-forged-hacker-001',
+        eventId: selectedTargetEventId !== 'all' ? selectedTargetEventId : (events[0]?.id || 'e1111111-1111-1111-1111-111111111111'),
         seatId: 's-fake-999',
         userEmail: 'hacker@malicious.com',
-        signature: 'invalid_tampered_hmac_hash_sample',
+        signature: 'forged_invalid_tampered_hmac_hash',
       });
     } else if (type === 'wrong_event') {
       payload = JSON.stringify({
         ticketId: 't-wrong-event-001',
-        eventId: 'e-other-non-matching-event-id',
+        eventId: 'e-different-wrong-event-id-999',
         seatId: 's-wrong-001',
         userEmail: 'visitante@outroshow.com',
-        signature: 'sig_wrong_event_valid_hash',
+        signature: 'hmac_sha256_valid_other_event',
       });
     }
 
