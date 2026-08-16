@@ -8,18 +8,18 @@ Neste documento, estruturei a comparação direta entre o que o edital da Verzel
 
 | Requisito do Edital | O que eu Entreguei | Onde Encontrar no Código |
 | :--- | :--- | :--- |
-| **Busca e navegação no catálogo** | Catálogo em tempo real com busca por texto e filtro de categorias | [`client/src/pages/Catalog.tsx`](file:///c:/Users/Rafael%20lauri/desafio-elite-dev/client/src/pages/Catalog.tsx) |
-| **Criação e gestão de eventos** | Modal de publicação com importação de dados externos | [`client/src/components/OrganizerModal.tsx`](file:///c:/Users/Rafael%20lauri/desafio-elite-dev/client/src/components/OrganizerModal.tsx) |
-| **Importação de catálogo externo** | Integração com a API do **TMDb** e catálogo curado de 24 atrações | [`server/src/index.ts`](file:///c:/Users/Rafael%20lauri/desafio-elite-dev/server/src/index.ts) |
-| **Reserva por mapa de assentos** | Mapa interativo com 80 assentos particionados por evento | [`client/src/components/SeatMap.tsx`](file:///c:/Users/Rafael%20lauri/desafio-elite-dev/client/src/components/SeatMap.tsx) |
-| **Prevenção de dupla venda** | Stored Procedure com `SELECT ... FOR UPDATE ORDER BY id ASC` | [`supabase/schema.sql`](file:///c:/Users/Rafael%20lauri/desafio-elite-dev/supabase/schema.sql) |
-| **Checkout simulado** | Confirmação e recusa com devolução imediata do assento ao estoque | [`client/src/components/CheckoutModal.tsx`](file:///c:/Users/Rafael%20lauri/desafio-elite-dev/client/src/components/CheckoutModal.tsx) |
-| **Meus Ingressos com QR** | Carteira de ingressos com QR Code de alta densidade | [`client/src/pages/MyTickets.tsx`](file:///c:/Users/Rafael%20lauri/desafio-elite-dev/client/src/pages/MyTickets.tsx) |
-| **QR Code infalsificável** | Assinatura HMAC-SHA256 gerada no servidor com chave secreta | [`server/src/crypto.ts`](file:///c:/Users/Rafael%20lauri/desafio-elite-dev/server/src/crypto.ts) |
-| **Compartilhar ingresso por link** | Link direto (`?ticket=UUID`) com visualização pública sem login | [`server/src/index.ts`](file:///c:/Users/Rafael%20lauri/desafio-elite-dev/server/src/index.ts) |
-| **Tela de portaria (4 estados)** | Validação atômica de `Válido`, `Já Usado`, `Inválido` e `Show Errado` | [`client/src/pages/Gatekeeper.tsx`](file:///c:/Users/Rafael%20lauri/desafio-elite-dev/client/src/pages/Gatekeeper.tsx) |
-| **Scanner por câmera e manual** | Leitor via câmera (`html5-qrcode`) e formulário com teclado | [`client/src/components/QRScanner.tsx`](file:///c:/Users/Rafael%20lauri/desafio-elite-dev/client/src/components/QRScanner.tsx) |
-| **Autenticação com 3 papéis** | Suporte a `Organizador`, `Cliente` e `Portaria` com RBAC | [`server/src/index.ts`](file:///c:/Users/Rafael%20lauri/desafio-elite-dev/server/src/index.ts) |
+| **Busca e navegação no catálogo** | Catálogo em tempo real com busca por texto e filtro de categorias | `client/src/pages/Catalog.tsx` |
+| **Criação e gestão de eventos** | Modal de publicação com importação de dados externos | `client/src/components/OrganizerModal.tsx` |
+| **Importação de catálogo externo** | Integração com a API do **TMDb** e catálogo curado de 24 atrações | `server/src/routes/catalog.ts` |
+| **Reserva por mapa de assentos** | Mapa interativo com 80 assentos particionados por evento | `client/src/components/SeatMap.tsx` |
+| **Prevenção de dupla venda** | Stored Procedure com `SELECT ... FOR UPDATE ORDER BY id ASC` | `supabase/schema.sql` |
+| **Checkout simulado** | Confirmação e recusa com devolução imediata do assento ao estoque | `client/src/components/CheckoutModal.tsx` |
+| **Meus Ingressos com QR** | Carteira de ingressos com QR Code de alta densidade | `client/src/pages/MyTickets.tsx` |
+| **QR Code infalsificável** | Assinatura HMAC-SHA256 gerada no servidor com chave secreta | `server/src/crypto.ts` |
+| **Compartilhar ingresso por link** | Link direto (`?ticket=UUID`) com visualização pública sem login | `server/src/routes/tickets.ts` |
+| **Tela de portaria (4 estados)** | Validação atômica de `Válido`, `Já Usado`, `Inválido` e `Show Errado` | `client/src/pages/Gatekeeper.tsx` |
+| **Scanner por câmera e manual** | Leitor via câmera (`html5-qrcode`) e formulário com teclado | `client/src/components/QRScanner.tsx` |
+| **Autenticação com 3 papéis** | Suporte a `Organizador`, `Cliente` e `Portaria` com RBAC | `server/src/middleware/auth.ts` |
 | **Deploy em produção** | Front-End na Cloudflare Pages e API no Cloudflare Workers | [elite-tickets.pages.dev](https://elite-tickets.pages.dev) |
 
 ---
