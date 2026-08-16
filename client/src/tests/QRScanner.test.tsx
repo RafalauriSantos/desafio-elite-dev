@@ -47,7 +47,7 @@ describe('QRScanner camera flow', () => {
     const user = userEvent.setup();
     render(<QRScanner onResult={onResult} targetEventId="all" />);
 
-    await user.click(screen.getByRole('button', { name: /Câmera Vivo/i }));
+    await user.click(screen.getByRole('button', { name: /Escanear/i }));
 
     await waitFor(() => expect(start).toHaveBeenCalledWith(
       'back-camera',

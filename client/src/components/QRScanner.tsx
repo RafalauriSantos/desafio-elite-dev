@@ -386,7 +386,7 @@ export const QRScanner = forwardRef<QRScannerHandle, QRScannerProps>(({ onResult
             }`}
           >
             <Camera className="w-3.5 h-3.5 text-emerald-400" />
-            <span>Câmera Vivo</span>
+            <span>Escanear</span>
           </button>
         </div>
 
