@@ -68,6 +68,38 @@
   ::-webkit-scrollbar-thumb:hover { background: #3f3f46; }
 }
 
+/* QR Scanner Single Frame & Laser Sweep Animation */
+#qr-reader-viewport #qr-shaded-region {
+  border: none !important;
+  opacity: 0 !important;
+  display: none !important;
+}
+
+#qr-reader-viewport video {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  border-radius: 1.5rem !important;
+}
+
+@keyframes scan-sweep {
+  0% {
+    top: 6px;
+    opacity: 0.8;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    top: calc(100% - 6px);
+    opacity: 0.8;
+  }
+}
+
+.animate-scan-sweep {
+  animation: scan-sweep 2.2s ease-in-out infinite alternate;
+}
+
 /* Otimização de Impressão de Bilhete em PDF (Padrão Oficial Suíço / Apple Wallet) */
 @page {
   size: A4 portrait;

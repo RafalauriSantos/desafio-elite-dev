@@ -421,33 +421,27 @@ export const QRScanner = forwardRef<QRScannerHandle, QRScannerProps>(({ onResult
           <div className="relative w-full max-w-md rounded-3xl overflow-hidden border border-zinc-700/60 bg-zinc-950 min-h-[280px] flex items-center justify-center shadow-2xl">
             <div id="qr-reader-viewport" className="w-full h-full min-h-[280px]" />
 
-            {/* Glowing Laser Scan & HUD Corner Reticles */}
+            {/* Single Clean Google Lens / Boarding Pass Corner Frame */}
             {isScanning && (
               <div className="pointer-events-none absolute inset-0 flex items-center justify-center p-6">
                 {/* Top Floating HUD Status */}
                 <div className="absolute top-3 inset-x-0 flex justify-center">
-                  <div className="px-3 py-1 rounded-full bg-zinc-950/80 backdrop-blur-md border border-emerald-500/30 flex items-center gap-2 text-[10px] font-mono font-bold text-emerald-400 shadow-md">
-                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
-                    <span>CÂMERA ATIVA PARA LEITURA</span>
+                  <div className="px-3 py-1 rounded-full bg-zinc-950/85 backdrop-blur-md border border-emerald-500/40 flex items-center gap-2 text-[10px] font-mono font-bold text-emerald-400 shadow-md">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
+                    <span>SCANNER ÓPTICO ATIVO</span>
                   </div>
                 </div>
 
-                {/* Cyberpunk High-Precision Target Frame */}
+                {/* Single Corner Brackets Target Frame */}
                 <div className="w-56 h-56 relative rounded-2xl">
                   {/* 4 Precision Corner Brackets */}
-                  <div className="absolute top-0 left-0 w-7 h-7 border-t-[3px] border-l-[3px] border-emerald-400 rounded-tl-xl shadow-[0_0_10px_rgba(16,185,129,0.5)]" />
-                  <div className="absolute top-0 right-0 w-7 h-7 border-t-[3px] border-r-[3px] border-emerald-400 rounded-tr-xl shadow-[0_0_10px_rgba(16,185,129,0.5)]" />
-                  <div className="absolute bottom-0 left-0 w-7 h-7 border-b-[3px] border-l-[3px] border-emerald-400 rounded-bl-xl shadow-[0_0_10px_rgba(16,185,129,0.5)]" />
-                  <div className="absolute bottom-0 right-0 w-7 h-7 border-b-[3px] border-r-[3px] border-emerald-400 rounded-br-xl shadow-[0_0_10px_rgba(16,185,129,0.5)]" />
+                  <div className="absolute top-0 left-0 w-8 h-8 border-t-[3.5px] border-l-[3.5px] border-emerald-400 rounded-tl-xl shadow-[0_0_12px_rgba(16,185,129,0.4)]" />
+                  <div className="absolute top-0 right-0 w-8 h-8 border-t-[3.5px] border-r-[3.5px] border-emerald-400 rounded-tr-xl shadow-[0_0_12px_rgba(16,185,129,0.4)]" />
+                  <div className="absolute bottom-0 left-0 w-8 h-8 border-b-[3.5px] border-l-[3.5px] border-emerald-400 rounded-bl-xl shadow-[0_0_12px_rgba(16,185,129,0.4)]" />
+                  <div className="absolute bottom-0 right-0 w-8 h-8 border-b-[3.5px] border-r-[3.5px] border-emerald-400 rounded-br-xl shadow-[0_0_12px_rgba(16,185,129,0.4)]" />
 
-                  {/* Center Subtle Crosshair */}
-                  <div className="absolute inset-0 flex items-center justify-center opacity-30">
-                    <div className="w-4 h-0.5 bg-emerald-400" />
-                    <div className="w-0.5 h-4 bg-emerald-400 absolute" />
-                  </div>
-
-                  {/* Sweeping Laser Line */}
-                  <div className="absolute inset-x-0 h-0.5 bg-gradient-to-r from-transparent via-emerald-400 to-transparent shadow-[0_0_14px_#10b981] animate-[bounce_2.2s_infinite]" />
+                  {/* Smooth Sweeping Laser Line Inside Frame */}
+                  <div className="absolute inset-x-2 h-0.5 bg-gradient-to-r from-transparent via-emerald-400 to-transparent shadow-[0_0_12px_#10b981] animate-scan-sweep" />
                 </div>
               </div>
             )}
