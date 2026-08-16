@@ -32,5 +32,5 @@ Para agregar ainda mais valor e mostrar meu nível de cuidado com o produto, imp
 2. **Envio Real de E-mails (Resend API):** Implementei o disparo assíncrono em segundo plano no Worker (`c.executionCtx.waitUntil`) com template HTML idêntico ao bilhete.
 3. **Retorno Háptico na Portaria:** Configurei o leitor para vibrar o celular fisicamente e dar feedback tátil imediato na portaria (`[80ms]` para aprovado).
 4. **Persona Switcher:** Criei o alternador no topo da tela para que a banca possa testar as 3 personas em 1 clique, sem barreiras de autenticação.
-5. **Suíte de Testes de Concorrência e Caos:** Desenvolvi 21 testes automatizados cobrindo tentativas de compra simultânea, injeção de payload e ataque de repetição.
+5. **Suíte de Testes de Concorrência e Caos:** Desenvolvi 18 cenários de teste automatizados (totalizando 21 asserções) cobrindo tentativas de compra simultânea, injeção de payload e ataque de repetição.
 6. **Esteira CI/CD no GitHub Actions:** Configurei uma pipeline de 4 estágios (Gitleaks, TypeScript Typecheck, Vitest/Playwright, Deploy na Cloudflare).

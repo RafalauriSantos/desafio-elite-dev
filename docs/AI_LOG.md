@@ -46,7 +46,7 @@ Sempre que a IA gerava algo genérico ou com falhas de negócio, fiz questão de
 
 ## 🧪 Testes e Validação Contínua
 
-Para ter certeza de que tudo funcionava além da interface, montei e executei uma suíte com **18 cenários de teste automatizados** (`tests/qa_all_scenarios_suite.mjs`), simulando 10 compras simultâneas pelo mesmo assento, tentativas de fraudar o QR Code e ataques de repetição na portaria.
+Para ter certeza de que tudo funcionava além da interface, montei e executei uma suíte com **18 cenários de teste automatizados (totalizando 21 asserções de validação)** (`tests/qa_all_scenarios_suite.mjs`), simulando 10 compras simultâneas pelo mesmo assento, tentativas de fraudar o QR Code, ataques de repetição e injeção de payload na portaria.
 
 ---
 

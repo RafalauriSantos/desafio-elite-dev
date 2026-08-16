@@ -46,7 +46,7 @@ Todas as funcionalidades obrigatórias e os principais diferenciais recomendados
    - Envio assíncrono real de e-mails com o voucher do ingresso via **API do Resend** (`c.executionCtx.waitUntil`).
    - Retorno háptico com vibração física no celular da portaria para feedback de acesso.
    - Exportação e impressão em PDF A4 perfeitamente centralizada via CSS print.
-   - Suíte de 21 testes automatizados de concorrência, caos e ataques (*Red Team*).
+   - Suíte de 18 cenários de testes automatizados de concorrência e caos (21 asserções).
    - Pipeline de CI/CD completa no GitHub Actions com TypeCheck estrito, Vitest, Playwright e Deploy automático.
 
 ---
@@ -172,7 +172,7 @@ npm test
 # 3. Suíte de Auditoria no Banco Real
 node tests/live_db_audit.mjs
 
-# 4. Suíte Extrema de Concorrência e Caos (21 Cenários)
+# 4. Suíte Extrema de Concorrência e Caos (18 Cenários / 21 Asserções)
 node tests/qa_all_scenarios_suite.mjs
 ```
 
