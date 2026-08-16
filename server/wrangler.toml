@@ -7,4 +7,4 @@ compatibility_flags = ["nodejs_compat"]
 # Cloudflare bindings. Use `wrangler deploy --keep-vars` for subsequent deploys.
 [vars]
 SUPABASE_URL = "https://zgbhmduzypqfgfuncnhl.supabase.co"
-TMDB_API_KEY = "d023280296e553e48cf61905fdb8e9e4"
+TMDB_API_KEY = "d6f3ac69c22624f141f69a8a70e13ecd"
