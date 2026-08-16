@@ -3,7 +3,7 @@ import { QRCodeSVG } from 'qrcode.react';
 import { TicketItem } from '../lib/api';
 import { Calendar, MapPin, Check, Printer, CalendarPlus, Share2, CheckCircle2, ShieldCheck, Copy } from 'lucide-react';
 import { PrintableTicket } from './PrintableTicket';
-import { buildGoogleCalendarUrl, buildTicketShareLink, buildTicketQrPayload } from '../lib/ticketUtils';
+import { buildGoogleCalendarUrl, buildTicketShareLink, buildTicketQrPayload, formatEventDate, formatSeatLabel } from '../lib/ticketUtils';
 
 interface TicketCardProps {
   ticket: TicketItem;
@@ -124,15 +124,7 @@ export const TicketCard: React.FC<TicketCardProps> = ({ ticket, qrData }) => {
           <div className="space-y-1.5 text-xs text-zinc-400">
             <div className="flex items-center gap-1.5">
               <Calendar className="w-3.5 h-3.5 shrink-0 text-zinc-400" />
-              <span>
-                {new Date(event.date || Date.now()).toLocaleDateString('pt-BR', {
-                  day: '2-digit',
-                  month: 'short',
-                  year: 'numeric',
-                  hour: '2-digit',
-                  minute: '2-digit',
-                })}
-              </span>
+              <span>{formatEventDate(event.date)}</span>
             </div>
             <div className="flex items-center gap-1.5">
               <MapPin className="w-3.5 h-3.5 shrink-0 text-zinc-400" />
@@ -149,7 +141,7 @@ export const TicketCard: React.FC<TicketCardProps> = ({ ticket, qrData }) => {
             <div className="text-right">
               <span className="text-zinc-500 text-[10px] uppercase font-mono font-bold">Assento</span>
               <p className={`font-mono font-bold text-sm ${isUsed ? 'text-zinc-400' : 'text-emerald-400'}`}>
-                {seat.row_name}{seat.seat_number} {seat.category ? `(${seat.category})` : ''}
+                {formatSeatLabel(seat)}
               </p>
             </div>
           </div>

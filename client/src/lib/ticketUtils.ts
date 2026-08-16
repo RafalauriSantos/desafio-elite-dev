@@ -48,3 +48,35 @@ export function buildTicketQrPayload(ticket: TicketItem): string {
     signature: ticket.qr_signature,
   });
 }
+
+/**
+ * Formata data de evento em padrão brasileiro (ex: 20 NOV 2026 • 19:00).
+ */
+export function formatEventDate(dateString?: string): string {
+  const eventDateObj = dateString && !isNaN(new Date(dateString).getTime()) ? new Date(dateString) : new Date();
+  const day = eventDateObj.getDate();
+  const monthStr = eventDateObj
+    .toLocaleDateString('pt-BR', { month: 'short' })
+    .replace('.', '')
+    .toUpperCase();
+  const year = eventDateObj.getFullYear();
+  const hours = String(eventDateObj.getHours()).padStart(2, '0');
+  const minutes = String(eventDateObj.getMinutes()).padStart(2, '0');
+  return `${day} ${monthStr} ${year} • ${hours}:${minutes}`;
+}
+
+/**
+ * Formata a etiqueta do assento (ex: VIP • A-01).
+ */
+export function formatSeatLabel(seat?: { row_name?: string; seat_number?: number | string; category?: string }): string {
+  const row = seat?.row_name || 'A';
+  const rawNum = seat?.seat_number;
+  const numPadded =
+    typeof rawNum === 'number' && !isNaN(rawNum)
+      ? String(rawNum).padStart(2, '0')
+      : rawNum
+      ? String(rawNum).padStart(2, '0')
+      : '01';
+  const cat = seat?.category || 'VIP';
+  return `${cat} • ${row}-${numPadded}`;
+}

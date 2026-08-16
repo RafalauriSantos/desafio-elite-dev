@@ -2,7 +2,7 @@ import React from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import { TicketItem } from '../lib/api';
 import { Sparkles, Calendar, MapPin, Check, Lock, Smartphone } from 'lucide-react';
-import { buildTicketQrPayload } from '../lib/ticketUtils';
+import { buildTicketQrPayload, formatEventDate, formatSeatLabel } from '../lib/ticketUtils';
 
 interface PrintableTicketProps {
   ticket: TicketItem;
@@ -22,17 +22,8 @@ export const PrintableTicket: React.FC<PrintableTicketProps> = ({ ticket, qrData
   const isUsed = ticket?.status === 'used';
 
   const finalQrString = qrData || buildTicketQrPayload(ticket);
-
-  const eventDateObj = event?.date && !isNaN(new Date(event.date).getTime()) ? new Date(event.date) : new Date();
-  const day = eventDateObj.getDate();
-  const monthStr = eventDateObj
-    .toLocaleDateString('pt-BR', { month: 'short' })
-    .replace('.', '')
-    .toUpperCase();
-  const year = eventDateObj.getFullYear();
-  const hours = String(eventDateObj.getHours()).padStart(2, '0');
-  const minutes = String(eventDateObj.getMinutes()).padStart(2, '0');
-  const formattedDate = `${day} ${monthStr} ${year} • ${hours}:${minutes}`;
+  const formattedDate = formatEventDate(event?.date);
+  const seatLabel = formatSeatLabel(seat);
 
   const usedDateStr = ticket?.used_at && !isNaN(new Date(ticket.used_at).getTime())
     ? new Date(ticket.used_at).toLocaleDateString('pt-BR', {
@@ -46,12 +37,6 @@ export const PrintableTicket: React.FC<PrintableTicketProps> = ({ ticket, qrData
 
   const rawId = safeTicketId.replace(/^t-|^T-|^#/, '');
   const refCode = `#T-${rawId.slice(0, 6).toUpperCase() || 'DEMO'}`;
-  const rowName = seat?.row_name || 'A';
-  const rawSeatNum = seat?.seat_number;
-  const seatNumberPadded = typeof rawSeatNum === 'number' && !isNaN(rawSeatNum)
-    ? String(rawSeatNum).padStart(2, '0')
-    : (rawSeatNum ? String(rawSeatNum).padStart(2, '0') : '01');
-  const categoryName = seat?.category || 'VIP';
 
   const cleanUserName = (ticket?.user_name || ticket?.user_email || 'Cliente')
     .replace(/\s*\(Já Entrou\)/gi, '')
@@ -134,7 +119,7 @@ export const PrintableTicket: React.FC<PrintableTicketProps> = ({ ticket, qrData
             CATEGORIA / ASSENTO
           </span>
           <p className="text-sm font-black text-zinc-950 mt-0.5">
-            {categoryName} • {rowName}-{seatNumberPadded}
+            {seatLabel}
           </p>
         </div>
       </div>
