@@ -41,7 +41,7 @@ O controle de concorrência é delegado ao PostgreSQL via Stored Procedure `rese
 
 Em vez de trafegar identificadores abertos e facilmente forjáveis:
 
-O Cloudflare Worker assina o payload do ingresso usando a **Web Crypto API** (`crypto.subtle`) com chave secreta no servidor. A portaria recalcula o hash e valida o bilhete no banco de dados em uma única transação atômica.
+O Cloudflare Worker assina o payload do ingresso usando a **Web Crypto API** (`crypto.subtle`) com chave secreta no servidor. Na validação, a rota da portaria recomputa a assinatura criptográfica e invoca a Stored Procedure no banco de dados para checagem atômica de status e evento.
 
 ### Fuga do "AI Slop" — Design System Suíço / Apple Wallet
 
@@ -61,12 +61,12 @@ No modal de checkout, o usuário pode alternar entre **Simular Aprovação** e *
 
 | Camada | Tecnologia | Justificativa |
 | :--- | :--- | :--- |
-| **Front-End** | React 18 + Vite + TypeScript + Tailwind CSS | Interface reativa, tipagem estrita (Zero `any`) e bundle otimizado. |
-| **Back-End** | Node.js + Hono.js no Cloudflare Workers | Execução serverless na borda (Edge) com latência < 20ms. |
-| **Banco de Dados** | Supabase (PostgreSQL 15) | Stored Procedures PL/pgSQL, RLS e transações ACID. |
-| **Criptografia** | HMAC-SHA256 (Web Crypto API) | Assinatura nativa em C++ no V8 isolado sem expor segredos. |
-| **Leitura Óptica** | `html5-qrcode` + Web Audio API | Leitor contínuo de câmera com fallback manual e bipes sintetizados. |
-| **Testes & CI/CD** | Vitest + Playwright + GitHub Actions | Testes unitários, E2E e esteira automatizada com 4 jobs encadeados. |
+| **Front-End** | React 18 + Vite + TypeScript + Tailwind CSS | Interface reativa, modular e tipada com componentes reutilizáveis. |
+| **Back-End** | Node.js + Hono.js no Cloudflare Workers | Execução serverless na borda (Edge) com rotas modulares e Web Crypto API. |
+| **Banco de Dados** | Supabase (PostgreSQL 15) | Stored Procedures PL/pgSQL, travas transacionais e RLS. |
+| **Criptografia** | HMAC-SHA256 (Web Crypto API) | Assinatura nativa via Web Crypto API sem expor segredos no front-end. |
+| **Leitura Óptica** | `html5-qrcode` + Web Audio API | Leitor contínuo de câmera com fallback manual e feedback sonoro. |
+| **Testes & CI/CD** | Vitest + Playwright + GitHub Actions | Testes unitários, testes de concorrência e esteira automatizada. |
 
 ---
 
