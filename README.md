@@ -5,10 +5,9 @@
 
 ---
 
-## 🔗 Aplicação no Ar (Produção)
+## 🔗 Aplicação no Ar
 
-- 🌐 **Front-End (Cloudflare Pages):** [https://elite-tickets.pages.dev](https://elite-tickets.pages.dev)
-- ⚡ **API Edge (Cloudflare Workers):** [https://elite-tickets-api.agenddar.workers.dev](https://elite-tickets-api.agenddar.workers.dev)
+- 💻 **Acessar Sistema:** [https://elite-tickets.pages.dev](https://elite-tickets.pages.dev)
 
 ---
 
