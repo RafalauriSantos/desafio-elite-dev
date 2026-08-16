@@ -67,6 +67,15 @@ export function App() {
   const effectiveRole = profile?.role ?? activePersona.role;
   const effectiveName = profile?.name ?? activePersona.name;
 
+  const handlePersonaSelect = (persona: Persona) => {
+    setActivePersona(persona);
+    if (persona.role === 'gatekeeper') {
+      setActiveTab('gatekeeper');
+    } else {
+      setActiveTab('catalog');
+    }
+  };
+
   return (
     <Layout
       activeTab={activeTab}
@@ -74,7 +83,7 @@ export function App() {
       ticketCount={tickets.length}
       role={effectiveRole}
       activePersona={activePersona}
-      onSelectPersona={(persona) => setActivePersona(persona)}
+      onSelectPersona={handlePersonaSelect}
       isDemoMode={isDemoMode}
       isAuthenticated={!!session}
       userName={effectiveName}

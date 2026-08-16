@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ChevronDown, Sparkles, LogIn, LogOut, Calendar, Ticket, ShieldCheck, Plus } from 'lucide-react';
+import { ChevronDown, Sparkles, LogOut, Calendar, Ticket, ShieldCheck, Plus } from 'lucide-react';
 import { UserRole } from '../auth/AuthContext';
 
 export interface Persona {
@@ -47,11 +47,24 @@ export function Layout({
 }: LayoutProps) {
   const [personaMenuOpen, setPersonaMenuOpen] = useState(false);
 
-  const navItems = [
-    { id: 'catalog' as const, label: 'Eventos', icon: Calendar },
-    { id: 'my-tickets' as const, label: 'Meus Ingressos', icon: Ticket, badge: ticketCount },
-    { id: 'gatekeeper' as const, label: 'Portaria', icon: ShieldCheck },
-  ];
+  const effectiveRole = activePersona.role;
+
+  interface NavItem {
+    id: 'catalog' | 'my-tickets' | 'gatekeeper';
+    label: string;
+    icon: typeof Calendar;
+    badge?: number;
+  }
+
+  const navItems: NavItem[] =
+    effectiveRole === 'gatekeeper'
+      ? [{ id: 'gatekeeper', label: 'Portaria', icon: ShieldCheck }]
+      : effectiveRole === 'organizer'
+      ? [{ id: 'catalog', label: 'Gestão de Eventos', icon: Calendar }]
+      : [
+          { id: 'catalog', label: 'Catálogo', icon: Calendar },
+          { id: 'my-tickets', label: 'Meus Ingressos', icon: Ticket, badge: ticketCount },
+        ];
 
   return (
     <div className="flex flex-col flex-1 w-full h-[100dvh] md:min-h-[100dvh] md:h-auto overflow-hidden md:overflow-visible bg-transparent text-zinc-100 antialiased">
@@ -140,8 +153,8 @@ export function Layout({
               )}
             </div>
 
-            {/* Auth Action */}
-            {isAuthenticated ? (
+            {/* Discreet Logout if session active */}
+            {isAuthenticated && (
               <button
                 onClick={() => void onSignOut?.()}
                 className="flex items-center gap-1 text-xs text-zinc-400 hover:text-white px-2 py-1 rounded-md transition-colors"
@@ -150,15 +163,7 @@ export function Layout({
                 <LogOut className="w-3.5 h-3.5" />
                 <span className="hidden sm:inline">Sair</span>
               </button>
-            ) : onOpenLogin ? (
-              <button
-                onClick={onOpenLogin}
-                className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-zinc-800/60 hover:bg-zinc-800 border border-zinc-700/60 text-xs font-medium text-zinc-300 hover:text-white transition-colors"
-              >
-                <LogIn className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline">Entrar</span>
-              </button>
-            ) : null}
+            )}
           </div>
         </div>
       </header>

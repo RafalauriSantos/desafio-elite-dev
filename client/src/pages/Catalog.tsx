@@ -70,7 +70,7 @@ export const Catalog: React.FC<CatalogProps> = ({ onSelectEvent, role }) => {
           <p className="text-sm text-zinc-400 mt-1">Explore as principais atrações e reserve assentos em tempo real.</p>
         </div>
 
-        {(isDemoMode || effectiveRole === 'organizer') && (
+        {effectiveRole === 'organizer' && (
           <button
             onClick={() => setIsOrganizerOpen(true)}
             className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-[13px] font-medium text-zinc-200 bg-zinc-900 hover:bg-zinc-800 border border-zinc-700/80 transition-colors shadow-sm w-fit"
