@@ -33,7 +33,7 @@ A banca avaliadora possui entre 3 e 5 minutos para testar a aplicação de ponta
 
 - [x] **Assinatura HMAC-SHA256:** Servidor gera hash assinado via Web Crypto API combinando ID do ingresso, evento, assento e chave secreta.
 - [x] **Design Apple Wallet Pass:** Passe vertical minimalista com referência mascarada (`REF: #7361-5E6D`), QR Code vetorial nítido e botão de impressão/PDF.
-- [ ] **Link Público de Compartilhamento (`/ticket/:id`):** Endpoint que carrega os dados diretamente do backend/banco de dados, funcionando em qualquer navegador ou dispositivo móvel sem depender de `localStorage`.
+- [x] **Link Público de Compartilhamento (`/ticket/:id`):** Endpoint que carrega os dados diretamente do backend/banco de dados, funcionando em qualquer navegador ou dispositivo móvel sem depender de `localStorage`.
 
 ### Fase 4 — Portaria & Máquina de 4 Estados (Gatekeeper)
 **Objetivo:** Validação atômica e em tempo real na entrada do evento.
@@ -55,6 +55,6 @@ A banca avaliadora possui entre 3 e 5 minutos para testar a aplicação de ponta
 ### Fase 6 — Roteiro de Avaliação de 3 Minutos & Documentação Final
 **Objetivo:** Guiar o avaliador com clareza cristalina no README e na documentação.
 
-- [ ] **Roteiro de 3 Minutos no README:** Passo a passo mastigado para a banca testar o fluxo completo em 180 segundos.
-- [ ] **Garantia de CI/CD Verde:** Todos os testes unitários (`Vitest`), testes de tipos (`TypeScript`) e automação E2E (`Playwright`) passando com 100% de sucesso.
-- [ ] **Atualização do AI_LOG.md e Grafo de Conhecimento:** Registro formal de transparência e arquitetura.
+- [x] **Roteiro de 3 Minutos no README:** Passo a passo mastigado para a banca testar o fluxo completo em 180 segundos.
+- [x] **Garantia de CI/CD Verde:** Todos os testes unitários (`Vitest`), testes de tipos (`TypeScript`) e automação E2E (`Playwright`) passando com 100% de sucesso.
+- [x] **Atualização do AI_LOG.md e Grafo de Conhecimento:** Registro formal de transparência e arquitetura.
