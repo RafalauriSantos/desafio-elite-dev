@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import { TicketItem } from '../lib/api';
-import { Calendar, MapPin, Check, Printer, CalendarPlus, Share2, CheckCircle2, ShieldCheck, Copy } from 'lucide-react';
+import { Calendar, MapPin, Check, Printer, CalendarPlus, Share2, CheckCircle2, ShieldCheck, Copy, Maximize2, X } from 'lucide-react';
 import { PrintableTicket } from './PrintableTicket';
 import { buildGoogleCalendarUrl, buildTicketShareLink, buildTicketQrPayload, formatEventDate, formatSeatLabel } from '../lib/ticketUtils';
 
@@ -13,6 +13,7 @@ interface TicketCardProps {
 export const TicketCard: React.FC<TicketCardProps> = ({ ticket, qrData }) => {
   const [copiedLink, setCopiedLink] = useState(false);
   const [copiedPayload, setCopiedPayload] = useState(false);
+  const [isZoomed, setIsZoomed] = useState(false);
 
   const event = ticket.events || {
     title: 'Evento Oficial Elite Tickets',
@@ -25,6 +26,17 @@ export const TicketCard: React.FC<TicketCardProps> = ({ ticket, qrData }) => {
   const finalQrString = qrData || buildTicketQrPayload(ticket);
   const isUsed = ticket.status === 'used';
   const shortRef = (ticket.id || '').replace(/^t-|^T-|^#/, '').slice(0, 6).toUpperCase() || 'DEMO';
+
+  // Handle ESC key to close zoomed QR code modal
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isZoomed) {
+        setIsZoomed(false);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isZoomed]);
 
   const handleShare = async () => {
     const link = buildTicketShareLink(ticket.id);
@@ -67,7 +79,7 @@ export const TicketCard: React.FC<TicketCardProps> = ({ ticket, qrData }) => {
     ? new Date(ticket.used_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
     : 'Portaria';
 
-  // Ensure pure user name display without any concatenated status suffixes
+  // Pure user name display without concatenated status suffixes
   const cleanUserName = (ticket.user_name || ticket.user_email || 'Cliente')
     .replace(/\s*\(Já Entrou\)/gi, '')
     .replace(/\s*\(Utilizado\)/gi, '')
@@ -156,23 +168,40 @@ export const TicketCard: React.FC<TicketCardProps> = ({ ticket, qrData }) => {
             <div className="w-5 h-5 rounded-full bg-[#09090b] border-l border-zinc-800/90 -mr-7 z-10" />
           </div>
 
-          {/* QR Code Voucher Stub */}
-          <div className="w-full max-w-[190px] aspect-square mx-auto flex items-center justify-center p-3 bg-white rounded-2xl relative shadow-md">
-            <QRCodeSVG
-              value={finalQrString}
-              size={165}
-              level="M"
-              includeMargin={true}
-              className="w-full h-full object-contain mx-auto"
-            />
+          {/* QR Code Voucher Stub with Click to Zoom */}
+          <div className="space-y-1.5">
+            <button
+              type="button"
+              onClick={() => setIsZoomed(true)}
+              className="w-full max-w-[190px] aspect-square mx-auto flex items-center justify-center p-3 bg-white rounded-2xl relative shadow-md group cursor-pointer transition-transform hover:scale-[1.02] active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-emerald-400/50"
+              title="Toque para ampliar o QR Code"
+            >
+              <QRCodeSVG
+                value={finalQrString}
+                size={165}
+                level="M"
+                includeMargin={true}
+                className="w-full h-full object-contain mx-auto"
+              />
 
-            {isUsed && (
-              <div className="absolute inset-0 bg-zinc-950/95 backdrop-blur-[2px] rounded-2xl flex flex-col items-center justify-center p-4 text-center border-2 border-amber-500/60 animate-in fade-in">
-                <CheckCircle2 className="w-8 h-8 text-amber-400 mb-1" />
-                <span className="text-xs font-bold text-amber-300 tracking-wide uppercase font-mono">Ingresso Utilizado</span>
-                <span className="text-[11px] text-zinc-300 font-mono mt-0.5">Entrada: {usedTimeStr}</span>
+              {/* Hover Zoom Cue */}
+              <div className="absolute bottom-2 right-2 bg-black/70 backdrop-blur-sm p-1 rounded-md text-white opacity-80 group-hover:opacity-100 transition-opacity">
+                <Maximize2 className="w-3.5 h-3.5" />
               </div>
-            )}
+
+              {isUsed && (
+                <div className="absolute inset-0 bg-zinc-950/95 backdrop-blur-[2px] rounded-2xl flex flex-col items-center justify-center p-4 text-center border-2 border-amber-500/60 animate-in fade-in">
+                  <CheckCircle2 className="w-8 h-8 text-amber-400 mb-1" />
+                  <span className="text-xs font-bold text-amber-300 tracking-wide uppercase font-mono">Ingresso Utilizado</span>
+                  <span className="text-[11px] text-zinc-300 font-mono mt-0.5">Entrada: {usedTimeStr}</span>
+                </div>
+              )}
+            </button>
+
+            <p className="text-[10px] text-center text-zinc-500 font-mono flex items-center justify-center gap-1">
+              <Maximize2 className="w-2.5 h-2.5 text-zinc-400" />
+              <span>Toque no QR Code para ampliar</span>
+            </p>
           </div>
 
           {/* Barcode lines graphic */}
@@ -244,6 +273,75 @@ export const TicketCard: React.FC<TicketCardProps> = ({ ticket, qrData }) => {
           </div>
         </div>
       </div>
+
+      {/* Fullscreen Zoomed QR Code Modal for Optimal Gatekeeper Scanning */}
+      {isZoomed && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label="QR Code Ampliado"
+          className="fixed inset-0 z-50 bg-black/90 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-200"
+          onClick={() => setIsZoomed(false)}
+        >
+          <div
+            className="w-full max-w-sm bg-[#0e0e11] rounded-3xl border border-zinc-700/80 p-6 space-y-5 shadow-2xl relative text-center"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Close Button */}
+            <button
+              type="button"
+              onClick={() => setIsZoomed(false)}
+              className="absolute top-4 right-4 w-9 h-9 rounded-full bg-zinc-900 hover:bg-zinc-800 text-zinc-400 hover:text-white flex items-center justify-center transition-colors border border-zinc-800"
+              aria-label="Fechar ampliação"
+            >
+              <X className="w-4 h-4" />
+            </button>
+
+            {/* Header info */}
+            <div className="space-y-1 pr-8 text-left">
+              <span className="text-[10px] font-mono font-bold text-emerald-400 uppercase tracking-wider">
+                Apresente na Catraca / Portaria
+              </span>
+              <h3 className="text-base font-bold text-white truncate">{event.title}</h3>
+              <p className="text-xs text-zinc-400 font-mono">
+                {seat.row_name}{seat.seat_number} • {cleanUserName} • #{shortRef}
+              </p>
+            </div>
+
+            {/* Ultra High-Contrast Large QR Container */}
+            <div className="w-full max-w-[270px] aspect-square mx-auto p-4 bg-white rounded-3xl shadow-2xl flex items-center justify-center relative">
+              <QRCodeSVG
+                value={finalQrString}
+                size={238}
+                level="H"
+                includeMargin={true}
+                className="w-full h-full object-contain mx-auto"
+              />
+
+              {isUsed && (
+                <div className="absolute inset-0 bg-zinc-950/95 backdrop-blur-[2px] rounded-3xl flex flex-col items-center justify-center p-4 text-center border-2 border-amber-500">
+                  <CheckCircle2 className="w-10 h-10 text-amber-400 mb-1" />
+                  <span className="text-sm font-bold text-amber-300 uppercase font-mono">Ingresso Já Utilizado</span>
+                  <span className="text-xs text-zinc-300 font-mono mt-0.5">Entrada: {usedTimeStr}</span>
+                </div>
+              )}
+            </div>
+
+            {/* Brightness / Scan Tip */}
+            <p className="text-xs text-zinc-400 leading-relaxed font-medium">
+              Posicione o QR Code diretamente em frente ao leitor óptico.
+            </p>
+
+            <button
+              type="button"
+              onClick={() => setIsZoomed(false)}
+              className="w-full py-3 rounded-xl bg-white hover:bg-zinc-100 text-zinc-950 font-bold text-xs transition-colors shadow-sm"
+            >
+              Fechar Visualização
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* High-Resolution Printable Ticket for PDF Export */}
       <div className="hidden print:block printable-container">
