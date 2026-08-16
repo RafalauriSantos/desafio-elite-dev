@@ -740,5 +740,62 @@ export const api = {
     };
     MOCK_EVENTS.unshift(newEvent);
     return { success: true, event: newEvent, message: 'Evento criado com sucesso.' };
+  },
+
+  // 11. Update Event
+  async updateEvent(id: string, updates: Partial<Omit<EventItem, 'id'>>): Promise<{ success: boolean; event?: EventItem; message?: string; error?: string }> {
+    try {
+      const authHeaders = await getAuthHeaders();
+      const res = await fetch(`${API_BASE_URL}/api/events/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', ...authHeaders },
+        body: JSON.stringify(updates)
+      });
+      const json = await res.json();
+      if (res.ok && json.success) {
+        const idx = MOCK_EVENTS.findIndex((e) => e.id === id);
+        if (idx !== -1 && json.event) {
+          MOCK_EVENTS[idx] = json.event;
+        }
+        return json;
+      }
+      return { success: false, error: json.error || 'Erro ao atualizar evento.' };
+    } catch {
+      console.warn('API update event offline, updating locally.');
+    }
+
+    const idx = MOCK_EVENTS.findIndex((e) => e.id === id);
+    if (idx !== -1) {
+      MOCK_EVENTS[idx] = { ...MOCK_EVENTS[idx], ...updates };
+      return { success: true, event: MOCK_EVENTS[idx], message: 'Evento atualizado com sucesso.' };
+    }
+    return { success: false, error: 'Evento não encontrado.' };
+  },
+
+  // 12. Delete Event
+  async deleteEvent(id: string): Promise<{ success: boolean; message?: string; error?: string }> {
+    try {
+      const authHeaders = await getAuthHeaders();
+      const res = await fetch(`${API_BASE_URL}/api/events/${id}`, {
+        method: 'DELETE',
+        headers: { ...authHeaders }
+      });
+      const json = await res.json();
+      if (res.ok && json.success) {
+        const idx = MOCK_EVENTS.findIndex((e) => e.id === id);
+        if (idx !== -1) MOCK_EVENTS.splice(idx, 1);
+        return json;
+      }
+      return { success: false, error: json.error || 'Erro ao excluir evento.' };
+    } catch {
+      console.warn('API delete event offline, deleting locally.');
+    }
+
+    const idx = MOCK_EVENTS.findIndex((e) => e.id === id);
+    if (idx !== -1) {
+      MOCK_EVENTS.splice(idx, 1);
+      return { success: true, message: 'Evento excluído com sucesso.' };
+    }
+    return { success: false, error: 'Evento não encontrado.' };
   }
 };

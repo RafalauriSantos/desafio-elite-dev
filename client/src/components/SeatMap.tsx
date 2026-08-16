@@ -20,19 +20,26 @@ export const SeatMap: React.FC<SeatMapProps> = ({
   const availableSeats = seats.filter((s) => s.status === 'available').length;
   const occupancyPct = totalSeats > 0 ? Math.round(((totalSeats - availableSeats) / totalSeats) * 100) : 0;
 
+  const vipSeat = seats.find((s) => s.category === 'VIP');
+  const premiumSeat = seats.find((s) => s.category === 'Premium');
+  const standardSeat = seats.find((s) => s.category === 'Standard');
+  const vipPrice = vipSeat ? `(R$ ${vipSeat.price.toFixed(2)})` : '';
+  const premiumPrice = premiumSeat ? `(R$ ${premiumSeat.price.toFixed(2)})` : '';
+  const standardPrice = standardSeat ? `(R$ ${standardSeat.price.toFixed(2)})` : '';
+
   return (
     <div className="w-full bg-[#111113] p-4 sm:p-7 rounded-2xl border border-zinc-800 space-y-5 shadow-xl relative overflow-hidden">
-      {/* Clean Minimalist Occupancy Bar (Zero Blinking LEDs) */}
+      {/* Clean Minimalist Occupancy Bar */}
       <div className="flex items-center justify-between text-xs text-zinc-400 border-b border-zinc-800/80 pb-3">
         <span className="font-medium text-zinc-300">
           {totalSeats - availableSeats} de {totalSeats} assentos ocupados ({occupancyPct}%)
         </span>
         <span className="text-[11px] font-mono text-zinc-500">
-          Mapa de Assentos
+          Mapa de Assentos Numerados
         </span>
       </div>
 
-      {/* Stage indicator with subtle, clean styling */}
+      {/* Stage indicator */}
       <div className="text-center space-y-1 relative">
         <div className="mx-auto max-w-md py-2 rounded-b-2xl bg-zinc-800/40 border-b-2 border-emerald-500/80 relative overflow-hidden">
           <span className="text-[11px] uppercase tracking-widest font-bold text-zinc-200">
@@ -99,20 +106,20 @@ export const SeatMap: React.FC<SeatMapProps> = ({
         })}
       </div>
 
-      {/* Legend with high contrast */}
+      {/* Legend with high contrast and dynamic prices */}
       <div className="flex flex-wrap items-center justify-between gap-4 pt-4 border-t border-zinc-800 text-xs text-zinc-300">
         <div className="flex flex-wrap items-center gap-4">
           <div className="flex items-center gap-1.5 font-medium">
             <span className="w-3.5 h-3.5 rounded bg-emerald-950/40 border border-emerald-600/60" />
-            VIP (R$ 499.90)
+            VIP {vipPrice}
           </div>
           <div className="flex items-center gap-1.5 font-medium">
             <span className="w-3.5 h-3.5 rounded bg-cyan-950/30 border border-cyan-600/60" />
-            Premium (R$ 399.90)
+            Premium {premiumPrice}
           </div>
           <div className="flex items-center gap-1.5 font-medium">
             <span className="w-3.5 h-3.5 rounded bg-zinc-800/60 border border-zinc-600/60" />
-            Standard (R$ 299.90)
+            Standard {standardPrice}
           </div>
           <div className="flex items-center gap-1.5 font-medium">
             <span className="w-3.5 h-3.5 rounded bg-zinc-900 border border-zinc-800/50 opacity-30" />

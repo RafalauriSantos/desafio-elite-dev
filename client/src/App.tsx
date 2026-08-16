@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Layout, SEED_PERSONAS, Persona } from './components/Layout';
 import { Catalog } from './pages/Catalog';
+import { EventManagement } from './pages/EventManagement';
 import { EventDetails } from './pages/EventDetails';
 import { MyTickets } from './pages/MyTickets';
 import { Gatekeeper } from './pages/Gatekeeper';
@@ -9,7 +10,7 @@ import { useAuth } from './auth/AuthContext';
 import { Login } from './pages/Login';
 import { PasswordRecovery } from './pages/PasswordRecovery';
 
-type Tab = 'catalog' | 'event-details' | 'my-tickets' | 'gatekeeper';
+type Tab = 'catalog' | 'event-details' | 'my-tickets' | 'gatekeeper' | 'event-management';
 
 export function App() {
   const { loading, session, profile, recoveryMode, isDemoMode, signOut } = useAuth();
@@ -71,6 +72,8 @@ export function App() {
     setActivePersona(persona);
     if (persona.role === 'gatekeeper') {
       setActiveTab('gatekeeper');
+    } else if (persona.role === 'organizer') {
+      setActiveTab('event-management');
     } else {
       setActiveTab('catalog');
     }
@@ -94,10 +97,14 @@ export function App() {
         <Catalog onSelectEvent={handleSelectEvent} role={effectiveRole} />
       )}
 
+      {activeTab === 'event-management' && (
+        <EventManagement onSelectEvent={handleSelectEvent} />
+      )}
+
       {activeTab === 'event-details' && selectedEventId && (
         <EventDetails
           eventId={selectedEventId}
-          onBack={() => setActiveTab('catalog')}
+          onBack={() => setActiveTab(effectiveRole === 'organizer' ? 'event-management' : 'catalog')}
           onTicketPurchased={handleTicketPurchased}
         />
       )}

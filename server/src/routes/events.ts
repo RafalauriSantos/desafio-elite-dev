@@ -222,4 +222,105 @@ eventsRouter.post('/events/bulk-import', async (c) => {
   }
 });
 
+// PUT /api/events/:id (Atualização de evento existente pelo organizador)
+eventsRouter.put('/events/:id', async (c) => {
+  try {
+    const authorization = await requireRole(c, ['organizer']);
+    if (authorization instanceof Response) return authorization;
+
+    const eventId = c.req.param('id');
+    const body = await c.req.json<{
+      title?: string;
+      description?: string;
+      venue?: string;
+      date?: string;
+      price?: string | number;
+      banner_url?: string;
+    }>();
+
+    if (!eventId) {
+      return c.json({ success: false, error: 'ID do evento é obrigatório.' }, 400);
+    }
+
+    if (isSupabaseConfigured(c)) {
+      const supabase = getSupabaseClient(c);
+      const updates: Record<string, unknown> = {};
+      if (body.title) updates.title = body.title.trim();
+      if (body.description !== undefined) updates.description = body.description;
+      if (body.venue) updates.venue = body.venue.trim();
+      if (body.date) updates.date = new Date(body.date).toISOString();
+      if (body.price !== undefined) updates.price = typeof body.price === 'number' ? body.price : parseFloat(body.price || '0');
+      if (body.banner_url !== undefined) updates.banner_url = body.banner_url;
+
+      if (Object.keys(updates).length === 0) {
+        return c.json({ success: false, error: 'Nenhum campo para atualizar.' }, 400);
+      }
+
+      const { data, error } = await supabase
+        .from('events')
+        .update(updates)
+        .eq('id', eventId)
+        .select()
+        .single();
+
+      if (error || !data) {
+        return c.json({ success: false, error: error?.message || 'Evento não encontrado.' }, 404);
+      }
+
+      return c.json({ success: true, event: data as EventItem, message: 'Evento atualizado com sucesso.' });
+    }
+
+    return c.json({ success: true, message: 'Evento atualizado (modo demo).' });
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : String(err);
+    return c.json({ success: false, error: message }, 500);
+  }
+});
+
+// DELETE /api/events/:id (Exclusão de evento pelo organizador — cascata em seats via ON DELETE CASCADE)
+eventsRouter.delete('/events/:id', async (c) => {
+  try {
+    const authorization = await requireRole(c, ['organizer']);
+    if (authorization instanceof Response) return authorization;
+
+    const eventId = c.req.param('id');
+    if (!eventId) {
+      return c.json({ success: false, error: 'ID do evento é obrigatório.' }, 400);
+    }
+
+    if (isSupabaseConfigured(c)) {
+      const supabase = getSupabaseClient(c);
+
+      // Check if there are sold tickets before deleting
+      const { count } = await supabase
+        .from('tickets')
+        .select('id', { count: 'exact', head: true })
+        .eq('event_id', eventId);
+
+      if (count && count > 0) {
+        return c.json({
+          success: false,
+          error: `Não é possível excluir: ${count} ingresso(s) já emitido(s) para este evento.`
+        }, 409);
+      }
+
+      const { error } = await supabase
+        .from('events')
+        .delete()
+        .eq('id', eventId);
+
+      if (error) {
+        return c.json({ success: false, error: error.message }, 500);
+      }
+
+      return c.json({ success: true, message: 'Evento excluído com sucesso.' });
+    }
+
+    return c.json({ success: true, message: 'Evento excluído (modo demo).' });
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : String(err);
+    return c.json({ success: false, error: message }, 500);
+  }
+});
+
 export default eventsRouter;

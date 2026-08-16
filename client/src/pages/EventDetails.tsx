@@ -82,7 +82,7 @@ export const EventDetails: React.FC<EventDetailsProps> = ({
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 pb-28 sm:pb-12">
       {/* Back */}
       <button
         onClick={onBack}
@@ -92,37 +92,57 @@ export const EventDetails: React.FC<EventDetailsProps> = ({
         Voltar
       </button>
 
-      {/* Event header + sidebar */}
-      <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-6">
-        <div className="space-y-2">
-          <h1 className="text-2xl font-semibold text-white tracking-tight">{event.title}</h1>
-          <div className="flex flex-wrap gap-4 text-xs text-zinc-500">
-            <span className="flex items-center gap-1.5">
-              <Calendar className="w-3.5 h-3.5" />
-              {new Date(event.date).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
-            </span>
-            <span className="flex items-center gap-1.5">
-              <MapPin className="w-3.5 h-3.5" />
-              {event.venue}
-            </span>
-          </div>
+      {/* Event Hero Banner & Header */}
+      <div className="relative rounded-3xl overflow-hidden border border-zinc-800 bg-[#111113] shadow-2xl">
+        {/* Banner Backdrop with Gradient Overlay */}
+        <div className="h-44 sm:h-60 w-full relative">
+          <img
+            src={event.banner_url || 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&w=1200&q=80'}
+            alt={event.title}
+            className="w-full h-full object-cover opacity-60"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#111113] via-[#111113]/70 to-transparent" />
         </div>
 
-        {/* Selection summary with multi-seat support */}
-        <div className="w-full lg:w-80 bg-[#111113] p-4 rounded-xl border border-zinc-800/60 shrink-0 space-y-3">
-          <div className="flex items-center justify-between">
-            <p className="text-[11px] uppercase tracking-wider text-zinc-500 font-bold">
-              Assentos selecionados ({selectedSeats.length})
+        {/* Content Overlay */}
+        <div className="p-5 sm:p-7 -mt-16 sm:-mt-20 relative z-10 flex flex-col lg:flex-row lg:items-end justify-between gap-6">
+          <div className="space-y-2.5 max-w-2xl">
+            <span className="text-[10px] font-mono uppercase font-bold text-emerald-400 bg-emerald-950/80 px-2.5 py-1 rounded-md border border-emerald-800/60 inline-block shadow-sm">
+              Espetáculo Oficial
+            </span>
+            <h1 className="text-2xl sm:text-4xl font-bold text-white tracking-tight leading-tight">
+              {event.title}
+            </h1>
+            <p className="text-xs sm:text-sm text-zinc-300 line-clamp-2 leading-relaxed">
+              {event.description || 'Selecione suas poltronas no mapa interativo abaixo para garantir sua reserva.'}
             </p>
-            {selectedSeats.length > 0 && (
-              <button
-                onClick={() => setSelectedSeats([])}
-                className="text-[11px] text-zinc-500 hover:text-zinc-300 flex items-center gap-0.5"
-              >
-                <X className="w-3 h-3" /> Limpar
-              </button>
-            )}
+            <div className="flex flex-wrap gap-4 text-xs text-zinc-400 pt-1 font-medium">
+              <span className="flex items-center gap-1.5 bg-zinc-900/80 px-3 py-1.5 rounded-lg border border-zinc-800">
+                <Calendar className="w-3.5 h-3.5 text-emerald-400" />
+                {new Date(event.date).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+              </span>
+              <span className="flex items-center gap-1.5 bg-zinc-900/80 px-3 py-1.5 rounded-lg border border-zinc-800">
+                <MapPin className="w-3.5 h-3.5 text-emerald-400" />
+                {event.venue}
+              </span>
+            </div>
           </div>
+
+          {/* Selection summary with multi-seat support */}
+          <div className="w-full lg:w-80 bg-zinc-900/90 p-4 rounded-2xl border border-zinc-700/70 shrink-0 space-y-3 shadow-xl backdrop-blur-md">
+            <div className="flex items-center justify-between">
+              <p className="text-[11px] uppercase tracking-wider text-zinc-400 font-bold font-mono">
+                Assentos selecionados ({selectedSeats.length})
+              </p>
+              {selectedSeats.length > 0 && (
+                <button
+                  onClick={() => setSelectedSeats([])}
+                  className="text-[11px] text-zinc-400 hover:text-zinc-200 flex items-center gap-0.5"
+                >
+                  <X className="w-3 h-3" /> Limpar
+                </button>
+              )}
+            </div>
 
           {selectedSeats.length > 0 ? (
             <div className="space-y-3">
@@ -161,6 +181,7 @@ export const EventDetails: React.FC<EventDetailsProps> = ({
           )}
         </div>
       </div>
+    </div>
 
       {/* Error */}
       {reserveMessage && (

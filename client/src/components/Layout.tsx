@@ -19,7 +19,7 @@ export const SEED_PERSONAS: Persona[] = [
 interface LayoutProps {
   children: React.ReactNode;
   activeTab: string;
-  onTabChange: (tab: 'catalog' | 'event-details' | 'my-tickets' | 'gatekeeper') => void;
+  onTabChange: (tab: 'catalog' | 'event-details' | 'my-tickets' | 'gatekeeper' | 'event-management') => void;
   ticketCount: number;
   role: UserRole;
   activePersona: Persona;
@@ -50,7 +50,7 @@ export function Layout({
   const effectiveRole = activePersona.role;
 
   interface NavItem {
-    id: 'catalog' | 'my-tickets' | 'gatekeeper';
+    id: 'catalog' | 'my-tickets' | 'gatekeeper' | 'event-management';
     label: string;
     icon: typeof Calendar;
     badge?: number;
@@ -60,7 +60,7 @@ export function Layout({
     effectiveRole === 'gatekeeper'
       ? [{ id: 'gatekeeper', label: 'Portaria', icon: ShieldCheck }]
       : effectiveRole === 'organizer'
-      ? [{ id: 'catalog', label: 'Gestão de Eventos', icon: Calendar }]
+      ? [{ id: 'event-management', label: 'Gestão de Eventos', icon: Calendar }]
       : [
           { id: 'catalog', label: 'Catálogo', icon: Calendar },
           { id: 'my-tickets', label: 'Meus Ingressos', icon: Ticket, badge: ticketCount },
