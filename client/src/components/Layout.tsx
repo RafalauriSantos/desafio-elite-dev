@@ -67,7 +67,7 @@ export function Layout({
         ];
 
   return (
-    <div className="flex flex-col flex-1 w-full h-[100dvh] md:min-h-[100dvh] md:h-auto overflow-hidden md:overflow-visible bg-transparent text-zinc-100 antialiased">
+    <div className="flex flex-col flex-1 w-full h-[100dvh] md:min-h-[100dvh] md:h-auto overflow-hidden md:overflow-visible overflow-x-hidden bg-transparent text-zinc-100 antialiased">
       {/* Header Fixo/Sticky */}
       <header className="shrink-0 w-full border-b border-zinc-800/80 bg-[#09090b]/90 backdrop-blur-md sticky top-0 z-40">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between gap-3">
@@ -103,7 +103,7 @@ export function Layout({
           </nav>
 
           {/* Seletor de Persona & Auth */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 shrink-0">
             {/* Persona Switcher Dropdown */}
             <div className="relative">
               <button
@@ -111,9 +111,9 @@ export function Layout({
                 className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-zinc-900 border border-zinc-800 hover:border-zinc-700 text-xs font-medium text-zinc-300 hover:text-white transition-all shadow-sm"
                 title="Alternar Papel de Demonstração"
               >
-                <span className="text-sm">{activePersona.badge}</span>
-                <span className="font-mono text-[11px] sm:text-xs">{activePersona.label}</span>
-                <ChevronDown className="w-3 h-3 text-zinc-500" />
+                <span className="text-sm shrink-0">{activePersona.badge}</span>
+                <span className="font-mono text-[11px] sm:text-xs max-w-[85px] sm:max-w-none truncate">{activePersona.label}</span>
+                <ChevronDown className="w-3 h-3 text-zinc-500 shrink-0" />
               </button>
 
               {personaMenuOpen && (
@@ -157,7 +157,7 @@ export function Layout({
             {isAuthenticated && (
               <button
                 onClick={() => void onSignOut?.()}
-                className="flex items-center gap-1 text-xs text-zinc-400 hover:text-white px-2 py-1 rounded-md transition-colors"
+                className="flex items-center gap-1 text-xs text-zinc-400 hover:text-white px-2 py-1 rounded-md transition-colors shrink-0"
                 title={`Logado como: ${userName}`}
               >
                 <LogOut className="w-3.5 h-3.5" />
@@ -169,7 +169,7 @@ export function Layout({
       </header>
 
       {/* Conteúdo Principal (scroll suave interno no mobile) */}
-      <main className="flex-1 w-full max-w-6xl mx-auto px-4 sm:px-6 py-4 sm:py-8 flex flex-col overflow-y-auto md:overflow-visible overscroll-contain">
+      <main className="flex-1 w-full max-w-6xl mx-auto px-4 sm:px-6 py-4 sm:py-8 flex flex-col overflow-y-auto md:overflow-visible overscroll-contain overflow-x-hidden">
         {children}
       </main>
 

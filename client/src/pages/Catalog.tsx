@@ -75,7 +75,7 @@ export const Catalog: React.FC<CatalogProps> = ({ onSelectEvent, role }) => {
   });
 
   return (
-    <div className="space-y-6 sm:space-y-8 pb-28 sm:pb-12 max-w-6xl mx-auto">
+    <div className="w-full max-w-6xl mx-auto space-y-6 sm:space-y-8 pb-28 sm:pb-12 overflow-x-hidden">
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-zinc-800/80 pb-5">
         <div>
@@ -99,14 +99,14 @@ export const Catalog: React.FC<CatalogProps> = ({ onSelectEvent, role }) => {
       </div>
 
       {/* Search & Category Filter Strip */}
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
-        {/* Category Pills */}
-        <div className="flex items-center gap-1.5 p-1 bg-zinc-900/90 rounded-xl border border-zinc-800 w-fit">
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 w-full">
+        {/* Category Pills (Grid no mobile para preenchimento exato de 100%, flex no desktop) */}
+        <div className="grid grid-cols-3 sm:flex items-center gap-1 p-1 bg-zinc-900/90 rounded-xl border border-zinc-800 w-full sm:w-fit">
           {categories.map((cat) => (
             <button
               key={cat.id}
               onClick={() => setSelectedCategory(cat.id)}
-              className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all ${
+              className={`px-2 sm:px-3.5 py-1.5 rounded-lg text-[11px] sm:text-xs font-semibold text-center truncate transition-all ${
                 selectedCategory === cat.id
                   ? 'bg-zinc-800 text-white shadow-sm'
                   : 'text-zinc-400 hover:text-zinc-200'
