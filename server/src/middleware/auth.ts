@@ -23,33 +23,20 @@ export function getHmacSecret(c: Context<{ Bindings: Bindings }>): string {
 }
 
 export async function requireRole(c: Context<{ Bindings: Bindings }>, roles: AppRole[]) {
-  if (!isSupabaseConfigured(c)) return null; // local demo mode remains available
-
-  const appRoleHeader = c.req.header('x-app-role') || '';
-  if (appRoleHeader) {
-    if (!roles.includes(appRoleHeader as AppRole)) {
-      return c.json({ success: false, error: 'Este perfil não possui permissão para esta operação.' }, 403);
-    }
-    return { user: { id: `demo-${appRoleHeader}`, email: `${appRoleHeader}@verzel.com` }, profile: { role: appRoleHeader } };
+  if (!isSupabaseConfigured(c)) {
+    return c.json({ success: false, error: 'Banco de dados não configurado.' }, 500);
   }
 
   const authorization = c.req.header('Authorization') || '';
   const token = authorization.startsWith('Bearer ') ? authorization.slice(7) : '';
   if (!token) {
-    // Sandbox evaluation mode: Allow organizer actions if requested
-    if (roles.includes('organizer')) {
-      return { user: { id: 'demo-organizer', email: 'organizador@verzel.com' }, profile: { role: 'organizer' } };
-    }
-    return c.json({ success: false, error: 'Autenticação obrigatória.' }, 401);
+    return c.json({ success: false, error: 'Autenticação obrigatória. Faça login para continuar.' }, 401);
   }
 
   const supabase = getSupabaseClient(c);
   const { data: authData, error: authError } = await supabase.auth.getUser(token);
-  if (authError || !authData.user) {
-    if (roles.includes('organizer')) {
-      return { user: { id: 'demo-organizer', email: 'organizador@verzel.com' }, profile: { role: 'organizer' } };
-    }
-    return c.json({ success: false, error: 'Sessão inválida ou expirada.' }, 401);
+  if (authError || !authData?.user) {
+    return c.json({ success: false, error: 'Sessão inválida ou expirada. Faça login novamente.' }, 401);
   }
 
   const { data: profile, error: profileError } = await supabase
@@ -58,8 +45,16 @@ export async function requireRole(c: Context<{ Bindings: Bindings }>, roles: App
     .eq('id', authData.user.id)
     .maybeSingle();
 
-  if (profileError || !profile || !roles.includes(profile.role as AppRole)) {
-    return c.json({ success: false, error: 'Este perfil não possui permissão para esta operação.' }, 403);
+  if (profileError || !profile) {
+    return c.json({ success: false, error: 'Perfil de usuário não encontrado.' }, 404);
   }
+
+  if (!roles.includes(profile.role as AppRole)) {
+    return c.json({
+      success: false,
+      error: `Acesso negado. Esta operação exige o perfil: ${roles.join(' ou ')}.`
+    }, 403);
+  }
+
   return { user: authData.user, profile };
 }

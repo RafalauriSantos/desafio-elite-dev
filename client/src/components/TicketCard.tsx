@@ -217,33 +217,33 @@ export const TicketCard: React.FC<TicketCardProps> = ({ ticket, qrData }) => {
             )}
           </button>
 
-          {/* Action Buttons */}
-          <div className="pt-2 border-t border-zinc-800/80 flex items-center justify-between gap-2">
+          {/* Action Buttons — Grade responsiva fluida que nunca quebra no iPhone XR */}
+          <div className="pt-2.5 border-t border-zinc-800/80 grid grid-cols-2 gap-2">
             <button
               type="button"
               onClick={handlePrint}
-              className="flex-1 h-9 px-3 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-zinc-300 hover:text-white text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors touch-manipulation active:scale-[0.98]"
+              className="h-9 px-2.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-zinc-300 hover:text-white text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors touch-manipulation active:scale-[0.98] truncate"
               title="Baixar PDF do Ingresso"
             >
               <Printer className="w-3.5 h-3.5 text-zinc-400 shrink-0" />
-              <span>Salvar PDF</span>
+              <span className="truncate">Salvar PDF</span>
             </button>
 
             <button
               type="button"
               onClick={handleShare}
-              className="flex-1 h-9 px-3 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-zinc-300 hover:text-white text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors touch-manipulation active:scale-[0.98]"
+              className="h-9 px-2.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-zinc-300 hover:text-white text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors touch-manipulation active:scale-[0.98] truncate"
               title="Compartilhar Link do Ingresso"
             >
               {copiedLink ? (
                 <>
                   <Check className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-                  <span className="text-emerald-400 font-semibold">Copiado!</span>
+                  <span className="text-emerald-400 font-semibold truncate">Copiado!</span>
                 </>
               ) : (
                 <>
                   <Share2 className="w-3.5 h-3.5 text-zinc-400 shrink-0" />
-                  <span>Compartilhar</span>
+                  <span className="truncate">Compartilhar</span>
                 </>
               )}
             </button>
@@ -251,10 +251,11 @@ export const TicketCard: React.FC<TicketCardProps> = ({ ticket, qrData }) => {
             <button
               type="button"
               onClick={handleAddToCalendar}
-              className="h-9 px-3 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-zinc-300 hover:text-white text-xs font-semibold flex items-center justify-center transition-colors touch-manipulation active:scale-[0.98]"
+              className="col-span-2 h-8 px-2.5 rounded-xl bg-zinc-900/60 hover:bg-zinc-800 border border-zinc-800/70 text-zinc-400 hover:text-zinc-200 text-[11px] font-medium flex items-center justify-center gap-1.5 transition-colors touch-manipulation active:scale-[0.98]"
               title="Adicionar ao Google Agenda"
             >
-              <CalendarPlus className="w-3.5 h-3.5 text-zinc-400" />
+              <CalendarPlus className="w-3 h-3 text-zinc-500" />
+              <span>Adicionar ao Google Agenda</span>
             </button>
           </div>
         </div>

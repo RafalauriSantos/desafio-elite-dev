@@ -58,6 +58,19 @@ No modal de checkout, o usuário pode alternar entre **Simular Aprovação** e *
 
 ---
 
+## 🔍 Transparência Técnica: O Que É Real vs Simulado
+
+| Recurso / Componente | Status Real | Detalhes de Implementação & Decisões |
+| :--- | :---: | :--- |
+| **API do TMDb (Filmes)** | 🟢 **Real / Ao Vivo** | Chamadas HTTP reais para `api.themoviedb.org` no backend (`/api/external-catalog?source=tmdb`). Busca ao vivo de títulos e filmes populares em cartaz. |
+| **Ticketmaster (Shows)** | 🟡 **Catálogo Seed** | Catálogo curado de 24 atrações em TypeScript. Decisão intencional para evitar instabilidade de quotas/chaves da Discovery API durante testes da banca. |
+| **Banco & Concorrência** | 🟢 **Real / ACID** | Supabase (PostgreSQL 15) com Stored Procedures PL/pgSQL executando `SELECT ... FOR UPDATE ORDER BY id ASC` e RLS ativado. |
+| **Autenticação (RBAC)** | 🟢 **Real / Supabase** | Sessão via Supabase Auth com verificação estrita de JWT Bearer no Cloudflare Worker. |
+| **Criptografia Anti-Fraude** | 🟢 **Real / Web Crypto** | Geração e validação de assinatura digital HMAC-SHA256 no servidor com chave secreta. |
+| **Gateway de Pagamento** | 🟡 **Simulado** | Simulação intencional (sem cobrança financeira real) com suporte a cenários de **Aprovação** e **Recusa com Rollback**. |
+
+---
+
 ## Stack Tecnológica
 
 | Camada | Tecnologia | Justificativa |

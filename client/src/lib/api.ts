@@ -3,9 +3,7 @@ import { supabase } from './supabase';
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://elite-tickets-api.agenddar.workers.dev';
 
 async function getAuthHeaders(): Promise<Record<string, string>> {
-  const headers: Record<string, string> = {
-    'x-app-role': 'organizer'
-  };
+  const headers: Record<string, string> = {};
   try {
     const { data } = await supabase.auth.getSession();
     if (data.session?.access_token) {

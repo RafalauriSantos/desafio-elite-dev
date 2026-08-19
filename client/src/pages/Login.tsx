@@ -32,6 +32,7 @@ export function Login({ onBack, onSuccess }: LoginProps) {
 
   const fillQuickSeed = (seedEmail: string, seedName?: string) => {
     setEmail(seedEmail);
+    setPassword('verzel2026');
     if (seedName && isSignUp) setName(seedName);
     setError('');
   };

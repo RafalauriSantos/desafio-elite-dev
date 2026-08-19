@@ -3,6 +3,7 @@ import { TicketItem, api } from '../lib/api';
 import { TicketCard } from '../components/TicketCard';
 import { PrintableTicket } from '../components/PrintableTicket';
 import { Calendar, MapPin, CheckCircle2, Ticket, Printer, Clock } from 'lucide-react';
+import { useAuth } from '../auth/AuthContext';
 
 interface MyTicketsProps {
   tickets: TicketItem[];
@@ -10,20 +11,39 @@ interface MyTicketsProps {
 }
 
 export const MyTickets: React.FC<MyTicketsProps> = ({ tickets, onBrowseEvents }) => {
+  const { profile } = useAuth();
   const [activeTab, setActiveTab] = useState<'active' | 'used'>('active');
   const [remoteTickets, setRemoteTickets] = useState<TicketItem[]>(tickets);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     let isMounted = true;
-    void api.fetchUserTickets().then((data) => {
+    const loadTickets = async () => {
+      setLoading(true);
+      const effectiveEmail = profile?.email || 'ana.cliente@verzel.com';
+      const data = await api.fetchUserTickets(effectiveEmail);
       if (isMounted) {
-        setRemoteTickets(data);
+        // Fusão idempotente: prioriza dados do banco remoto mas preserva ingressos recém-comprados em memória
+        setRemoteTickets((prev) => {
+          const combined = [...data];
+          // Adiciona ingressos locais que ainda não estejam na lista remota
+          [...tickets, ...prev].forEach((local) => {
+            if (!combined.some((item) => item.id === local.id)) {
+              combined.push(local);
+            }
+          });
+          return combined;
+        });
+        setLoading(false);
       }
-    });
+    };
+
+    void loadTickets();
+
     return () => {
       isMounted = false;
     };
-  }, [tickets]);
+  }, [tickets, profile?.email]);
 
   const userTickets = remoteTickets;
   const activeTickets = userTickets.filter((t) => t.status !== 'used');
@@ -54,31 +74,31 @@ export const MyTickets: React.FC<MyTicketsProps> = ({ tickets, onBrowseEvents })
       </div>
 
       {/* Segmented Filter Tabs */}
-      <div className="flex items-center gap-1.5 p-1 bg-zinc-900/90 rounded-xl border border-zinc-800 w-fit">
+      <div className="grid grid-cols-2 sm:flex items-center gap-1.5 p-1 bg-zinc-900/90 rounded-xl border border-zinc-800 w-full sm:w-fit">
         <button
           type="button"
           onClick={() => setActiveTab('active')}
-          className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-2 touch-manipulation ${
+          className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center justify-center gap-2 touch-manipulation truncate ${
             activeTab === 'active'
               ? 'bg-zinc-800 text-white shadow-sm'
               : 'text-zinc-400 hover:text-zinc-200'
           }`}
         >
-          <Ticket className="w-3.5 h-3.5" />
-          <span>Ingressos Ativos ({activeTickets.length})</span>
+          <Ticket className="w-3.5 h-3.5 shrink-0" />
+          <span className="truncate">Ativos ({activeTickets.length})</span>
         </button>
 
         <button
           type="button"
           onClick={() => setActiveTab('used')}
-          className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-2 touch-manipulation ${
+          className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center justify-center gap-2 touch-manipulation truncate ${
             activeTab === 'used'
               ? 'bg-zinc-800 text-white shadow-sm'
               : 'text-zinc-400 hover:text-zinc-200'
           }`}
         >
-          <Clock className="w-3.5 h-3.5" />
-          <span>Histórico Utilizados ({usedTickets.length})</span>
+          <Clock className="w-3.5 h-3.5 shrink-0" />
+          <span className="truncate">Utilizados ({usedTickets.length})</span>
         </button>
       </div>
 
