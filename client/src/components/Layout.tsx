@@ -11,7 +11,8 @@ export interface Persona {
 }
 
 export const SEED_PERSONAS: Persona[] = [
-  { role: 'client', name: 'Ana Cliente', email: 'ana.cliente@verzel.com', label: 'Cliente', badge: '🎟️' },
+  { role: 'client', name: 'Ana Cliente', email: 'ana.cliente@verzel.com', label: 'Ana (Cliente)', badge: '🎟️' },
+  { role: 'client', name: 'Bruno Cliente', email: 'bruno.cliente@verzel.com', label: 'Bruno (Cliente)', badge: '🎟️' },
   { role: 'organizer', name: 'Carlos Organizador', email: 'organizador@verzel.com', label: 'Organizador', badge: '🎪' },
   { role: 'gatekeeper', name: 'Roberto Portaria', email: 'portaria@verzel.com', label: 'Portaria', badge: '🛡️' },
 ];

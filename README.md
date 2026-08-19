@@ -23,7 +23,8 @@ Para testar todos os fluxos sem necessidade de cadastro, use o **alternador de p
 
 | Persona | E-mail de Teste | O que testar no fluxo |
 | :--- | :--- | :--- |
-| **Cliente** | `ana.cliente@verzel.com` | Seleção de assentos no mapa, simulação de pagamento (**Aprovar** e **Recusar**), zoom do QR Code, compartilhamento por link e exportação em PDF. |
+| **Cliente 1** | `ana.cliente@verzel.com` | Seleção de assentos no mapa, simulação de pagamento (**Aprovar** e **Recusar**), zoom do QR Code, compartilhamento por link e exportação em PDF. |
+| **Cliente 2** | `bruno.cliente@verzel.com` | Compra concorrente em tempo real, ingressos independentes e histórico de bilhetes separados. |
 | **Portaria** | `portaria@verzel.com` | Leitura de QR Code pela câmera ou digitação manual com retorno dos 4 estados (*Válido, Já Usado, Inválido e Show Errado*). |
 | **Organizador** | `organizador@verzel.com` | Publicação de novos eventos e importação em lote via **TMDb (ao vivo)** e catálogo do **Ticketmaster**. |
 

@@ -166,7 +166,14 @@ export function Login({ onBack, onSuccess }: LoginProps) {
                   onClick={() => fillQuickSeed('ana.cliente@verzel.com', 'Ana Cliente')}
                   className="px-2 py-1 rounded bg-white hover:bg-zinc-50 border border-zinc-300 text-[11px] font-medium text-zinc-700 transition-colors"
                 >
-                  🎟️ Ana (Cliente)
+                  🎟️ Ana (Cliente 1)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => fillQuickSeed('bruno.cliente@verzel.com', 'Bruno Cliente')}
+                  className="px-2 py-1 rounded bg-white hover:bg-zinc-50 border border-zinc-300 text-[11px] font-medium text-zinc-700 transition-colors"
+                >
+                  🎟️ Bruno (Cliente 2)
                 </button>
                 <button
                   type="button"
