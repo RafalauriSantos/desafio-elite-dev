@@ -66,13 +66,26 @@ async function runExhaustiveTests() {
   let validTicket = null;
   let validQrCode = null;
 
+  // Autenticação Real do Organizador no Supabase Auth
+  let organizerToken = '';
+  const loginRes = await supabase.auth.signInWithPassword({
+    email: 'organizador@verzel.com',
+    password: 'verzel@password2026'
+  });
+  if (loginRes.data?.session?.access_token) {
+    organizerToken = loginRes.data.session.access_token;
+  }
+
   // -------------------------------------------------------------------------
   // CENÁRIO 1: Geração de Evento com 80 Assentos
   // -------------------------------------------------------------------------
   logHeader(1, 'Criação de Evento com Matriz de 80 Assentos Atômica');
   const evRes = await fetch(`${API_URL}/api/events`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'x-app-role': 'organizer' },
+    headers: {
+      'Content-Type': 'application/json',
+      ...(organizerToken ? { 'Authorization': `Bearer ${organizerToken}` } : {})
+    },
     body: JSON.stringify({
       title: `Mega Show QA Chaos ${timestamp}`,
       description: 'Teste exaustivo de alta concorrência.',
@@ -351,7 +364,10 @@ async function runExhaustiveTests() {
   logHeader(15, 'Importação em Lote via APIs Externas (TMDb / Ticketmaster)');
   const bulkImportRes = await (await fetch(`${API_URL}/api/events/bulk-import`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'x-app-role': 'organizer' },
+    headers: {
+      'Content-Type': 'application/json',
+      ...(organizerToken ? { 'Authorization': `Bearer ${organizerToken}` } : {})
+    },
     body: JSON.stringify({
       items: [
         { title: `Filme 1 TMDb ${timestamp}`, venue: 'IMAX Sala 1', price: 45.00, banner_url: 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23' },
