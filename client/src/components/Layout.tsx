@@ -123,19 +123,19 @@ export function Layout({
                     className="fixed inset-0 z-40"
                     onClick={() => setPersonaMenuOpen(false)}
                   />
-                  <div className="absolute right-0 mt-2 w-56 rounded-xl bg-zinc-900 border border-zinc-800 p-1.5 shadow-2xl z-50 animate-in fade-in zoom-in-95 duration-100">
+                  <div className="absolute right-0 mt-2 w-56 max-w-[calc(100vw-2rem)] rounded-xl bg-zinc-900 border border-zinc-800 p-1.5 shadow-2xl z-50 animate-in fade-in zoom-in-95 duration-100">
                     <div className="px-2.5 py-1.5 text-[11px] font-mono uppercase tracking-wider text-zinc-500 border-b border-zinc-800/60 mb-1">
                       Persona da Banca
                     </div>
                     {SEED_PERSONAS.map((p) => (
                       <button
-                        key={p.role}
+                        key={p.email}
                         onClick={() => {
                           onSelectPersona(p);
                           setPersonaMenuOpen(false);
                         }}
                         className={`w-full flex items-center justify-between px-2.5 py-2 rounded-lg text-xs font-medium transition-colors ${
-                          activePersona.role === p.role
+                          activePersona.email === p.email
                             ? 'bg-zinc-800 text-white font-semibold'
                             : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800/50'
                         }`}

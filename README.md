@@ -19,14 +19,14 @@ Cada etapa resolve um requisito do edital de forma intencional: catálogo import
 
 ## ⚡ Guia de Teste Rápido (3 Minutos)
 
-Para testar todos os fluxos sem necessidade de cadastro, use o **alternador de personas** no topo da tela:
+Para testar todos os fluxos sem necessidade de cadastro, use as credenciais de teste ou o **seletor de personas** no topo da tela (senha padrão para todos: `verzel2026`):
 
-| Persona | E-mail de Teste | O que testar no fluxo |
-| :--- | :--- | :--- |
-| **Cliente 1** | `ana.cliente@verzel.com` | Seleção de assentos no mapa, simulação de pagamento (**Aprovar** e **Recusar**), zoom do QR Code, compartilhamento por link e exportação em PDF. |
-| **Cliente 2** | `bruno.cliente@verzel.com` | Compra concorrente em tempo real, ingressos independentes e histórico de bilhetes separados. |
-| **Portaria** | `portaria@verzel.com` | Leitura de QR Code pela câmera ou digitação manual com retorno dos 4 estados (*Válido, Já Usado, Inválido e Show Errado*). |
-| **Organizador** | `organizador@verzel.com` | Publicação de novos eventos e importação em lote via **TMDb (ao vivo)** e catálogo do **Ticketmaster**. |
+| Persona | E-mail de Teste | Papel / Permissões | O que testar no fluxo |
+| :--- | :--- | :---: | :--- |
+| **Cliente 1** | `ana.cliente@verzel.com` | `client` | Seleção de assentos numerados, checkout simulado (**Aprovar** / **Recusar**), visualização do ingresso com QR Code, compartilhamento por link e PDF. |
+| **Cliente 2** | `bruno.cliente@verzel.com` | `client` | Compra concorrente em tempo real, ingressos independentes e histórico de bilhetes separados. |
+| **Organizador** | `organizador@verzel.com` | `organizer` | Gestão de eventos, publicação com mapa de 80 assentos e importação dinâmica via **TMDb (ao vivo)**. |
+| **Portaria** | `portaria@verzel.com` | `gatekeeper` | Leitura de QR Code pela câmera ou digitação manual com retorno dos 4 estados (*Válido, Já Usado, Inválido e Evento Errado*). |
 
 ---
 

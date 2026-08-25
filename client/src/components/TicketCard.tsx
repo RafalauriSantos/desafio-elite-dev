@@ -89,7 +89,7 @@ export const TicketCard: React.FC<TicketCardProps> = ({ ticket, qrData }) => {
     <>
       {/* Screen View Ticket Card with Physical Ticket-Stub Notches */}
       <div
-        className={`w-full max-w-sm mx-auto bg-[#0e0e11] rounded-3xl overflow-hidden border transition-all no-print relative shadow-2xl ${
+        className={`w-full max-w-full sm:max-w-sm mx-auto bg-[#0e0e11] rounded-3xl overflow-hidden border transition-all no-print relative shadow-2xl ${
           isUsed ? 'border-amber-500/30 opacity-90' : 'border-zinc-800/90 hover:border-zinc-700'
         }`}
       >
@@ -106,7 +106,7 @@ export const TicketCard: React.FC<TicketCardProps> = ({ ticket, qrData }) => {
 
         {/* Banner */}
         {event.banner_url && (
-          <div className="h-32 w-full relative overflow-hidden bg-zinc-900">
+          <div className="h-28 sm:h-32 w-full relative overflow-hidden bg-zinc-900">
             <img
               src={event.banner_url}
               alt={event.title}
@@ -116,12 +116,12 @@ export const TicketCard: React.FC<TicketCardProps> = ({ ticket, qrData }) => {
           </div>
         )}
 
-        <div className="p-5 space-y-4">
+        <div className="p-4 sm:p-5 space-y-3.5 sm:space-y-4">
           {/* Title + Status Badge */}
           <div className="flex items-start justify-between gap-2">
-            <h3 className="text-base font-bold text-white leading-snug tracking-tight">{event.title}</h3>
+            <h3 className="text-sm sm:text-base font-bold text-white leading-snug tracking-tight line-clamp-2">{event.title}</h3>
             <span
-              className={`shrink-0 inline-flex items-center gap-1.5 text-[11px] font-mono font-bold px-2.5 py-0.5 rounded-full border ${
+              className={`shrink-0 inline-flex items-center gap-1.5 text-[10px] sm:text-[11px] font-mono font-bold px-2 py-0.5 rounded-full border ${
                 isUsed
                   ? 'text-amber-400 bg-amber-950/40 border-amber-800/40'
                   : 'text-emerald-400 bg-emerald-950/40 border-emerald-800/40'
@@ -133,7 +133,7 @@ export const TicketCard: React.FC<TicketCardProps> = ({ ticket, qrData }) => {
           </div>
 
           {/* Event Metadata */}
-          <div className="space-y-1.5 text-xs text-zinc-400">
+          <div className="space-y-1 text-xs text-zinc-400">
             <div className="flex items-center gap-1.5">
               <Calendar className="w-3.5 h-3.5 shrink-0 text-zinc-500" />
               <span>{formatEventDate(event.date)}</span>
@@ -145,10 +145,10 @@ export const TicketCard: React.FC<TicketCardProps> = ({ ticket, qrData }) => {
           </div>
 
           {/* Titular and Seat Information */}
-          <div className="flex items-center justify-between bg-zinc-900/80 px-4 py-3 rounded-2xl border border-zinc-800 text-xs">
+          <div className="flex items-center justify-between bg-zinc-900/80 px-3.5 py-2.5 rounded-2xl border border-zinc-800 text-xs">
             <div>
               <span className="text-zinc-500 text-[10px] uppercase font-mono font-bold">Titular</span>
-              <p className="text-zinc-200 font-semibold truncate max-w-[140px]">{cleanUserName}</p>
+              <p className="text-zinc-200 font-semibold truncate max-w-[120px] sm:max-w-[140px]">{cleanUserName}</p>
             </div>
             <div className="text-right">
               <span className="text-zinc-500 text-[10px] uppercase font-mono font-bold">Assento</span>
@@ -158,26 +158,26 @@ export const TicketCard: React.FC<TicketCardProps> = ({ ticket, qrData }) => {
             </div>
           </div>
 
-          {/* Physical Ticket Stub Tear Line & Cutouts */}
-          <div className="relative my-4 flex items-center justify-between">
+          {/* Physical Ticket Stub Tear Line & Contained Cutouts */}
+          <div className="relative my-3 flex items-center justify-between overflow-hidden">
             {/* Left Notch */}
-            <div className="w-5 h-5 rounded-full bg-[#09090b] border-r border-zinc-800/90 -ml-7 z-10" />
+            <div className="w-4 h-4 rounded-full bg-[#09090b] border-r border-zinc-800 -translate-x-1/2 z-10 shrink-0" />
             {/* Dashed Tear Line */}
-            <div className="flex-1 border-b-2 border-dashed border-zinc-800/80 mx-1" />
+            <div className="flex-1 border-b border-dashed border-zinc-800/80 mx-1" />
             {/* Right Notch */}
-            <div className="w-5 h-5 rounded-full bg-[#09090b] border-l border-zinc-800/90 -mr-7 z-10" />
+            <div className="w-4 h-4 rounded-full bg-[#09090b] border-l border-zinc-800 translate-x-1/2 z-10 shrink-0" />
           </div>
 
           {/* QR Code Voucher Stub with Click to Zoom */}
           <button
             type="button"
             onClick={() => setIsZoomed(true)}
-            className="w-full max-w-[190px] aspect-square mx-auto flex items-center justify-center p-3 bg-white rounded-2xl relative shadow-md group cursor-pointer transition-transform hover:scale-[1.02] active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-emerald-400/50"
+            className="w-full max-w-[180px] aspect-square mx-auto flex items-center justify-center p-3 bg-white rounded-2xl relative shadow-md group cursor-pointer transition-transform hover:scale-[1.02] active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-emerald-400/50"
             title="Toque para ampliar o QR Code"
           >
             <QRCodeSVG
               value={finalQrString}
-              size={165}
+              size={148}
               level="M"
               includeMargin={true}
               className="w-full h-full object-contain mx-auto"
@@ -218,11 +218,11 @@ export const TicketCard: React.FC<TicketCardProps> = ({ ticket, qrData }) => {
           </button>
 
           {/* Action Buttons — Grade responsiva fluida que nunca quebra no iPhone XR */}
-          <div className="pt-2.5 border-t border-zinc-800/80 grid grid-cols-2 gap-2">
+          <div className="pt-2 border-t border-zinc-800/80 grid grid-cols-2 gap-2">
             <button
               type="button"
               onClick={handlePrint}
-              className="h-9 px-2.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-zinc-300 hover:text-white text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors touch-manipulation active:scale-[0.98] truncate"
+              className="h-9 px-2 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-zinc-300 hover:text-white text-[11px] sm:text-xs font-semibold flex items-center justify-center gap-1 transition-colors touch-manipulation active:scale-[0.98] truncate"
               title="Baixar PDF do Ingresso"
             >
               <Printer className="w-3.5 h-3.5 text-zinc-400 shrink-0" />
@@ -232,7 +232,7 @@ export const TicketCard: React.FC<TicketCardProps> = ({ ticket, qrData }) => {
             <button
               type="button"
               onClick={handleShare}
-              className="h-9 px-2.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-zinc-300 hover:text-white text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors touch-manipulation active:scale-[0.98] truncate"
+              className="h-9 px-2 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-zinc-300 hover:text-white text-[11px] sm:text-xs font-semibold flex items-center justify-center gap-1 transition-colors touch-manipulation active:scale-[0.98] truncate"
               title="Compartilhar Link do Ingresso"
             >
               {copiedLink ? (
@@ -251,7 +251,7 @@ export const TicketCard: React.FC<TicketCardProps> = ({ ticket, qrData }) => {
             <button
               type="button"
               onClick={handleAddToCalendar}
-              className="col-span-2 h-8 px-2.5 rounded-xl bg-zinc-900/60 hover:bg-zinc-800 border border-zinc-800/70 text-zinc-400 hover:text-zinc-200 text-[11px] font-medium flex items-center justify-center gap-1.5 transition-colors touch-manipulation active:scale-[0.98]"
+              className="col-span-2 h-8 px-2 rounded-xl bg-zinc-900/60 hover:bg-zinc-800 border border-zinc-800/70 text-zinc-400 hover:text-zinc-200 text-[11px] font-medium flex items-center justify-center gap-1.5 transition-colors touch-manipulation active:scale-[0.98]"
               title="Adicionar ao Google Agenda"
             >
               <CalendarPlus className="w-3 h-3 text-zinc-500" />

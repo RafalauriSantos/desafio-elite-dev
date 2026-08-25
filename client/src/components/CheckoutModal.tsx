@@ -15,6 +15,8 @@ import {
   ShieldCheck
 } from 'lucide-react';
 
+import { useAuth } from '../auth/AuthContext';
+
 interface CheckoutModalProps {
   isOpen: boolean;
   event: EventItem;
@@ -34,9 +36,17 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
   onClose,
   onSuccess,
 }) => {
+  const { profile } = useAuth();
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('credit_card');
-  const [userName, setUserName] = useState('Ana Cliente');
-  const [userEmail, setUserEmail] = useState('ana.cliente@verzel.com');
+  const [userName, setUserName] = useState(profile?.name || 'Ana Cliente');
+  const [userEmail, setUserEmail] = useState(profile?.email || 'ana.cliente@verzel.com');
+
+  useEffect(() => {
+    if (profile) {
+      setUserName(profile.name);
+      setUserEmail(profile.email);
+    }
+  }, [profile]);
 
   // Credit Card Form
   const [cardNumber, setCardNumber] = useState('4242 4242 4242 4242');

@@ -20,20 +20,24 @@ export const MyTickets: React.FC<MyTicketsProps> = ({ tickets, onBrowseEvents })
     let isMounted = true;
     const loadTickets = async () => {
       setLoading(true);
-      const effectiveEmail = profile?.email || 'ana.cliente@verzel.com';
-      const data = await api.fetchUserTickets(effectiveEmail);
+      const effectiveEmail = profile?.email;
+      let data: TicketItem[] = [];
+      if (effectiveEmail) {
+        data = await api.fetchUserTickets(effectiveEmail);
+      } else {
+        data = api.getTickets();
+      }
+
       if (isMounted) {
-        // Fusão idempotente: prioriza dados do banco remoto mas preserva ingressos recém-comprados em memória
-        setRemoteTickets((prev) => {
-          const combined = [...data];
-          // Adiciona ingressos locais que ainda não estejam na lista remota
-          [...tickets, ...prev].forEach((local) => {
-            if (!combined.some((item) => item.id === local.id)) {
-              combined.push(local);
-            }
-          });
-          return combined;
+        // Fusão idempotente: prioriza dados do banco remoto mas preserva ingressos recém-comprados deste usuário
+        const combined = [...data];
+        tickets.forEach((local) => {
+          const belongsToUser = !effectiveEmail || local.user_email === effectiveEmail;
+          if (belongsToUser && !combined.some((item) => item.id === local.id)) {
+            combined.unshift(local);
+          }
         });
+        setRemoteTickets(combined);
         setLoading(false);
       }
     };
@@ -54,7 +58,7 @@ export const MyTickets: React.FC<MyTicketsProps> = ({ tickets, onBrowseEvents })
   };
 
   return (
-    <div className="space-y-6 pb-28 sm:pb-16 max-w-6xl mx-auto">
+    <div className="space-y-6 pb-28 sm:pb-16 max-w-6xl mx-auto w-full overflow-x-hidden">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-zinc-800/80 pb-5">
         <div className="space-y-1">
@@ -123,7 +127,7 @@ export const MyTickets: React.FC<MyTicketsProps> = ({ tickets, onBrowseEvents })
               </button>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 w-full">
               {activeTickets.map((t) => (
                 <TicketCard key={t.id} ticket={t} />
               ))}

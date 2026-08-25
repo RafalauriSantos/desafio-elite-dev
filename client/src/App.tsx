@@ -13,12 +13,25 @@ import { PasswordRecovery } from './pages/PasswordRecovery';
 type Tab = 'catalog' | 'event-details' | 'my-tickets' | 'gatekeeper' | 'event-management';
 
 export function App() {
-  const { loading, session, profile, recoveryMode, isDemoMode, signOut } = useAuth();
+  const { loading, session, profile, recoveryMode, isDemoMode, signIn, signOut } = useAuth();
   const [activeTab, setActiveTab] = useState<Tab>('catalog');
   const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
   const [tickets, setTickets] = useState<TicketItem[]>([]);
   const [showLoginModal, setShowLoginModal] = useState(false);
-  const [activePersona, setActivePersona] = useState<Persona>(SEED_PERSONAS[0]); // Default: Ana Cliente
+  const [activePersona, setActivePersona] = useState<Persona>(() => {
+    if (profile?.email) {
+      const match = SEED_PERSONAS.find((p) => p.email === profile.email);
+      if (match) return match;
+    }
+    return SEED_PERSONAS[0];
+  });
+
+  React.useEffect(() => {
+    if (profile?.email) {
+      const match = SEED_PERSONAS.find((p) => p.email === profile.email);
+      if (match) setActivePersona(match);
+    }
+  }, [profile?.email]);
 
   React.useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -65,11 +78,23 @@ export function App() {
     );
   }
 
-  const effectiveRole = profile?.role ?? activePersona.role;
-  const effectiveName = profile?.name ?? activePersona.name;
+  const effectiveRole = profile?.role ?? 'client';
+  const effectiveName = profile?.name ?? 'Visitante';
+  const isAuthenticated = !!profile;
 
-  const handlePersonaSelect = (persona: Persona) => {
+  const handleTabChange = (tab: Tab) => {
+    // RBAC Route Guard: If trying to access organizer or gatekeeper without auth, open login
+    if ((tab === 'event-management' || tab === 'gatekeeper') && !isAuthenticated) {
+      setShowLoginModal(true);
+      return;
+    }
+    setActiveTab(tab);
+  };
+
+  const handlePersonaSelect = async (persona: Persona) => {
     setActivePersona(persona);
+    // Automatic real sign-in for the selected seed persona
+    await signIn(persona.email, 'verzel2026');
     if (persona.role === 'gatekeeper') {
       setActiveTab('gatekeeper');
     } else if (persona.role === 'organizer') {
@@ -82,16 +107,16 @@ export function App() {
   return (
     <Layout
       activeTab={activeTab}
-      onTabChange={(tab) => setActiveTab(tab)}
+      onTabChange={handleTabChange}
       ticketCount={tickets.length}
       role={effectiveRole}
       activePersona={activePersona}
       onSelectPersona={handlePersonaSelect}
-      isDemoMode={isDemoMode}
-      isAuthenticated={!!session}
+      isDemoMode={!isAuthenticated}
+      isAuthenticated={isAuthenticated}
       userName={effectiveName}
       onOpenLogin={() => setShowLoginModal(true)}
-      onSignOut={isDemoMode ? undefined : signOut}
+      onSignOut={signOut}
     >
       {activeTab === 'catalog' && (
         <Catalog onSelectEvent={handleSelectEvent} role={effectiveRole} />
