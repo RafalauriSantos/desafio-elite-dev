@@ -6,6 +6,8 @@ export interface ExternalCatalogItem {
   description: string;
   banner_url: string;
   category: string;
+  venue?: string;
+  date?: string;
 }
 
 export const EXTERNAL_CATALOG: ExternalCatalogItem[] = [

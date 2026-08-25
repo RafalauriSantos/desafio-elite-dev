@@ -5,6 +5,7 @@ export type Bindings = {
   RESEND_API_KEY?: string;
   RESEND_FROM_EMAIL?: string;
   TMDB_API_KEY?: string;
+  TICKETMASTER_API_KEY?: string;
   ENVIRONMENT?: string;
 };
 
