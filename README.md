@@ -62,12 +62,13 @@ No modal de checkout, o usuário pode alternar entre **Simular Aprovação** e *
 
 | Recurso / Componente | Status Real | Detalhes de Implementação & Decisões |
 | :--- | :---: | :--- |
-| **API do TMDb (Filmes)** | 🟢 **Real / Ao Vivo** | Chamadas HTTP reais para `api.themoviedb.org` no backend (`/api/external-catalog?source=tmdb`). Busca ao vivo de títulos e filmes populares em cartaz. |
-| **Ticketmaster (Shows)** | 🟡 **Catálogo Seed** | Catálogo curado de 24 atrações em TypeScript. Decisão intencional para evitar instabilidade de quotas/chaves da Discovery API durante testes da banca. |
-| **Banco & Concorrência** | 🟢 **Real / ACID** | Supabase (PostgreSQL 15) com Stored Procedures PL/pgSQL executando `SELECT ... FOR UPDATE ORDER BY id ASC` e RLS ativado. |
-| **Autenticação (RBAC)** | 🟢 **Real / Supabase** | Sessão via Supabase Auth com verificação estrita de JWT Bearer no Cloudflare Worker. |
-| **Criptografia Anti-Fraude** | 🟢 **Real / Web Crypto** | Geração e validação de assinatura digital HMAC-SHA256 no servidor com chave secreta. |
-| **Gateway de Pagamento** | 🟡 **Simulado** | Simulação intencional (sem cobrança financeira real) com suporte a cenários de **Aprovação** e **Recusa com Rollback**. |
+| **API do TMDb (Filmes)** | 🟢 **Real / Ao Vivo** | Chamadas HTTP reais para `api.themoviedb.org` no Cloudflare Worker (`/api/external-catalog?source=tmdb`). Busca de filmes populares e pesquisa por títulos em tempo real com `source: 'tmdb-live'`. |
+| **Ticketmaster (Shows)** | 🟢 **Real / Ao Vivo** | Integração oficial com a **Ticketmaster Discovery API v2** (`app.ticketmaster.com/discovery/v2/events.json`) no Worker com fallback curado (`source: 'ticketmaster-curated'`) caso o ambiente de teste não possua chave privada configurada. |
+| **Banco & Concorrência** | 🟢 **Real / ACID** | Supabase (PostgreSQL 15) com Stored Procedures PL/pgSQL executando `SELECT ... FOR UPDATE ORDER BY id ASC` e RLS ativado, prevenindo dupla venda e deadlocks. |
+| **Autenticação & RBAC** | 🟢 **Real / Supabase** | Autenticação com Supabase Auth / Profiles e controle de acesso baseado em papéis (Cliente, Organizador, Portaria) com sessão persistida. |
+| **Criptografia Anti-Fraude** | 🟢 **Real / Web Crypto** | Geração e validação de assinatura digital HMAC-SHA256 no servidor com chave secreta, impedindo falsificação e ataques de repetição. |
+| **Responsividade Mobile** | 🟢 **Real / 100% Auditada** | Layout validado no iPhone XR (414px) e iPhone SE (375px) sem estouro horizontal, com recortes de bilhete contidos e safe-area adaptada. |
+| **Gateway de Pagamento** | 🟡 **Simulado** | Simulação intencional (sem cobrança bancária real) com suporte a cenários de **Aprovação** e **Recusa com Rollback** atômico de assento. |
 
 ---
 

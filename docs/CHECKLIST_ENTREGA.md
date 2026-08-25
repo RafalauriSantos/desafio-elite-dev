@@ -10,16 +10,16 @@ Neste documento, estruturei a comparação direta entre o que o edital da Verzel
 | :--- | :--- | :--- |
 | **Busca e navegação no catálogo** | Catálogo em tempo real com busca por texto e filtro de categorias | `client/src/pages/Catalog.tsx` |
 | **Criação e gestão de eventos** | Modal de publicação com importação de dados externos | `client/src/components/OrganizerModal.tsx` |
-| **Importação de catálogo externo** | Integração com a API do **TMDb** e catálogo curado de 24 atrações | `server/src/routes/catalog.ts` |
+| **Importação de catálogo externo** | Integração em tempo real com **TMDb** e **Ticketmaster Discovery API v2** com fallback curado de alta estabilidade | `server/src/routes/catalog.ts` |
 | **Reserva por mapa de assentos** | Mapa interativo com 80 assentos particionados por evento | `client/src/components/SeatMap.tsx` |
-| **Prevenção de dupla venda** | Stored Procedure com `SELECT ... FOR UPDATE ORDER BY id ASC` | `supabase/schema.sql` |
+| **Prevenção de dupla venda** | Stored Procedure com `SELECT ... FOR UPDATE ORDER BY id ASC` | `supabase/migrations/20260812171705_production_access_contract.sql` |
 | **Checkout simulado** | Confirmação e recusa com devolução imediata do assento ao estoque | `client/src/components/CheckoutModal.tsx` |
-| **Meus Ingressos com QR** | Carteira de ingressos com QR Code de alta densidade | `client/src/pages/MyTickets.tsx` |
+| **Meus Ingressos com QR** | Carteira de ingressos com QR Code de alta densidade e isolamento de titular | `client/src/pages/MyTickets.tsx` |
 | **QR Code infalsificável** | Assinatura HMAC-SHA256 gerada no servidor com chave secreta | `server/src/crypto.ts` |
 | **Compartilhar ingresso por link** | Link direto (`?ticket=UUID`) com visualização pública sem login | `server/src/routes/tickets.ts` |
-| **Tela de portaria (4 estados)** | Validação atômica de `Válido`, `Já Usado`, `Inválido` e `Show Errado` | `client/src/pages/Gatekeeper.tsx` |
+| **Tela de portaria (4 estados)** | Validação atômica de `Válido`, `Já Usado`, `Inválido` e `Evento Errado` | `client/src/pages/Gatekeeper.tsx` |
 | **Scanner por câmera e manual** | Leitor via câmera (`html5-qrcode`) e formulário com teclado | `client/src/components/QRScanner.tsx` |
-| **Autenticação com 3 papéis** | Suporte a `Organizador`, `Cliente` e `Portaria` com RBAC | `server/src/middleware/auth.ts` |
+| **Autenticação com 3 papéis** | Autenticação com Supabase Auth / Profiles, persistência de sessão e RBAC para `Organizador`, `Cliente` e `Portaria` | `client/src/auth/AuthContext.tsx` |
 | **Deploy em produção** | Front-End na Cloudflare Pages e API no Cloudflare Workers | [elite-tickets.pages.dev](https://elite-tickets.pages.dev) |
 
 ---
